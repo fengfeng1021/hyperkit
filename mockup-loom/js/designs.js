@@ -33,20 +33,20 @@ export function inspectFile(file) {
   if (file.type === 'image/svg+xml' || /\.svg$/i.test(name)) {
     return {
       ok: false,
-      message: `Vector SVG needs a fixed size to rasterize. Export it as a PNG at 2000 px wide.`
+      message: `SVG 是向量檔，要有固定尺寸才能轉成點陣。請先另存成寬 2000 px 的 PNG。`
     };
   }
   if (!IMAGE_TYPES.includes(file.type)) {
     return {
       ok: false,
-      message: `${name} is not an image the browser can read. Export it as PNG.`
+      message: `${name} 不是瀏覽器讀得懂的圖檔。請另存成 PNG。`
     };
   }
   if (file.size > MAX_BYTES) {
     return {
       ok: false,
-      message: `${name} is ${Math.round(file.size / 1048576)} MB. Files over 40 MB are skipped to keep the tab responsive.`,
-      action: { label: 'Add anyway', kind: 'force' }
+      message: `${name} 有 ${Math.round(file.size / 1048576)} MB。超過 40 MB 的檔案預設會跳過，免得分頁卡住。`,
+      action: { label: '還是加進來', kind: 'force' }
     };
   }
   return { ok: true };
@@ -59,17 +59,17 @@ export async function decodeFile(file, { downscale = false } = {}) {
   try {
     probe = await createImageBitmap(file);
   } catch (err) {
-    throw new DesignError(`${name} could not be decoded. The file may be damaged.`);
+    throw new DesignError(`${name} 解不開，檔案可能壞了。`);
   }
 
   const big = Math.max(probe.width, probe.height);
   if (big > MAX_EDGE && !downscale) {
-    const dim = probe.width >= probe.height ? 'wide' : 'tall';
+    const dim = probe.width >= probe.height ? '寬' : '高';
     const px = probe.width >= probe.height ? probe.width : probe.height;
     probe.close?.();
     throw new DesignError(
-      `${name} is ${px} px ${dim}. The maximum is ${MAX_EDGE} px.`,
-      { label: 'Downscale and add', kind: 'downscale' }
+      `${name} ${dim} ${px} px，超過上限的 ${MAX_EDGE} px。`,
+      { label: '縮小再加進來', kind: 'downscale' }
     );
   }
 
@@ -94,7 +94,7 @@ export async function decodeFile(file, { downscale = false } = {}) {
     sample: false,
     soft: small < SOFT_EDGE,
     softNote: small < SOFT_EDGE
-      ? `${name} is ${small} px on its short edge. It will look soft at export size.`
+      ? `${name} 短邊只有 ${small} px，放大到輸出尺寸會糊掉。`
       : ''
   };
 }

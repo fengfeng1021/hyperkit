@@ -98,9 +98,12 @@
      display, condensed for the dense control rails.
      Fragment Mono carries numbers, file names, sizes, angles and seeds.
      Nothing else. Never as a costume for "technical".
+     Bricolage has no CJK coverage, so Noto Sans TC sits directly behind it:
+     latin still resolves to Bricolage, han resolves to Noto Sans TC, and the
+     system default never gets a turn.
      --------------------------------------------------------------------- */
 
-  --font-ui:   "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-ui:   "Bricolage Grotesque", "Noto Sans TC", "Segoe UI", system-ui, sans-serif;
   --font-num:  "Fragment Mono", ui-monospace, "SFMono-Regular", monospace;
 
   /* size / line-height */

@@ -113,7 +113,7 @@ export class IndexList {
       const snippet = el("p", { class: "card__snippet" });
       snippet.append(markTerms(snippetAround(text, this.terms, 150), this.terms));
       const onPath = nodeIndex < 0 || (rec.pathIds && rec.pathIds.includes(rec.nodes[nodeIndex].id));
-      if (!onPath) snippet.append(el("em", { class: "card__alt", text: " on an alternate branch" }));
+      if (!onPath) snippet.append(el("em", { class: "card__alt", text: "（在另一條分支上）" }));
       row.append(snippet);
     }
 
@@ -123,7 +123,7 @@ export class IndexList {
       el("span", { class: "card__sep", "aria-hidden": "true", text: "/" }),
       el("span", { text: day(rec.createdAt) }),
       el("span", { class: "card__sep", "aria-hidden": "true", text: "/" }),
-      el("span", { text: `${num(rec.msgCount)} messages` })
+      el("span", { text: `${num(rec.msgCount)} 則訊息` })
     );
     row.append(meta);
 
@@ -169,7 +169,7 @@ export class IndexList {
     const conditions = [...(parsed.conditions || []), ...drawerConditions];
 
     if (!phrase && !conditions.length) {
-      host.append(el("p", { class: "empty__lead", text: "This vault is empty." }));
+      host.append(el("p", { class: "empty__lead", text: "金庫是空的。" }));
       return;
     }
 
@@ -177,8 +177,8 @@ export class IndexList {
       el("p", {
         class: "empty__lead",
         text: phrase
-          ? `Nothing matches ${quoted(phrase)} with these filters.`
-          : "Nothing matches these filters.",
+          ? `在這些篩選條件下，沒有東西符合 ${quoted(phrase)}。`
+          : "沒有東西符合這些篩選條件。",
       })
     );
 
@@ -198,7 +198,7 @@ export class IndexList {
             }),
             el("span", {
               class: "empty__estimate",
-              text: `drop this to ${num(estimate)} ${estimate === 1 ? "match" : "matches"}`,
+              text: `拿掉這個條件會有 ${num(estimate)} 筆`,
             })
           )
         );
@@ -214,12 +214,12 @@ export class IndexList {
       host.append(
         el("p", {
           class: "empty__lead empty__lead--second",
-          text: `${quoted(phrase)} does not appear anywhere in your vault.`,
+          text: `${quoted(phrase)} 在整個金庫裡都沒有出現過。`,
         })
       );
       if (near.length) {
         host.append(
-          el("p", { class: "empty__near", text: `The closest terms in your vault are: ${[...new Set(near)].join(", ")}.` })
+          el("p", { class: "empty__near", text: `金庫裡最接近的詞是：${[...new Set(near)].join("、")}。` })
         );
       }
     }
@@ -281,15 +281,15 @@ export function drawerConditionList() {
   const f = state.filters;
   const out = [];
   if (f.source.size) {
-    out.push({ source: "drawer", filterKey: "source", label: `source: ${[...f.source].map(sourceLabel).join(", ")}` });
+    out.push({ source: "drawer", filterKey: "source", label: `來源：${[...f.source].map(sourceLabel).join("、")}` });
   }
-  if (f.role) out.push({ source: "drawer", filterKey: "role", label: `role: ${f.role === "human" ? "you asked" : "assistant said"}` });
+  if (f.role) out.push({ source: "drawer", filterKey: "role", label: `說話的人：${f.role === "human" ? "你問的" : "AI 答的"}` });
   if (f.from || f.to) {
-    const from = f.from ? monthLabel(f.from) : "the start";
-    const to = f.to ? monthLabel(f.to) : "now";
-    out.push({ source: "drawer", filterKey: "date", label: `dates: ${from} to ${to}` });
+    const from = f.from ? monthLabel(f.from) : "最早";
+    const to = f.to ? monthLabel(f.to) : "現在";
+    out.push({ source: "drawer", filterKey: "date", label: `日期：${from} 到 ${to}` });
   }
-  if (f.hasCode) out.push({ source: "drawer", filterKey: "hasCode", label: "only conversations with code" });
+  if (f.hasCode) out.push({ source: "drawer", filterKey: "hasCode", label: "只看有程式碼的對話" });
   return out;
 }
 
@@ -299,5 +299,5 @@ function monthLabel(ms) {
 }
 
 export function sourceLabel(source) {
-  return { chatgpt: "ChatGPT", claude: "Claude", gemini: "Gemini", custom: "Custom" }[source] || source;
+  return { chatgpt: "ChatGPT", claude: "Claude", gemini: "Gemini", custom: "自訂" }[source] || source;
 }

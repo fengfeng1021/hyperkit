@@ -20,28 +20,28 @@ function hexToRgb(hex) {
 
 export const COLORWAYS = {
   fabric: [
-    C('studio-grey', 'Studio Grey', '#B9B7B4'),
-    C('bone', 'Bone', '#E4E0D6'),
-    C('natural', 'Natural', '#D3C4A6'),
-    C('ochre', 'Ochre', '#B3771F'),
-    C('forest', 'Forest', '#2E4034', true),
-    C('black', 'Black', '#1B1B1B', true)
+    C('studio-grey', '棚拍灰', '#B9B7B4'),
+    C('bone', '骨白', '#E4E0D6'),
+    C('natural', '原胚色', '#D3C4A6'),
+    C('ochre', '赭黃', '#B3771F'),
+    C('forest', '森綠', '#2E4034', true),
+    C('black', '黑', '#1B1B1B', true)
   ],
   rigid: {
     mug: [
-      C('gloss-white', 'Gloss White', '#F1F1F1'),
-      C('matte-black', 'Matte Black', '#1A1A1A', true),
-      C('cobalt', 'Cobalt', '#1E3E7B', true)
+      C('gloss-white', '亮面白', '#F1F1F1'),
+      C('matte-black', '霧面黑', '#1A1A1A', true),
+      C('cobalt', '鈷藍', '#1E3E7B', true)
     ],
     poster: [
-      C('bright-white', 'Bright White', '#F5F5F3'),
-      C('soft-white', 'Soft White', '#EAE7E0'),
-      C('charcoal', 'Charcoal', '#2B2B2B', true)
+      C('bright-white', '純白', '#F5F5F3'),
+      C('soft-white', '柔白', '#EAE7E0'),
+      C('charcoal', '炭灰', '#2B2B2B', true)
     ],
     sticker: [
-      C('white', 'White', '#F6F6F4'),
-      C('kraft', 'Kraft', '#C9A97B'),
-      C('black', 'Black', '#191919', true)
+      C('white', '白', '#F6F6F4'),
+      C('kraft', '牛皮紙', '#C9A97B'),
+      C('black', '黑', '#191919', true)
     ]
   }
 };

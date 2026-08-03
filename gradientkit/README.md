@@ -1,227 +1,209 @@
-# GradientKit
+# 漸層工坊 GradientKit
 
-A gradient editor that interpolates in OKLCH instead of sRGB, shows you the exact point where the
-grey band disappears, and hands you production CSS with a real fallback.
+一個在 OKLCH 而不是 sRGB 裡插值的漸層編輯器。它會指出灰帶最嚴重的那一點在哪，並給你可以直接
+上線的 CSS，連真正能用的備援一起。
 
-Live: `https://fengfeng1021.github.io/hyperkit/gradientkit/`
+線上版：`https://fengfeng1021.github.io/hyperkit/gradientkit/`
 
 ---
 
-## What it is
+## 這是什麼
 
-Every other gradient generator interpolates in sRGB, which physically cannot avoid the desaturated
-grey band between two saturated colors. GradientKit interpolates in OKLCH, measures how much chroma
-the sRGB route gives up, and prints the number.
+其他漸層產生器都在 sRGB 裡插值，這在物理上就避不開兩個高彩度顏色中間那條掉色的灰帶。漸層工坊
+在 OKLCH 裡插值，量出 sRGB 那條路賠掉多少彩度，然後把數字印出來。
 
-That is the whole product. Mesh fields, grain, dither, exports, the contrast probe and the colorblind
-simulation exist to make that one sentence usable at work.
+整個產品就是這一句話。網格、顆粒、抖色、各種輸出、對比量測、色覺模擬，存在的理由都是為了讓這
+一句話在工作上真的用得上。
 
-The interface carries no hue of its own. Pure black, white hairlines, one grey step. A color tool
-with a brand accent is a broken instrument, so success is not green, error is not red, and focus is
-not blue. Every hue you see on screen is yours.
+介面本身沒有任何色相。純黑、白色髮絲線、一階灰。一個有品牌色的色彩工具是壞掉的儀器，所以這裡
+成功不是綠色、錯誤不是紅色、focus 也不是藍色。畫面上每一個你看到的色相都是你自己的。
 
-## How to use it
+## 怎麼用
 
-Open it. There is no sign-up, no empty state and no onboarding: the instrument is already running
-with a specimen mounted.
+打開就好。不用註冊、沒有空白畫面、沒有導覽流程：儀器已經在跑了，標本也已經上好。
 
-1. **Press Space.** A seam appears across the stage. Left of it the gradient is interpolated in
-   OKLCH, right of it in the space you were in. The bracket marks the worst point and prints the real
-   chroma difference. Drag the seam to compare anywhere along the ramp.
-2. **Edit.** Drag a stop on the rule under the stage, click the rule to insert one, double-click a
-   handle to open its color popover with hex plus L, C and H. Numbers can be typed or scrubbed by
-   dragging the field's label.
-3. **Copy.** The right rail already holds the CSS, with an `@supports` block and an sRGB fallback
-   resampled from the OKLCH curve at nine stops. SVG, Tailwind v4 and PNG are one tab away.
-4. **Share.** `Copy link` puts the whole gradient in the URL. The person who opens it gets an
-   editable document, not a screenshot.
+1. **按空白鍵。** 載物台上會出現一條接縫。左邊是 OKLCH 插值的結果，右邊是你原本所在的色彩空
+   間。方括號會框住最糟的那一點，把真正的彩度差印出來。接縫可以拖，斜坡上任何位置都能比。
+2. **改。** 在載物台下面那把尺上拖色標，點尺就插一個新的，連點色標把手會開出顏色小面板，裡面
+   有 hex 加 L、C、H。數字可以直接打，也可以拖欄位標籤來刷。
+3. **複製。** 右欄早就備好 CSS 了，含 `@supports` 區塊，以及從 OKLCH 曲線重新取九個位置抓下
+   來的 sRGB 備援。SVG、Tailwind v4 和 PNG 都在隔壁分頁。
+4. **分享。** 按「複製連結」會把整個漸層塞進網址。收到連結的人打開是一份可以改的文件，不是一
+   張截圖。
 
-**No file of your own?** `Load reference set` in the bar loads twelve gradient specimens and three
-mesh fields, sets the workbench to `Deep Field`, turns grain on and fills the contrast probe. One
-click to a complete, populated result. The same data is in `assets/reference-set.json` if you would
-rather read it or feed it to your own tooling.
+**手邊沒有素材？** 列上的「載入範例櫃」會載入十二組漸層標本和三組網格，把工作區換成「深空」、
+把顆粒打開、順便填好對比量測。一鍵就有一個完整、有內容的結果。同一份資料也放在
+`assets/reference-set.json`，你想用讀的、或餵給自己的工具都可以。
 
-### Keyboard
+### 鍵盤
 
-| Key | Action |
+| 按鍵 | 動作 |
 |---|---|
-| `Space` | Compare the current space against OKLCH |
-| `1` `2` `3` | Linear, radial, conic |
-| `Q` `W` `E` `R` | sRGB, HSL, OKLab, OKLCH without the comparison |
-| `M` | Switch between gradient and mesh |
-| `G` / `D` | Grain on or off, dither on or off |
-| `C` | Cycle the vision simulation |
-| `T` | Jump to the contrast probe |
-| `+` / `-` | Add a stop at the widest gap, delete the focused stop |
-| `[` `]` | Move between stops or mesh points |
-| `Ctrl/Cmd + C` `S` `Z` | Copy the open tab, save locally, undo (add Shift to redo) |
-| `?` | Shortcut panel |
-| `Esc` | Cancel a drag, close a popover, revert a field |
+| `Space` | 拿目前的色彩空間跟 OKLCH 比一次 |
+| `1` `2` `3` | 線性、放射、圓錐 |
+| `Q` `W` `E` `R` | 切到 sRGB、HSL、OKLab、OKLCH，不跑比對 |
+| `M` | 在漸層和網格之間切換 |
+| `G` / `D` | 顆粒開關、抖色開關 |
+| `C` | 輪流切換色覺模擬 |
+| `T` | 跳到對比量測 |
+| `+` / `-` | 在最寬的空隙加一個色標、刪掉目前選到的 |
+| `[` `]` | 在色標或網格點之間移動 |
+| `Ctrl/Cmd + C` `S` `Z` | 複製目前開著的分頁、存到本機、復原（加 Shift 是重做） |
+| `?` | 快速鍵面板 |
+| `Esc` | 取消拖曳、關掉小面板、還原欄位 |
 
-Every value is reachable from the keyboard, including stop positions, stop colors and mesh points.
-Stop handles are real sliders with `aria-valuetext`, and the stage regenerates its own description on
-every commit.
+每一個值都能用鍵盤操作，包含色標位置、色標顏色和網格點。色標把手是真的 slider，帶
+`aria-valuetext`，載物台則會在每次變動後重新產生自己的描述文字。
 
-## Technical notes
+## 技術細節
 
-Static page. No build step, no bundler, no framework, no runtime dependency. Native HTML, CSS custom
-properties and ES modules. Open `index.html` from a web server and it works.
+純靜態頁面。沒有 build step、沒有 bundler、沒有 framework、沒有 runtime 相依。原生 HTML、CSS
+custom properties 和 ES modules。從任何一台 web server 打開 `index.html` 就能跑。
 
-### The color math is hand-written
+### 色彩運算是手寫的
 
-`js/color.js` implements the whole chain and imports nothing:
+`js/color.js` 實作了整條鏈，而且一個東西都沒 import：
 
-- sRGB to linear-sRGB with the exact piecewise transfer function, sign-preserving so out-of-gamut
-  intermediates survive the round trip. The `pow(c, 2.2)` shortcut is not used anywhere, including in
-  the shader, which is where most WebGL gradient tools quietly lose accuracy in the darks.
-- linear-sRGB to OKLab and back with Bjorn Ottosson's matrices at full precision, using `cbrt`
-  rather than `pow(x, 1/3)` because `l`, `m` and `s` do go negative during gamut mapping.
-- OKLab to OKLCH, where hue is `NaN` and never `0` for achromatic colors. Carrying a fake hue of zero
-  is exactly the bug that swings a black-to-orange ramp through red.
-- Gamut mapping per CSS Color 4 section 13.2: binary search on chroma with a delta-E-OK acceptance
-  test, not a naive per-channel clip. The clipped chroma and the delta E are surfaced in the color
-  popover as real numbers.
-- Hue interpolation along the shortest arc, with powerless-hue carry.
-- WCAG 2.1 relative luminance and contrast ratio. APCA is deliberately not implemented: its
-  specification is still revising, and shipping a number that later changes would break the one thing
-  this tool sells.
+- sRGB 轉 linear-sRGB 用完整的分段轉換函式，而且保留正負號，所以超出色域的中間值能撐過來回轉
+  換。`pow(c, 2.2)` 這種偷吃步在任何地方都沒用，包含 shader 裡——那正是多數 WebGL 漸層工具在
+  暗部悄悄失準的地方。
+- linear-sRGB 轉 OKLab 和轉回來，用 Bjorn Ottosson 的矩陣、全精度，並且用 `cbrt` 而不是
+  `pow(x, 1/3)`，因為 `l`、`m`、`s` 在色域對應過程中真的會變成負的。
+- OKLab 轉 OKLCH，無彩色的色相是 `NaN` 而絕不是 `0`。硬塞一個假的色相 0，正是讓黑到橘的斜坡
+  繞過紅色的那個 bug。
+- 色域對應照 CSS Color 4 第 13.2 節：對彩度做二分搜尋，用 Delta E OK 當接受條件，而不是天真
+  地逐通道裁切。被裁到的彩度和 Delta E 都會在顏色小面板裡以實際數字呈現。
+- 色相沿最短弧插值，並處理無色相端點的色相沿用。
+- WCAG 2.1 相對亮度與對比比值。APCA 刻意不實作：它的規格還在改，而送出一個之後會變的數字，會
+  砸掉這個工具唯一在賣的東西。
 
-`tools/check-color.mjs` asserts the `hex -> OKLCH -> hex` round trip on 4096 evenly spaced colors
-plus 2000 random ones, checks the Bayer recursion against its closed form, checks powerless-hue
-carry, and checks that white on black is exactly 21:1. Run `node tools/check-color.mjs` after
-touching the math.
+`tools/check-color.mjs` 會驗 4096 個等距顏色加 2000 個隨機顏色的 `hex -> OKLCH -> hex` 來回轉
+換、驗 Bayer 遞迴跟它的封閉解一致、驗無色相沿用、驗白底黑字剛好是 21:1。動過運算之後記得跑
+`node tools/check-color.mjs`。
 
-### Rendering
+### 算圖
 
-`js/render.js` is a WebGL2 fragment shader that is the GPU twin of `js/gradient.js`. It does the same
-conversions, the same shortest-arc hue interpolation and a fixed 12-iteration form of the same gamut
-search, because unbounded loops are hostile to GLSL compilers.
+`js/render.js` 是一支 WebGL2 fragment shader，是 `js/gradient.js` 的 GPU 雙胞胎。同樣的轉換、
+同樣的最短弧色相插值，以及同一套色域搜尋的固定 12 次迭代版本——因為沒有上界的迴圈對 GLSL 編
+譯器很不友善。
 
-- Device pixel ratio is capped at 2 to bound fragment cost.
-- Ordered dither is an 8x8 Bayer matrix generated by the standard recursion, applied at exactly
-  `1/255` immediately before the 8-bit write, in gamma-encoded space. That is what removes the
-  banding you can see in the loupe with dither off.
-- Grain is hash noise applied in linear light, so it behaves like film in the shadows rather than
-  like additive whitening. Grain size changes the particle size, not just the density.
-- Color vision matrices are applied in linear light and never to an export.
-- If WebGL2 is missing, the shader fails to link, or the context is lost, the stage falls through to
-  a Canvas2D path that runs the same math at one sixth the linear resolution, and says so. Exports
-  stay full resolution either way, rendered in 256px tiles with a yield between tiles.
+- Device pixel ratio 上限壓在 2，把 fragment 成本框住。
+- 有序抖色是用標準遞迴產生的 8x8 Bayer 矩陣，在 gamma 編碼空間、8-bit 寫入前一刻以剛好 `1/255`
+  的幅度施加。這就是把你在放大鏡裡看到的色帶消掉的東西。
+- 顆粒是在線性光下施加的 hash noise，所以它在暗部的行為像底片，而不是加成式地把畫面洗白。顆粒
+  大小改的是顆粒本身的尺寸，不只是密度。
+- 色覺矩陣在線性光下施加，而且永遠不會進到輸出檔案裡。
+- 如果沒有 WebGL2、shader link 失敗、或 context 掉了，載物台會退到 Canvas2D 路徑，跑同樣的運
+  算但線性解析度只有六分之一，而且會講出來。無論走哪條路，輸出都維持全解析度，以 256px 為單位
+  分塊算，每塊之間讓出主執行緒。
 
-### Mesh
+### 網格
 
-`N` control points, each with an OKLab color and a radius, blended by inverse distance weighting in
-OKLab. OKLab, not sRGB, is what stops the grey seams where lobes meet, which is the same argument as
-the gradient case.
+`N` 個控制點，每個帶一個 OKLab 顏色和一個半徑，在 OKLab 裡用反距離加權混合。用 OKLab 而不是
+sRGB，就是色團交界不會出現灰縫的原因，跟漸層那邊的道理一樣。
 
-### Output
+### 輸出
 
-- **CSS**: an sRGB block whose stops are resampled from the OKLCH curve at nine positions, plus an
-  `@supports` block with real `oklch()` values. Both are round-tripped through `CSS.supports()` in
-  your browser before they are offered for copy. The fallback is never a two-stop guess.
-- **SVG**: real `linearGradient` and `radialGradient` in `objectBoundingBox` units with the angle in
-  `gradientTransform`, resampled to seventeen sRGB stops. Conic has no SVG primitive, so that tab
-  embeds a 512px raster of exactly what the stage shows and says so.
-- **Tailwind**: v4 `@theme`, not a v3 config object.
-- **PNG**: rendered by the same shader at the target size, so dither and grain land at full
-  resolution. Falls back to 2048px if the device cannot allocate 4096px, and tells you.
+- **CSS**：一段 sRGB，色標是從 OKLCH 曲線上重新取九個位置抓下來的；再加一段 `@supports`，裡面
+  是真正的 `oklch()` 值。兩段在給你複製之前，都先在你的瀏覽器裡用 `CSS.supports()` 來回驗過。
+  備援絕不是兩個色標硬猜的。
+- **SVG**：真的 `linearGradient` 和 `radialGradient`，用 `objectBoundingBox` 單位，角度放在
+  `gradientTransform`，重新取樣成十七個 sRGB 色標。圓錐在 SVG 裡沒有對應的原生元素，所以那個
+  分頁改成嵌一張 512px 的點陣圖，內容就是載物台上看到的，而且會明講。
+- **Tailwind**：v4 的 `@theme`，不是 v3 的 config 物件。
+- **PNG**：用同一支 shader 直接在目標尺寸算，所以抖色和顆粒是全解析度長出來的。裝置配不出
+  4096px 就退到 2048px，而且會告訴你。
 
-### State
+### 狀態
 
-The URL hash carries everything: `#gk1&k=g&t=l&a=200&i=oklch&s=071033@0,4FE3C1@78,EAFFF7@100&d=1`.
-Parsing is total. Every field is validated on its own, an invalid field falls back to its default
-instead of aborting the parse, and there is no code path where reading a hash throws. Writes use
-`history.replaceState`, so editing a gradient does not fill the back button with hundreds of entries.
+網址 hash 帶了全部：`#gk1&k=g&t=l&a=200&i=oklch&s=071033@0,4FE3C1@78,EAFFF7@100&d=1`。解析是完
+備的：每個欄位各自驗證，壞掉的欄位退回自己的預設值而不是中止整段解析，而且不存在任何一條讀
+hash 會丟例外的路徑。寫入用 `history.replaceState`，所以改漸層不會把上一頁按鈕塞滿幾百筆記錄。
 
-Undo is a 50-step ring. A whole drag gesture is one entry; consecutive edits to the same field within
-600ms coalesce.
+復原是 50 步的環狀緩衝。整個拖曳手勢算一筆；同一個欄位在 600ms 內的連續編輯會合併成一筆。
 
-## Privacy
+## 隱私
 
-Everything runs in your tab.
+全部都在你的分頁裡跑。
 
-- No account, no server, no upload, no analytics, no cookies.
-- Gradients you save go to this browser's `localStorage` under `gk.saved.v1` and nowhere else. If the
-  browser blocks storage, the panel says so and points at share links instead of breaking.
-- Dropped images are decoded in memory to read four colors out of them, and are never uploaded or
-  retained.
-- A share link carries the gradient inside the URL, so sharing does not create a record anywhere.
-- The only network requests the page makes are for the two Google Fonts and the GSAP script on the
-  CDN. Block them and the tool still works.
+- 不用帳號、沒有伺服器、不上傳、沒有分析、沒有 cookie。
+- 你存的漸層放進這個瀏覽器的 `localStorage`，key 是 `gk.saved.v1`，不會去別的地方。如果瀏覽器
+  擋掉儲存，面板會講清楚，並改推分享連結，而不是直接壞掉。
+- 丟進來的圖只在記憶體裡解碼，用來讀出四個顏色，從不上傳也不留存。
+- 分享連結把漸層帶在網址裡，所以分享不會在任何地方留下記錄。
+- 這一頁唯一會發出的網路請求，是 Google Fonts 的字型和 CDN 上的 GSAP。把它們擋掉，工具照樣能用。
 
-## Files
+## 檔案
 
 ```
 gradientkit/
-  index.html              direction contract, full structure
-  css/tokens.css          the only place a literal color may appear
-  css/style.css           layout, components, states, breakpoints
-  js/color.js             color science, pure functions, zero imports
-  js/gradient.js          sampling, ramps, deficits, CPU raster
-  js/render.js            WebGL2 shader plus Canvas2D fallback
-  js/state.js             store, hash schema, undo ring
-  js/presets.js           the reference set (sample data)
-  js/output.js            CSS, SVG, Tailwind, PNG generation
-  js/outputs.js           the output tabs and code block
-  js/track.js             the rule, stop handles, color popover
-  js/sweep.js             the comparison seam and its numbers
-  js/panels.js            vision, loupe, contrast probe, library
-  js/sections.js          comparison bands and the reference shelf
-  js/controls.js          numeric field, slider, toggle, radio group
-  js/extract.js           four stops from a dropped image
-  js/library.js           localStorage with quota and private-mode handling
-  js/notice.js            the single messaging surface
-  js/icons.js             Lucide path data, inlined
-  js/main.js              assembly, frame schedule, keyboard
-  assets/reference-set.json  the reference set as portable data
-  tools/check-color.mjs   run by hand, not part of a build
+  index.html              direction contract、完整結構
+  css/tokens.css          唯一可以出現色票字面值的地方
+  css/style.css           版面、元件、狀態、斷點
+  js/color.js             色彩科學，純函式，零 import
+  js/gradient.js          取樣、斜坡、彩度損失、CPU 光柵化
+  js/render.js            WebGL2 shader 加 Canvas2D 備援
+  js/state.js             store、hash schema、復原環
+  js/presets.js           範例櫃（示範資料）
+  js/output.js            CSS、SVG、Tailwind、PNG 的產生
+  js/outputs.js           輸出分頁與程式碼區塊
+  js/track.js             尺規、色標把手、顏色小面板
+  js/sweep.js             比對接縫和它的數字
+  js/panels.js            色覺、放大鏡、對比量測、本機收藏
+  js/sections.js          比較條與範例櫃層架
+  js/controls.js          數字欄位、slider、開關、radio group
+  js/extract.js           從丟進來的圖抓四個色標
+  js/library.js           localStorage，含配額與無痕模式處理
+  js/notice.js            唯一的訊息介面
+  js/icons.js             Lucide 的 path data，內嵌
+  js/main.js              組裝、影格排程、鍵盤
+  assets/reference-set.json  範例櫃的可攜資料
+  tools/check-color.mjs   手動執行，不屬於任何 build
 ```
 
-## Motion hooks
+## 動效掛勾
 
-The animation layer is `js/motion.js`, loaded after `main.js` and able to be deleted without
-changing anything the page says or does. It tweens plain numbers and writes them through the API
-below; no DOM element is animated for the sweep itself, which is what keeps it at 60fps.
+動效層是 `js/motion.js`，在 `main.js` 之後載入，整支刪掉也不會改變這一頁說的話或做的事。它補間
+的是純數字，再透過下面這組 API 寫回去；接縫本身沒有動到任何 DOM 元素，這就是它能維持 60fps 的
+原因。
 
-Three things animate, and no more. The sweep is the authored moment: 2.4s of constant-speed travel,
-a stop on the measured worst point to bracket it and type the real percentage, the rest of the
-crossing, one 1.5% breathe, the code wipe, and the divider parking on the finding. The other two are
-the one-time first-visit ring on the interpolation-space control and the grain phase advancing while
-a grain control is being adjusted. Nothing animates on scroll, so ScrollTrigger is not loaded.
+只有三件事會動，不多不少。掃描是那個招牌時刻：2.4 秒等速前進、在量到的最糟點停下來框住它並打
+出真正的百分比、走完剩下的路、一次 1.5% 的呼吸、程式碼的擦亮、接縫停在那個發現上。另外兩個是
+插值色彩空間控制項上只出現一次的首訪光環，以及調整顆粒時推進的顆粒相位。沒有任何東西跟捲動綁
+在一起，所以 ScrollTrigger 不會被載入。
 
-`window.GradientKit` exposes `store`, `renderer`, `sweep`, `track`, `announce`, `notice`,
-`scheduleFast` and `renderNow`.
+`window.GradientKit` 對外開放 `store`、`renderer`、`sweep`、`track`、`announce`、`notice`、
+`scheduleFast` 和 `renderNow`。
 
-| Hook | Where | What the motion layer does with it |
+| 掛勾 | 位置 | 動效層拿它做什麼 |
 |---|---|---|
-| `renderer.setSweep(x, shake, fromSpace)` | `js/render.js` | Tween `x` from 0 to 1 to drive the seam. `shake` is a pixel offset applied to the seam only. |
-| `sweep.choreograph(fn)` | `js/sweep.js` | Register the landing sequence. Return `true` and the sweep leaves the seam alone; register nothing and it lands on the measurement at once, which is the reduced-motion behaviour. |
-| `renderer.setGrainPhase(v)` | `js/render.js` | Preview-only grain phase, added to the seed. Never reaches an export. |
-| `.gk-sweep`, `.gk-sweep-rail`, `.gk-sweep-line`, `.gk-sweep-grip` | stage overlay | The seam. `--seam` (a percentage) and `--shake` are custom properties on `.gk-sweep`; the rail carries the transform, so the seam needs no measurement and survives a resize. |
-| `.gk-sweep-label` | stage overlay | `sRGB < | > OKLCH`, fades in over the first 240ms of travel. |
-| `.gk-sweep-bracket` | stage overlay | Dead-zone rectangle. Drawn left to right with `clip-path`, released by scaling to 1.06 and fading. |
-| `.gk-sweep-deficit` | stage overlay | The measured percentage. Types in under the bracket. |
-| `.gk-stage-canvas` | stage | The 1.5% breathe after the seam lands. Transform only. |
-| `.gk-code-wipe` | output panel | Changed-line highlight. Tween `clip-path`; the fill is `--user-mid-wash`, the gradient's own mid color, never green. |
-| `.gk-stop` | track | Hover, drag and the 220ms settle after a drop. Stays in CSS; the motion layer does not touch it. |
-| `.gk-spaces::after` | left rail | The one-time first-visit ring, driven by the `--pulse` custom property. Reads `document.documentElement.dataset.firstVisit`. |
-| `.gk-stage.is-scanning` | stage | Added for the duration of the sweep. Hides the hover crosshair and readout so two instruments do not fight over the same pixels. |
-| `.gk-notice`, `.gk-sheet`, `.gk-btn--arm::after` | various | Stay in CSS. Short functional transitions do not need a timeline. |
-| `.gk-tile`, `.gk-band` | sections B and C | Deliberately not animated. There is no scroll-reveal choreography in this build. |
+| `renderer.setSweep(x, shake, fromSpace)` | `js/render.js` | 把 `x` 從 0 補間到 1 來驅動接縫。`shake` 是只施加在接縫上的像素位移。 |
+| `sweep.choreograph(fn)` | `js/sweep.js` | 註冊落點序列。回傳 `true` 掃描就不碰接縫；什麼都不註冊的話，接縫會立刻落在量到的點上——那就是 reduced-motion 的行為。 |
+| `renderer.setGrainPhase(v)` | `js/render.js` | 只影響預覽的顆粒相位，加在 seed 上。永遠不會進到輸出。 |
+| `.gk-sweep`、`.gk-sweep-rail`、`.gk-sweep-line`、`.gk-sweep-grip` | 載物台覆蓋層 | 接縫。`--seam`（百分比）和 `--shake` 是 `.gk-sweep` 上的 custom property；transform 掛在軌道上，所以接縫不需要量測任何東西，也撐得住視窗縮放。 |
+| `.gk-sweep-label` | 載物台覆蓋層 | `sRGB < \| > OKLCH`，在前 240ms 的行程中淡入。 |
+| `.gk-sweep-bracket` | 載物台覆蓋層 | 死區方框。用 `clip-path` 由左往右畫出來，收尾時放大到 1.06 並淡出。 |
+| `.gk-sweep-deficit` | 載物台覆蓋層 | 量到的百分比。在方框底下逐字打出來。 |
+| `.gk-stage-canvas` | 載物台 | 接縫落定後 1.5% 的呼吸。只動 transform。 |
+| `.gk-code-wipe` | 輸出面板 | 變動行的高亮。補間 `clip-path`；填色用 `--user-mid-wash`，也就是這個漸層自己的中間色，絕不是綠色。 |
+| `.gk-stop` | 尺規 | Hover、拖曳，以及放開後 220ms 的落定。留在 CSS 裡，動效層不碰。 |
+| `.gk-spaces::after` | 左欄 | 只出現一次的首訪光環，由 `--pulse` custom property 驅動。讀 `document.documentElement.dataset.firstVisit`。 |
+| `.gk-stage.is-scanning` | 載物台 | 掃描期間掛上。把 hover 十字線和讀數藏起來，免得兩台儀器搶同一片像素。 |
+| `.gk-notice`、`.gk-sheet`、`.gk-btn--arm::after` | 各處 | 留在 CSS。短的功能性轉場不需要時間軸。 |
+| `.gk-tile`、`.gk-band` | B、C 區塊 | 刻意不做動效。這一版沒有捲動揭露的編排。 |
 
-All of it is wrapped in `gsap.matchMedia()` with a `reduce` branch. Under reduced motion no
-choreographer is registered, so the seam lands on the measured worst point immediately with the
-bracket drawn and the percentage printed, and it is draggable by pointer and by arrow key: the full
-lesson, at the user's own pace. Nothing in the stylesheet sets `opacity: 0` waiting for JavaScript,
-and the four elements that start hidden are not in the DOM until they are needed, so a script
-failure cannot leave the page blank. Every sequence is interruptible: touching the divider, pressing
-Esc, or loading a preset stops it in the same frame and hands control back.
+全部都包在 `gsap.matchMedia()` 裡，帶一個 `reduce` 分支。在 reduced motion 下不會註冊
+choreographer，所以接縫直接落在量到的最糟點上，方框已經畫好、百分比已經印出來，而且可以用指標
+和方向鍵拖：課上完了，只是節奏交給使用者。樣式表裡沒有任何一個元素設成 `opacity: 0` 等
+JavaScript 來救，四個一開始隱藏的元素在需要之前根本不在 DOM 裡，所以就算 script 掛了也不會留
+下一片空白。每一段序列都可以打斷：碰接縫、按 Esc、或載入一個範例，都會在同一個影格內停下來把
+控制權交還。
 
-## Credits
+## 出處
 
-- OKLab and the gamut mapping follow Bjorn Ottosson's derivation and the CSS Color 4 specification.
-- Color vision deficiency matrices from Machado, Oliveira and Fernandes, 2009.
-- Icons: [Lucide](https://lucide.dev), ISC licence, path data inlined into `js/icons.js`.
-- Type: Sora and Fragment Mono, both via Google Fonts.
+- OKLab 與色域對應依照 Bjorn Ottosson 的推導和 CSS Color 4 規格。
+- 色覺缺陷矩陣出自 Machado、Oliveira 與 Fernandes，2009 年。
+- 圖示：[Lucide](https://lucide.dev)，ISC 授權，path data 內嵌在 `js/icons.js`。
+- 字型：Sora、Fragment Mono 與 Noto Sans TC，都走 Google Fonts。
 
-Part of [hyperkit](../index.html).
+隸屬於 [hyperkit](../index.html)。

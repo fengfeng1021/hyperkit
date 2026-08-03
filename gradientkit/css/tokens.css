@@ -23,8 +23,11 @@
   /* Sora: display + UI. Fragment Mono: every numeral, color value and code
      line. Monospace is used only for measurement, data and code, never as a
      "technical" costume. */
-  --font-ui: 'Sora', 'Segoe UI Variable Display', 'Segoe UI', system-ui, -apple-system, sans-serif;
-  --font-mono: 'Fragment Mono', ui-monospace, 'SFMono-Regular', 'Cascadia Mono', Consolas, 'Liberation Mono', monospace;
+  --font-ui: 'Sora', 'Noto Sans TC', 'Segoe UI Variable Display', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  /* Fragment Mono has no CJK, so 'Noto Sans TC' is appended as the fallback for
+     the handful of mono slots that carry Chinese (line counts, probe position).
+     Latin still resolves to Fragment Mono; only the CJK codepoints move. */
+  --font-mono: 'Fragment Mono', ui-monospace, 'SFMono-Regular', 'Cascadia Mono', Consolas, 'Liberation Mono', 'Noto Sans TC', monospace;
 
   --weight-regular: 400;
   --weight-medium: 500;

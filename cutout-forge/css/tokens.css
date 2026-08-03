@@ -81,8 +81,8 @@
      machine measured: file names, pixel dimensions, seconds, dollars,
      percentages, hex samples. This split is enforced, not decorative.
      --------------------------------------------------------------------- */
-  --font-ui:   "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", "Consolas", monospace;
+  --font-ui:   "Geist", "Noto Sans TC", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", "Noto Sans TC", ui-monospace, "SFMono-Regular", "Consolas", monospace;
 
   /* Tuned against the real headline: the vw coefficient is set so the line
      reaches 68px only on viewports wide enough to still hold it in two

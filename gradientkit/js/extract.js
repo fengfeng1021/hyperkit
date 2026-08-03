@@ -13,12 +13,12 @@ export const MAX_BYTES = 26214400; // 25 MB, refused before decode
 const LONG_EDGE = 128;
 
 export function validateFile(file) {
-  if (!file) return { ok: false, message: 'No file was received. Drop an image onto the stage.' };
+  if (!file) return { ok: false, message: '沒收到檔案。把圖片拖到載物台上再放開。' };
   if (!file.type || !file.type.startsWith('image/')) {
-    return { ok: false, message: 'That file is not an image. PNG, JPEG, WebP, GIF, or AVIF.' };
+    return { ok: false, message: '這不是圖片檔。可以用 PNG、JPEG、WebP、GIF 或 AVIF。' };
   }
   if (file.size > MAX_BYTES) {
-    return { ok: false, message: 'That image is over 25 MB. Export a smaller version and drop it again.' };
+    return { ok: false, message: '這張圖超過 25 MB。先輸出一張小一點的再丟一次。' };
   }
   return { ok: true };
 }
@@ -74,7 +74,7 @@ export async function extractStops(file, onProgress = () => {}) {
   try {
     bitmap = await decode(file);
   } catch {
-    throw new Error('The browser could not decode that image. Try re-saving it as PNG.');
+    throw new Error('瀏覽器解不開這張圖。用 PNG 另存一份再試試看。');
   }
   onProgress(0.4);
 
@@ -102,7 +102,7 @@ export async function extractStops(file, onProgress = () => {}) {
     points.push([lab.L, lab.a, lab.b]);
   }
   if (points.length < 4) {
-    throw new Error('That image has too few opaque pixels to read four colors from.');
+    throw new Error('這張圖不透明的像素太少，抓不出四個顏色。');
   }
   onProgress(0.85);
 

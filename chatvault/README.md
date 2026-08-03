@@ -1,237 +1,216 @@
-# ChatVault
+# 對話金庫 ChatVault
 
-A card catalogue for the AI conversations you already had. Drop a ChatGPT, Claude or Gemini
-export into the page and it is parsed, indexed and searchable in the same browser tab. There is
-no server, no account and no upload endpoint anywhere in the code.
+一個給「你已經聊過的 AI 對話」用的卡片目錄櫃。把 ChatGPT、Claude 或 Gemini 的匯出檔丟進頁面，
+解析、建索引、搜尋全都在同一個瀏覽器分頁裡完成。沒有伺服器、不用註冊，程式碼裡也沒有任何一個
+上傳端點。
 
-Part of [Hyperkit](../index.html).
+隸屬於 [hyperkit](../index.html)。
 
 ---
 
-## What it is
+## 這是什麼
 
-Every AI provider will hand you your history as a file, and every one of those files is
-unreadable. ChatGPT gives you a message tree keyed by node id. Claude gives you a flat array
-whose text lives in one of two different shapes depending on the month. Google gives you an
-activity log that is not grouped into conversations at all. All three are routinely hundreds of
-megabytes, which is enough to make the browser's own JSON parser lock the tab.
+每一家 AI 服務都願意把你的歷史紀錄給你，而每一個給出來的檔案都沒辦法讀。ChatGPT 給你一棵以節點
+id 為 key 的訊息樹；Claude 給你一個扁平陣列，內文放在哪個欄位還會隨著月份不同而換兩種寫法；
+Google 給你一份根本沒有分段成對話的活動紀錄。這三種檔案動輒好幾百 MB，足以讓瀏覽器自己的 JSON
+解析器把分頁鎖死。
 
-ChatVault turns any of them into an index: BM25 ranking, phrase search, exclusions, role and
-date filters, hit highlighting, and a jump straight to the message that matched.
+對話金庫把它們變成一份索引：BM25 排序、整句搜尋、排除詞、角色與日期篩選、命中標色，以及直接跳到
+命中的那一則訊息。
 
-The thing it does that other viewers do not: **it keeps the branches.** A ChatGPT export is a
-tree, because every regenerate and every edited prompt adds a sibling node. Flattening that tree
-by timestamp, which is what most viewers do, produces conversations the user never had, with two
-answers to the same question stacked back to back. ChatVault walks the parent chain from
-`current_node`, indexes the other branches as well, marks a hit that landed on one, and gives
-you a switcher at every fork.
+它做了一件其他檢視器不做的事：**它保留分支。** ChatGPT 的匯出檔是一棵樹，因為每一次重新生成、
+每一次編輯提示詞都會多長出一個兄弟節點。多數檢視器的做法是照時間戳把樹壓平，結果就是產生出使用者
+從來沒有經歷過的對話——同一個問題底下疊著兩個答案。對話金庫從 `current_node` 沿著 parent 往回走，
+其他分支也一併建索引，命中落在分支上時會標記出來，而且在每一個分歧點都給你一個切換器。
 
-## Using it
+### 中文
 
-Serve the folder over http and open `index.html`:
+範例資料是繁體中文的技術對話，介面文字也是繁體中文（台灣用語）。中文沒有空格，所以斷詞不能只靠
+空白：`js/tokenize.js` 會把中日韓的連續字串同時以「整段」和「相鄰雙字（bigram）」兩種形式寫進
+索引，查詢端則在 `js/search.js` 把查詢字串展開成 bigram 去比對，權重比完整詞略低，讓包含整個詞的
+對話仍然排在只包含片段的對話前面。標色（`markTerms`）對中文不套用單字邊界，因為「連線池」就住在
+「連線池的上限」裡面，兩邊都是文字，邊界規則會讓它永遠對不上。
+
+## 怎麼用
+
+用 http 服務這個資料夾，然後開 `index.html`：
 
 ```
 python -m http.server 8000
 ```
 
-Then either drop your own export, or press **Load sample vault**. The sample is 47 real
-technical conversations in genuine ChatGPT export shape, three of them branched, and it goes
-through exactly the same parser, indexer and storage path as your own file does. Nothing about
-it is a shortcut.
+接著丟你自己的匯出檔，或按 **載入範例資料**。範例是 47 段真實的技術對話，寫成貨真價實的 ChatGPT
+匯出結構，其中三段有分支，而且它走的解析器、索引器與儲存路徑，跟你自己的檔案完全一樣。這裡面沒有
+任何一處是抄捷徑。
 
-### Getting your own export
+### 拿到你自己的匯出檔
 
-- **ChatGPT**: Settings, Data controls, Export data. Link arrives by email, expires after 24
-  hours. Drop the whole zip.
-- **Claude**: Settings, Privacy, Export data. Drop the whole zip.
-- **Gemini**: Google Takeout, deselect everything, select My Activity in JSON, restrict to
-  Gemini Apps. Drop the archive, or `MyActivity.json` or `MyActivity.html` on its own.
+- **ChatGPT**：Settings → Data controls → Export data。連結寄到信箱，24 小時後失效。整包 zip 丟進來。
+- **Claude**：Settings → Privacy → Export data。整包 zip 丟進來。
+- **Gemini**：Google Takeout，先全部取消勾選，只選 My Activity 並改成 JSON，範圍限縮到 Gemini
+  Apps。丟整包壓縮檔，或單獨丟 `MyActivity.json`、`MyActivity.html`。
 
-If none of the three structures match, ChatVault opens a mapping wizard whose dropdown options
-are the real key paths of the first record in your file. The mapping is stored under a hash of
-that file's key shape, so the next export of the same format is read without asking again.
+三種結構都對不上時，對話金庫會開一個欄位對應精靈，下拉選單裡的每一個選項都是你檔案第一筆紀錄真正
+存在的 key 路徑。這份對應會用該檔案 key 結構的雜湊存起來，下次同格式的匯出檔就不會再問你一次。
 
-### The query language
+### 查詢語法
 
-It all goes in the one field, and it is printed next to the field rather than hidden in a doc.
+全部寫在同一個輸入框裡，而且說明就印在框旁邊，不是藏在某份沒人打開的文件裡。
 
 ```
-"exact phrase"   words must appear next to each other
--word            exclude conversations containing this word
-+word            this word is required
-role:human       only your messages        role:assistant
-source:chatgpt   also claude, gemini
+"整句"           這幾個字必須連在一起出現
+-字詞            排除含有這個詞的對話
++字詞            這個詞一定要出現
+role:human       只找你說的話          role:assistant 找對方的
+source:chatgpt   也可以填 claude、gemini
 after:2025-03    before:2025-06-01
-has:code         only conversations containing a code block
+has:code         只找有程式碼區塊的對話
 ```
 
-Search modes: **Exact** uses your words as written. **Expanded** adds terms that travel with
-your words inside your own vault, and shows each one as a removable chip with its weight, so the
-result set never contains a surprise you cannot trace. **Meaning** appears only after you
-explicitly download a sentence model, and is described below.
+搜尋模式：**精確** 就用你寫的字。**擴充** 會加上「在你自己這份資料裡經常跟你的字一起出現」的詞，
+每一個都以可移除的 chip 顯示並附上權重，所以結果集裡不會有你追不出來源的意外。**語意** 只有在你
+明確按下下載句子模型之後才會出現，細節寫在下面。
 
-### Keyboard
+### 鍵盤
 
-`/` or `Ctrl+K` focuses search. `Up` and `Down` move through the index even while typing.
-`Enter` opens, `Shift+Enter` opens without leaving the list. `j` and `k` move between messages,
-`[` and `]` switch branch, `n` and `Shift+n` jump between hits. `g` then `s` shows statistics,
-`g` then `i` returns. `Esc` unwinds one layer at a time. `?` opens the full list.
+`/` 或 `Ctrl+K` 跳到搜尋框。`↑` `↓` 在索引裡移動，打字時也能用。`Enter` 打開，`Shift+Enter` 打開
+但不離開清單。`j` `k` 在訊息之間移動，`[` `]` 切換分支，`n` 和 `Shift+n` 在命中之間跳。`g` 再按
+`s` 看統計，`g` 再按 `i` 回索引。`Esc` 一次收一層。`?` 打開完整清單。
 
-## How it works
+## 它怎麼運作
 
-No build step, no bundler, no framework. Native HTML, native CSS custom properties, native ES
-modules, GSAP from a CDN for the drawer animation.
+沒有 build step、沒有打包工具、沒有框架。原生 HTML、原生 CSS custom property、原生 ES module，
+抽屜動畫用 CDN 上的 GSAP。
 
-**Reading a large file.** The file never reaches `JSON.parse` whole. `js/stream-json.js` is a
-chunked splitter that tracks string and escape state and hands one array element at a time to
-the adapter, so peak memory is one conversation rather than the file. Byte progress is counted
-upstream of the text decoder, which is why the number on screen is the real position in the
-file. Zips are opened by reading the end-of-central-directory record from the tail and
-decompressing only the member that looks like an export (`js/zip.js`), so a 340 MB archive costs
-a few kilobytes to open. All of it runs inside a Web Worker; when a worker cannot be constructed
-the same pipeline module runs on the main thread, after saying so.
+**讀大檔案。** 檔案從來不會整份進 `JSON.parse`。`js/stream-json.js` 是一個分塊切割器，會追蹤字串與
+跳脫狀態，一次交一個陣列元素給 adapter，所以記憶體峰值是一段對話而不是整個檔案。位元組進度是在文字
+解碼器的上游計算的，這也是為什麼畫面上那個數字是檔案裡的真實位置。zip 是先從尾端讀
+end-of-central-directory 紀錄，只解壓縮看起來像匯出檔的那個成員（`js/zip.js`），所以打開一個 340 MB
+的壓縮檔只要幾 KB 的成本。以上全部跑在 Web Worker 裡；worker 建不起來的時候，同一個 pipeline 模組會
+在主執行緒跑，而且會先講清楚。
 
-**The index.** Built with plain arrays during ingest, then sealed into typed arrays:
-`Int32Array` document ids, `Uint16Array` term frequencies, and delta-encoded positions in a flat
-`Int32Array` with an offset table (`js/index-build.js`). A document is one message, not one
-conversation, so "which message said this" is a real answer. Ranking is BM25 with `k1 = 1.2` and
-`b = 0.62`; b is lower than the usual 0.75 because a chat message's length says very little
-about its relevance. Positions are real, so phrase search is a real adjacency check rather than
-"all the words are present", which returns wrong results the user cannot see.
+**索引。** 匯入時用一般陣列建，之後封成 typed array：`Int32Array` 存文件 id、`Uint16Array` 存詞頻、
+位置以差值編碼放在一個扁平的 `Int32Array` 並配一張偏移表（`js/index-build.js`）。一份文件是一則訊息，
+不是一段對話，所以「是哪一則訊息說了這句」是一個真的答得出來的問題。排序是 BM25，`k1 = 1.2`、
+`b = 0.62`；b 比常見的 0.75 低，因為一則聊天訊息的長度幾乎說明不了它的相關性。位置資訊是真的，所以
+整句搜尋是真的做相鄰檢查，而不是「所有的字都有出現」——後者會回傳使用者看不出來的錯誤結果。
 
-**Storage.** IndexedDB, written in transactions of 200 records that roll back whole. A second
-import of an overlapping export merges rather than overwrites, keyed on the export's own
-conversation id and falling back to a content hash where there is none. Clearing the vault is
-the only destructive action and requires typing `delete`.
+**儲存。** IndexedDB，每 200 筆一個交易、整批回滾。第二次匯入有重疊的匯出檔時是合併而不是覆寫，
+比對的是匯出檔自己的對話 id，沒有 id 的則退回內容雜湊。清空金庫是唯一的破壞性操作，而且要打
+`delete` 才能執行。
 
-**Rendering.** Both long lists are virtualised. The index list has fixed row heights, so offsets
-are arithmetic. The reading pane measures, caches by row key, and corrects `scrollTop` in the
-same frame when a measurement changes, so scrolling up into unmeasured messages does not jump.
-Scroll listeners are passive, on the container, and only record a number; repaints are batched
-to one per frame through `js/frame.js`, which uses `gsap.ticker` when GSAP is present and
-`requestAnimationFrame` when it is not.
+**繪製。** 兩個長清單都虛擬化。索引清單是固定列高，所以偏移量用算的。閱讀區會量測、以列的 key 快取，
+並且在量測值改變的同一幀裡修正 `scrollTop`，所以往上捲進還沒量過的訊息時不會跳。捲動監聽是 passive、
+掛在容器上、而且只記一個數字；重繪透過 `js/frame.js` 收斂成每幀一次，有 GSAP 時用 `gsap.ticker`，
+沒有時用 `requestAnimationFrame`。
 
-**Code blocks.** A hand-written tokenizer (`js/highlight.js`), one scan, ten languages, no
-library. Keywords are marked with weight rather than a hue, because this palette is ink, amber
-and burnt earth and a rainbow of token colours would break it. Blocks over 20,000 characters
-skip highlighting and say so on screen rather than failing silently.
+**程式碼區塊。** 一個手寫的 tokenizer（`js/highlight.js`），掃一遍、十種語言、不用函式庫。關鍵字是用
+字重標示而不是用色相，因為這裡的色盤是墨黑、琥珀與焦土，一整道彩虹的 token 顏色會把它毀掉。超過
+20,000 個字元的區塊會略過標色，並且在畫面上講出來，而不是安靜地失敗。
 
-**Statistics.** Real counts, a month series and an hour distribution drawn to canvas, and a
-subject list taken only from your own messages, stopword filtered and weighted by
-`tf * log(N / conversation frequency)`, which is what turns a word count into a list of topics.
+**統計。** 真實計數、一條月份序列和一張時段分布畫在 canvas 上，還有一份只取自你自己訊息的主題詞清單，
+經過停用詞過濾，並以 `tf * log(N / 出現該詞的對話數)` 加權——那是把「字數統計」變成「主題清單」的關鍵。
+中文的停用詞與長度門檻另外處理（見 `js/tokenize.js` 的 `isContentTerm`），因為一段沒有空格的中文可能
+是一整個子句，直接當成詞會讓索引標籤讀起來像句子。
 
-## Privacy
+## 隱私
 
-Four hosts, all listed in the page itself so they can be checked against the Network panel:
+四個網域，全部列在頁面上，讓你可以直接對著 Network 面板核對：
 
-| Host | What for |
+| 網域 | 用途 |
 |---|---|
-| `fonts.googleapis.com` | the stylesheet for Literata, Public Sans and Spline Sans Mono |
-| `fonts.gstatic.com` | the font files |
-| `cdn.jsdelivr.net` | GSAP; also the sentence-model runtime, but only if you turn meaning search on |
-| `huggingface.co` | model weights, only after you press Download the model |
+| `fonts.googleapis.com` | Literata、Noto Serif TC、Public Sans、Spline Sans Mono 的樣式表 |
+| `fonts.gstatic.com` | 字型檔本身 |
+| `cdn.jsdelivr.net` | GSAP；你開了語意搜尋才會再抓句子模型的執行環境 |
+| `huggingface.co` | 模型權重，只有在你按下「下載模型」之後 |
 
-There is no analytics, no error reporting, and no endpoint in this page capable of sending your
-conversations anywhere. Once the page and its fonts are cached you can disconnect and keep
-using it.
+沒有分析工具、沒有錯誤回報，這個頁面裡也沒有任何一個端點有能力把你的對話送到別的地方。頁面和字型
+進了快取之後，你可以斷網繼續用。
 
-Meaning search is optional and off by default. Pressing the button loads
-`@huggingface/transformers` inside a worker, downloads `Xenova/all-MiniLM-L6-v2`, and builds
-vectors locally. Every part of that path is wrapped so that a failure produces a sentence on
-screen and leaves keyword search untouched, rather than an uncaught error in the console.
+語意搜尋是選用的，預設關閉。按下按鈕會在 worker 裡載入 `@huggingface/transformers`、下載
+`Xenova/all-MiniLM-L6-v2`，並在本機建立向量。這條路徑上的每一段都有包起來，失敗時畫面上會出現一句
+話、關鍵字搜尋完全不受影響，而不是主控台裡一個沒接住的錯誤。
 
-Your vault lives in IndexedDB in this browser profile. Removing it removes it. There is no copy
-anywhere else, which is the trade this design makes on purpose.
+你的資料存在這個瀏覽器設定檔的 IndexedDB 裡。刪掉就是真的刪掉，別的地方沒有副本——這是這個設計刻意
+做的取捨。
 
-## Layout of the folder
+## 資料夾結構
 
 ```
-index.html                  direction contract comment is the first child of <body>
-css/tokens.css              the only source of colour, type, spacing, radius and motion values
-css/style.css               layout and components, no bare hex
-js/main.js                  state machine and event wiring
-js/pipeline.js              bytes in, conversations and an index out (worker and fallback share it)
-js/stream-json.js           chunked top-level array splitter
-js/zip.js  js/zip-write.js  zip reader, and a store-only writer for batch export
-js/detect.js                structural format detection, never filename based
+index.html                  direction contract 註解是 <body> 的第一個子節點
+css/tokens.css              顏色、字級、間距、圓角、動態值的唯一來源
+css/style.css               版面與元件，不出現裸色碼
+js/main.js                  狀態機與事件接線
+js/pipeline.js              位元組進、對話與索引出（worker 與 fallback 共用）
+js/stream-json.js           最上層陣列的分塊切割器
+js/zip.js  js/zip-write.js  zip 讀取器，以及批次匯出用的 store-only 寫入器
+js/detect.js                以結構偵測格式，絕不看檔名
 js/adapters/                chatgpt.js  claude.js  gemini.js  generic.js
-js/conversation.js          the branch model: parent chains, forks, path selection
-js/index-build.js           inverted index, sealed into typed arrays
-js/search.js                query parsing, BM25, phrases, filters, expansion, diagnostics
-js/store.js                 IndexedDB schema, chunked transactions, merge on re-import
-js/reindex.js               rebuild the index from a stored vault, yielding between blocks
-js/vlist.js                 fixed-height and measured-height virtual lists
-js/highlight.js             the code tokenizer
+js/conversation.js          分支模型：parent 鏈、分歧點、路徑選擇
+js/index-build.js           倒排索引，封成 typed array
+js/tokenize.js              斷詞、停用詞、中文 bigram
+js/search.js                查詢解析、BM25、整句、篩選、擴充、診斷
+js/store.js                 IndexedDB schema、分塊交易、重複匯入時合併
+js/reindex.js               從已存資料重建索引，區塊之間讓出執行緒
+js/vlist.js                 固定列高與量測列高的虛擬清單
+js/highlight.js             程式碼 tokenizer
 js/stats.js  js/stats-view.js
-js/exporter.js              Markdown and JSON, single and batch
-js/spine.js                 the spine strip: the live readout of every query
-js/drawer-canvas.js         the drawer that fills while the file is read
+js/exporter.js              Markdown 與 JSON，單筆與批次
+js/spine.js                 書背條：每一次查詢的即時讀數
+js/drawer-canvas.js         讀檔過程中逐漸填滿的抽屜
 js/reader.js  js/index-list.js  js/wizard.js  js/notice.js  js/semantic.js
-js/worker/parse-worker.js   worker host for the pipeline
-js/worker/embed-worker.js   optional embeddings, guarded end to end
-assets/sample-vault.json    47 authored conversations in ChatGPT export shape
-assets/_sample-source*.mjs  the readable source those conversations were written in
-assets/_build-sample.mjs    generator, run once, not loaded by the site
+js/worker/parse-worker.js   pipeline 的 worker 宿主
+js/worker/embed-worker.js   選用的向量嵌入，全程有防護
+assets/sample-vault.json    47 段撰寫好的對話，ChatGPT 匯出結構
+assets/_sample-source*.mjs  那些對話的可讀原始檔
+assets/_build-sample.mjs    產生器，跑一次就好，網站不會載入它
 ```
 
-## The motion layer
+## 動態層
 
-`js/motion.js` (GSAP 3.13 from the CDN, core only, no plugins) holds one authored moment and
-three confirmations, and nothing else. It is imported by `main.js` for its side effects and
-subscribes to the events on `js/state.js`. If the CDN never answers, or the reader has asked
-for reduced motion, it registers nothing: every element it touches is already rendered at its
-resting state, so the catalogue is complete and simply still.
+`js/motion.js`（CDN 上的 GSAP 3.13，只用 core，沒有 plugin）只放一個被編排的時刻和三個回饋，
+其他什麼都沒有。它被 `main.js` 以副作用方式 import，訂閱 `js/state.js` 上的事件。如果 CDN 沒有回應，
+或讀者要求減少動態效果，它什麼都不註冊：它會碰到的每一個元素都已經渲染在靜止狀態，所以目錄櫃是完整的，
+只是不會動。
 
-**Opening the drawer**, in six phases, driven by the real import:
+**打開抽屜**，六個階段，由真實的匯入過程驅動：
 
-1. A dragged file lifts the drop zone and thickens its ink front edge.
-2. `ingest:start` opens an amber mark at the top of the cavity. Every card enters there.
-3. `ingest:batch` throws that batch from the mark into the stack, staggered `0.004s` apart from
-   the centre, each sliver trailing two ghosts along its own flight path. The stack is a
-   histogram of the archive over time, so the drawer fills with a real profile, ring by ring. A
-   small export is parsed in one tick, so rings queue behind each other rather than arriving in
-   the same millisecond.
-4. `ingest:indexProgress` raises one amber tab per term pulled out of the inverted index while
-   it is being built, and slides the row left by exactly that tab's width.
-5. `vault:closing` seals: one 1.06 breath of the whole stack, one pass of light end to end, and
-   the stack compresses into a single 3px line.
-6. The drawer front travels the depth of the cavity and shuts, the entry page steps back, and
-   the cabinet wipes in from the top while that same line of slivers opens outward from the
-   centre as the spine strip.
+1. 拖曳中的檔案會把投放區抬起來，並讓它的墨色前緣變厚。
+2. `ingest:start` 在凹槽頂端開出一道琥珀色刻痕。每一張卡片都從那裡進場。
+3. `ingest:batch` 把這一批卡片從刻痕拋進堆疊，從中央開始每張間隔 `0.004s`，每一片薄卡沿著自己的
+   飛行路徑拖兩道殘影。這個堆疊是整份檔案在時間軸上的直方圖，所以抽屜是一圈一圈按真實輪廓填滿的。
+   小檔案會在一個 tick 內解析完，所以那些圈會排隊進場，而不是全部擠在同一毫秒。
+4. `ingest:indexProgress` 每從正在建立的倒排索引拉出一個詞，就升起一個琥珀色索引標籤，並把整排往左
+   推剛好一個標籤的寬度。
+5. `vault:closing` 收尾：整個堆疊做一次 1.06 的呼吸、一道光從頭掃到尾，然後堆疊壓縮成一條 3px 的線。
+6. 抽屜面板走完凹槽的深度並關上，入口頁往後退，櫃體從上方抹入，同時那條薄卡線從中央向外展開，變成
+   書背條。
 
-`adoptVault()` awaits phase 5 and 6 through `vault:closing`, with a 2.6 second ceiling: if the
-seal cannot run at all, for instance in a background tab where the animation frame callback
-never fires, the vault opens anyway.
+`adoptVault()` 透過 `vault:closing` 等待第 5、6 階段，上限 2.6 秒：如果收尾根本跑不起來——例如在背景
+分頁裡動畫幀回呼從來不觸發——金庫還是會照常打開。
 
-**Then the spine strip is the search.** `SpineStrip.applyResults()` writes target values and
-calls the `transition` hook the motion layer installs, which travels the strip oldest to newest
-as one wave: hits to full ink, everything else to 0.08 alpha and a third of the height. One
-proxy tween drives every conversation, so the cost is the same for a 47 card sample and a vault
-of several thousand. Without the hook, `applyResults()` settles to the same values immediately,
-which is the same readout.
+**接著書背條就是搜尋本身。** `SpineStrip.applyResults()` 寫入目標值並呼叫動態層安裝的 `transition`
+掛勾，那道效果會從最舊到最新掃過整條書背：命中的變成實心墨色，其餘降到 0.08 透明度與三分之一高度。
+一個 proxy tween 驅動所有對話，所以 47 張卡的範例和好幾千段對話的金庫成本是一樣的。沒有那個掛勾時，
+`applyResults()` 會立刻落到同樣的值，讀數完全相同。
 
-**The three confirmations** are the drop zone under a dragged file, the export menu opening out
-of its own button with `clipPath`, and, after a branch switch, the messages that actually differ
-resolving out of a blur while everything the two branches share stays exactly where it is.
+**三個回饋**分別是：拖曳檔案時的投放區、匯出選單從自己的按鈕用 `clipPath` 展開，以及切換分支之後，
+真正有差異的那幾則訊息從模糊中解析出來，兩條分支共有的部分則原地不動。
 
-Durations and easings live in `css/tokens.css` as `--dur-1` through `--dur-4`, `--dur-batch`,
-`--dur-trail`, `--ease-out`, `--ease-settle`, `--ease-in-out` and `--ease-in`. The GSAP
-equivalents are `power4.out` as the default, `power3.out` for tabs and confirmations,
-`power3.inOut` for the compression, `power3.in` for the drawer front, and `none` only where the
-value is data rather than motion.
+時長與緩動寫在 `css/tokens.css`，是 `--dur-1` 到 `--dur-4`、`--dur-batch`、`--dur-trail`、
+`--ease-out`、`--ease-settle`、`--ease-in-out`、`--ease-in`。對應的 GSAP 寫法是預設 `power4.out`、
+索引標籤與回饋用 `power3.out`、壓縮用 `power3.inOut`、抽屜面板用 `power3.in`，只有在那個值是資料而
+不是動態時才用 `none`。
 
-## Known limits
+## 已知限制
 
-- Gemini's Takeout format does not record conversation boundaries, so ChatVault groups turns by
-  a 30 minute gap. The reading pane says so rather than pretending the grouping came from
-  Google.
-- Meaning search downloads about 23 MB once. On a browser without WebGPU it falls back to WASM,
-  which is slower to build vectors but works. Keyword search is unaffected either way.
-- A single conversation over 5,000 messages is paged in the reading pane, newest first, with a
-  control to load earlier ones. It is fully indexed regardless.
-- The zip writer used for batch export is store-only. The archive is valid everywhere but is not
-  compressed.
-- The first import holds the workspace back for up to about two seconds while the drawer shuts.
-  That is a deliberate trade: the seal is what proves the file was read here. It happens once
-  per import, never on a return visit, never on a second import into an open vault, and not at
-  all under reduced motion.
+- Gemini 的 Takeout 格式沒有記錄對話邊界，所以對話金庫用間隔 30 分鐘來分組。閱讀區會直接寫明這件事，
+  而不是假裝這個分組來自 Google。
+- 語意搜尋會下載大約 23 MB，只下載一次。在沒有 WebGPU 的瀏覽器上會退回 WASM，建向量比較慢但可以用。
+  關鍵字搜尋不管哪一種都不受影響。
+- 單一對話超過 5,000 則訊息時，閱讀區會分頁顯示，最新的在前，並提供一個載入更早訊息的控制項。索引
+  仍然是完整的。
+- 批次匯出用的 zip 寫入器是 store-only。壓縮檔到哪裡都打得開，只是沒有壓縮。
+- 第一次匯入時，工作區會被抽屜的關閉動作拖住大約兩秒。那是刻意的取捨：那個收尾動作正是「檔案是在這裡
+  被讀完的」這件事的證明。它每次匯入只發生一次，回訪時不會，往已開啟的金庫再匯入時不會，減少動態效果
+  的設定下也完全不會。

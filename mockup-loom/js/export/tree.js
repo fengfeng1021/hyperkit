@@ -50,7 +50,7 @@ export function renderTree(el, lines) {
     const more = document.createElement('span');
     more.className = 'tree-line tree-file';
     const n = lines.length - shown.length;
-    more.textContent = `and ${n} more ${n === 1 ? 'file' : 'files'}\n`;
+    more.textContent = `還有 ${n} 個檔案\n`;
     frag.appendChild(more);
   }
   el.appendChild(frag);

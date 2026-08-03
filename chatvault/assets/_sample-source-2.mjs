@@ -5,49 +5,49 @@ const C = (s) => s.replace(/\n\s*\|/g, "\n").trim();
 
 export const CONVERSATIONS_2 = [
   {
-    title: "Connection pool exhausted under normal traffic",
+    title: "流量正常，連線池卻爆掉",
     t: "2025-03-27T11:02:00Z",
     msgs: [
-      ["h", C(`Our Postgres connection pool is set to 20 and we run out of connections at maybe 60
-        |requests per second. Each query takes about 8 milliseconds. That maths does not work out.`)],
-      ["a", C(`It does not, which means the connections are not being held for 8 milliseconds. Something
-        |is checking out a connection and holding it across work that is not a query.
+      ["h", C(`我們的 Postgres 連線池設 20，大約每秒 60 個請求就把連線用完了。每個查詢大概 8 毫秒。
+        |這個數學算不出來。`)],
+      ["a", C(`確實算不出來，也就是說連線根本沒有只被握 8 毫秒。有東西借了連線，然後握著它去做不是查詢的
+        |事情。
 
-        |The usual culprit is a transaction wrapped around an HTTP call, or an ORM that opens a
-        |transaction at the start of a request and commits at the end whether or not the request touches
-        |the database. Little's Law gives you the check: at 60 requests per second with 20 connections,
-        |your average hold time must be under 333 milliseconds. Log it and see.
+        |最常見的兇手是把 HTTP 呼叫包在交易裡，或是某個 ORM 在請求一開始就開交易、結束才 commit，不管
+        |這個請求有沒有碰資料庫。
+
+        |Little's Law 給你檢查方式：每秒 60 個請求配 20 條連線，平均持有時間必須低於 333 毫秒。記下來
+        |看看實際是多少。
 
         |\`\`\`sql
         |SELECT state, count(*), max(now() - state_change) AS longest
         |FROM pg_stat_activity WHERE datname = current_database() GROUP BY state;
         |\`\`\`
 
-        |If you see a pile in "idle in transaction", that is your answer.`)],
-      ["h", "There are 14 in idle in transaction. Where do I look in the application?"],
-      ["a", C(`Anywhere that opens a transaction and then awaits something that is not a query. Look for
-        |a request middleware that begins a transaction, for a retry loop inside a transaction, and for a
-        |cache lookup that falls through to a network call while a transaction is open.
+        |如果你看到一堆卡在 "idle in transaction"，答案就是它。`)],
+      ["h", "idle in transaction 有 14 個。應用程式那邊我要從哪裡找起？"],
+      ["a", C(`任何「開了交易之後又去 await 非查詢的東西」的地方。
 
-        |Two defences worth adding regardless of what you find. Set
-        |\`idle_in_transaction_session_timeout\` on the database so a leaked transaction cannot hold a
-        |connection forever. And set a pool checkout timeout in the application so the failure mode is a
-        |fast error with a stack trace rather than a slow queue that eventually times out at the load
-        |balancer with no useful information.`)],
+        |重點看三種：在請求 middleware 裡開交易的；在交易裡面有重試迴圈的；還有快取沒命中就打網路、
+        |而交易還開著的。
+
+        |不管你最後找到什麼，有兩道防線都值得補上。資料庫端設
+        |\`idle_in_transaction_session_timeout\`，讓漏掉的交易不能永遠佔著連線。應用程式端設連線池的
+        |取用逾時，讓失敗模式變成「快速報錯、帶著堆疊」，而不是「慢慢排隊，最後在負載平衡器逾時，什麼
+        |有用資訊都沒有」。`)],
     ],
   },
 
   {
-    title: "Cache invalidation for a read-heavy API",
+    title: "讀取為主的 API 要怎麼做快取失效",
     t: "2025-04-09T14:26:00Z",
     msgs: [
-      ["h", C(`We cache API responses in Redis with a 5 minute expiry. When the entry expires on a
-        |popular key we get a burst of identical database queries. Is there a standard fix?`)],
-      ["a", C(`Yes, two of them, and they solve different halves.
+      ["h", C(`我們把 API 回應存在 Redis，過期時間 5 分鐘。熱門 key 一過期，就會湧進一堆一模一樣的資料庫
+        |查詢。這有標準解法嗎？`)],
+      ["a", C(`有，而且是兩個，各解一半。
 
-        |For the burst itself, single-flight the recomputation. The first request to find the key missing
-        |takes a short lock, recomputes, and writes; everyone else waits for that one result instead of
-        |each running the same query.
+        |爆量那一半：把重算做成 single-flight。第一個發現 key 不在的請求拿一把短鎖、重算、寫回；其他人
+        |等那一份結果，而不是每個人各跑一次同樣的查詢。
 
         |\`\`\`js
         |async function cached(key, ttl, compute) {
@@ -63,29 +63,29 @@ export const CONVERSATIONS_2 = [
         |}
         |\`\`\`
 
-        |For the synchronised expiry across many keys, add jitter to the expiry so a thousand keys
-        |written in the same second do not expire in the same second.`)],
-      ["h", "What about serving the stale value while the new one is computed?"],
-      ["a", C(`That is the better answer when your data tolerates it. Store the value with a longer real
-        |expiry and a separate "fresh until" timestamp inside the payload. On a read past that timestamp,
-        |return the stale value immediately and start a background refresh.
+        |大量 key 同時到期那一半：給過期時間加抖動，讓同一秒寫進去的一千個 key，不會在同一秒一起過期。`)],
+      ["h", "那「先回舊值、背景算新值」呢？"],
+      ["a", C(`資料容許的話，那是更好的答案。
 
-        |Latency stops depending on your database at all, and a slow query no longer becomes a slow
-        |request. The cost is that you must be able to say how stale is acceptable for each key, which is
-        |a product decision and not an infrastructure one. If nobody can answer that question, keep the
-        |single-flight lock and leave it there.`)],
+        |把值存成一個比較長的真實過期時間，再在 payload 裡放一個獨立的「新鮮到什麼時候」時間戳。讀到
+        |超過那個時間戳時，立刻回舊值，同時啟動背景更新。
+
+        |這樣延遲就完全不依賴你的資料庫，一個慢查詢也不會再變成一個慢請求。
+
+        |代價是你必須說得出每個 key 可以多舊，而那是產品決策，不是基礎設施決策。如果沒有人回答得出來，
+        |就留著 single-flight 的鎖，停在那裡就好。`)],
     ],
   },
 
   {
-    title: "React re-renders the whole list on every keystroke",
+    title: "每按一個鍵，React 就重繪整個清單",
     t: "2025-02-04T10:18:00Z",
     msgs: [
-      ["h", C(`I have a search input above a list of 2,000 rows. Typing is laggy. I already memoised the
-        |row component and it did not help.`)],
-      ["a", C(`Memoising the row does not help if the parent passes a new prop identity on every render.
-        |A memoised child re-renders when any prop changes by reference, and an inline arrow function or
-        |a freshly built object counts as changed every time.
+      ["h", C(`我在一個 2000 列的清單上面放了搜尋輸入框，打字很卡。我已經把 row 元件 memo 過了，沒有用。`)],
+      ["a", C(`如果父層每次 render 都傳新的 prop 參考進去，memo 化 row 是沒有用的。
+
+        |memo 過的子元件只要任何一個 prop 的參考變了就會重繪，而行內箭頭函式或每次新建的物件，都算「變
+        |了」。
 
         |\`\`\`jsx
         |// every render creates a new function, so Row re-renders even though it is memoised
@@ -96,33 +96,30 @@ export const CONVERSATIONS_2 = [
         |{rows.map((r) => <Row key={r.id} row={r} onPick={onPick} />)}
         |\`\`\`
 
-        |Check with the profiler before and after. If Row still re-renders, the culprit is another prop.`)],
-      ["h", "It is better but still slow at 2,000 rows. Is virtual scrolling the next step?"],
-      ["a", C(`Yes, and at 2,000 rows it is the real answer rather than an optimisation. No amount of
-        |memoisation makes 2,000 DOM subtrees cheap to keep in the document; the browser still pays for
-        |layout and paint over all of them.
+        |改前改後都用 profiler 看一次。如果 Row 還在重繪，兇手是另一個 prop。`)],
+      ["h", "好一點了，但 2000 列還是慢。下一步是虛擬捲動嗎？"],
+      ["a", C(`是，而且在 2000 列這個量級，它是真正的答案，不是優化。
 
-        |Render only what fits the viewport plus a small overscan. If every row is the same height the
-        |maths is trivial: the row at index n sits at n times the row height, and you keep perhaps 25
-        |nodes alive whether the list holds 2,000 or 200,000.
+        |再怎麼 memo 也不會讓 2000 棵 DOM 子樹留在文件裡變便宜，瀏覽器還是要為它們全部付 layout 和 paint。
 
-        |One thing to keep: the input's own state should not live in the same component as the list, or
-        |every keystroke re-renders the list container even when the rows are cheap. Lift the query into
-        |a store, or split the input into its own component that publishes the debounced value.`)],
+        |只渲染視窗裝得下的部分，外加一點 overscan。如果每一列同高，數學很簡單：第 n 列在 n 乘列高的
+        |位置，不管清單有 2000 筆還是 20 萬筆，你都只留大約 25 個節點活著。
+
+        |還有一件事要記得：輸入框自己的 state 不要和清單放在同一個元件裡，否則就算每一列都很便宜，每
+        |按一個鍵還是會重繪清單容器。把查詢字串提到 store，或把輸入框拆成自己的元件、只發布 debounce
+        |之後的值。`)],
     ],
   },
 
   {
-    title: "useEffect fires twice in development",
+    title: "useEffect 在開發環境跑兩次",
     t: "2024-11-05T09:44:00Z",
     msgs: [
-      ["h", "My data fetch in useEffect runs twice on mount, but only in development. Is this a bug?"],
-      ["a", C(`It is deliberate. React's StrictMode mounts, unmounts and remounts every component in
-        |development specifically to surface effects that are not safe to run twice. In production the
-        |effect runs once.
+      ["h", "我放在 useEffect 裡的資料抓取在掛載時跑了兩次，而且只有開發環境會這樣。這是 bug 嗎？"],
+      ["a", C(`這是刻意的。React 的 StrictMode 在開發環境會把每個元件掛載、卸載、再掛載一次，就是為了讓
+        |那些「跑兩次不安全」的 effect 現形。正式環境只會跑一次。
 
-        |The right response is not to switch StrictMode off. It is to make the effect idempotent and to
-        |clean up after itself:
+        |正確的反應不是把 StrictMode 關掉，而是讓 effect 具備冪等性，並且自己收尾：
 
         |\`\`\`jsx
         |useEffect(() => {
@@ -135,26 +132,28 @@ export const CONVERSATIONS_2 = [
         |}, [url]);
         |\`\`\`
 
-        |With the abort in place, the double invocation is harmless and you have also fixed the real bug
-        |it was warning you about: a response arriving after the component has moved on.`)],
-      ["h", "Should I be fetching in an effect at all?"],
-      ["a", C(`Often not. Effects are for synchronising with something outside React, and a data fetch on
-        |mount is usually better handled by the router's loader or by a query library that owns caching,
-        |deduplication and revalidation. Hand-rolled fetch-in-effect ends up reimplementing all three,
-        |badly, in every component that needs data.
+        |加上 abort 之後，跑兩次就無害了，而且你順便修掉了它本來在警告你的那個真 bug：回應在元件已經
+        |離開之後才抵達。`)],
+      ["h", "我到底該不該在 effect 裡抓資料？"],
+      ["a", C(`常常不該。
 
-        |Keep the effect when you are wiring up a subscription, a resize observer, or an imperative
-        |third-party widget. Those are what it is for.`)],
+        |effect 是用來跟 React 之外的東西同步的，而掛載時抓資料通常交給路由的 loader、或是一個負責快取、
+        |去重與重新驗證的查詢函式庫比較好。
+
+        |自己手刻的 fetch-in-effect，最後就是在每一個需要資料的元件裡，把那三件事都重新實作一次，而且
+        |都做得不好。
+
+        |接訂閱、接 resize observer、接第三方命令式元件的時候，effect 才留著。那些才是它的用途。`)],
     ],
   },
 
   {
-    title: "Grid template areas versus explicit line numbers",
+    title: "grid-template-areas 還是明確的線號",
     t: "2025-01-30T16:12:00Z",
     msgs: [
-      ["h", "Is grid-template-areas worth using, or is it a toy compared to line numbers?"],
-      ["a", C(`It is worth using precisely where a layout is a named arrangement rather than a
-        |calculation. Areas let a media query restate the whole arrangement in one place:
+      ["h", "grid-template-areas 值得用嗎？還是它比起線號只是個玩具？"],
+      ["a", C(`當版面是一個「有名字的排列」而不是一個「計算結果」時，它就非常值得用。areas 讓 media query
+        |可以在一個地方把整個排列重講一次：
 
         |\`\`\`css
         |.page {
@@ -170,29 +169,28 @@ export const CONVERSATIONS_2 = [
         |}
         |\`\`\`
 
-        |Line numbers win when the placement is computed, when items are auto-placed, or when you span a
-        |variable number of tracks. Do not mix the two systems in one grid: pick whichever describes the
-        |intent and stay with it.`)],
-      ["h", "Any gotcha with named areas?"],
-      ["a", C(`Two. Every row of the template string must have the same number of columns, and an empty
-        |cell is a dot, not a blank. Miss that and the whole declaration is invalid and silently ignored,
-        |which is a confusing failure because nothing appears in the console.
+        |線號贏在放置位置是算出來的時候、項目是自動排放的時候，或者你要跨越不定數量的軌道時。
 
-        |The other is that a named area implicitly creates line names, so \`grid-column: index\` works.
-        |That is useful, and it also means an area name that collides with something else in the grid
-        |will do something surprising.`)],
+        |不要在同一個 grid 裡混用兩套系統：挑那個描述得出你意圖的，然後就一直用它。`)],
+      ["h", "命名區域有什麼要注意的坑嗎？"],
+      ["a", C(`兩個。
+
+        |template 字串的每一列必須有相同的欄數，而空的格子是一個點，不是留白。漏掉這件事，整條宣告就是
+        |無效並被安靜忽略——那是很難查的失敗，因為主控台什麼都不會出現。
+
+        |另一個是命名區域會隱含地建立線名，所以 \`grid-column: index\` 會動。這很好用，但也代表區域名稱
+        |如果和 grid 裡的其他東西撞名，會做出讓你意外的事。`)],
     ],
   },
 
   {
-    title: "Flex item will not shrink below its content",
+    title: "flex 項目不肯縮到比內容還窄",
     t: "2024-10-14T13:07:00Z",
     msgs: [
-      ["h", C(`I have a flex row with a long filename in it. Instead of truncating with an ellipsis, the
-        |whole row grows and pushes everything else off screen. \`text-overflow: ellipsis\` does nothing.`)],
-      ["a", C(`Flex items have \`min-width: auto\` by default, which means they refuse to shrink below
-        |their content's intrinsic minimum size. Your ellipsis rule never gets a chance because the box
-        |is never narrower than the text.
+      ["h", C(`我有一個 flex 列，裡面放了很長的檔名。它不但沒有用刪節號截斷，還把整列撐大、把其他東西
+        |推出畫面。\`text-overflow: ellipsis\` 完全沒作用。`)],
+      ["a", C(`flex 項目的 \`min-width\` 預設是 \`auto\`，意思是它拒絕縮到比內容的固有最小尺寸還窄。你的
+        |刪節號規則根本沒有機會生效，因為那個盒子從來沒有比文字窄過。
 
         |\`\`\`css
         |.row { display: flex; gap: 12px; }
@@ -204,92 +202,88 @@ export const CONVERSATIONS_2 = [
         |}
         |\`\`\`
 
-        |The same applies to grid, where the equivalent is \`minmax(0, 1fr)\` instead of \`1fr\`.`)],
-      ["h", "Why is auto the default if it causes this?"],
-      ["a", C(`Because the alternative default breaks the common case. Before that rule existed, flex
-        |items would happily shrink a button until its label was clipped, or squash an image to nothing.
-        |\`min-width: auto\` says that by default a box is at least as wide as the smallest thing it can
-        |sensibly contain, which is right most of the time. Overflow with a deliberate truncation is the
-        |exception, and it is the exception you opt into.`)],
+        |grid 也一樣，對應的寫法是用 \`minmax(0, 1fr)\` 取代 \`1fr\`。`)],
+      ["h", "既然會造成這種問題，為什麼預設值是 auto？"],
+      ["a", C(`因為另一個預設值會弄壞常見情況。
+
+        |在那條規則出現之前，flex 項目會很開心地把按鈕縮到標籤被切掉，或者把圖片壓成一條線。
+
+        |\`min-width: auto\` 說的是：預設情況下，一個盒子至少要和它能合理裝下的最小東西一樣寬——多數時候
+        |這是對的。刻意截斷造成的溢出是例外，而且那是你自己選擇加入的例外。`)],
     ],
   },
 
   {
-    title: "UUID or bigint for primary keys",
+    title: "主鍵要用 UUID 還是 bigint",
     t: "2025-05-13T09:31:00Z",
     msgs: [
-      ["h", C(`New service, Postgres. The team is split between bigint identity columns and UUIDs. What
-        |actually matters here?`)],
-      ["a", C(`Three things matter, and none of them is taste.
+      ["h", C(`新服務，用 Postgres。團隊在 bigint identity 欄位和 UUID 之間分成兩派。這件事真正的重點
+        |是什麼？`)],
+      ["a", C(`有三件事是重點，而且沒有一件是喜好問題。
 
-        |Index locality. A random UUID as a primary key means every insert lands in a random page of the
-        |B-tree, so the write path touches pages that are not in cache and the index does not compact. A
-        |sequential bigint appends. On a write-heavy table that is a measurable difference, not a
-        |theoretical one.
+        |索引局部性。隨機 UUID 當主鍵，代表每一次插入都落在 B-tree 的隨機頁面上，寫入路徑會碰到不在快取
+        |裡的頁，索引也不會緊實。遞增的 bigint 是往後接。在寫入量大的表上，這是量得出來的差別，不是理論。
 
-        |Enumerability. If ids appear in URLs, a sequential id tells anyone who looks how many customers
-        |you have and lets them walk your data when authorisation is weak. That is an argument against
-        |bigint in public surfaces, not against bigint as a primary key.
+        |可列舉性。如果 id 會出現在網址裡，遞增 id 等於告訴每一個看到的人你有多少客戶，而且在授權沒做好
+        |時可以讓他們走遍你的資料。這是反對「把 bigint 曝露在公開介面」的理由，不是反對「用 bigint 當
+        |主鍵」。
 
-        |Size. 16 bytes against 8, repeated in every foreign key and every index that includes the key.
-        |At small scale nobody notices. At a billion rows it is real.`)],
-      ["h", "Is there a way to get both?"],
-      ["a", C(`Two. Use UUID version 7, which puts a millisecond timestamp in the high bits so values are
-        |time-ordered and insert locality comes back while ids stay unguessable enough for URLs.
+        |大小。16 位元組對 8 位元組，而且會在每一個外鍵、每一個含主鍵的索引裡重複一次。規模小的時候沒人
+        |會注意，到十億列就是真的。`)],
+      ["h", "有辦法兩者兼得嗎？"],
+      ["a", C(`兩個做法。
 
-        |Or keep a bigint primary key for internal joins and add a separate random public id with a
-        |unique index, exposed in URLs and APIs. That costs one extra index and gives you both, at the
-        |price of remembering which id you are holding at any moment.`)],
+        |用 UUID version 7，它把毫秒時間戳放在高位，所以值是時間有序的，插入局部性回來了，而 id 對網址
+        |來說仍然夠難猜。
+
+        |或者內部 join 保留 bigint 主鍵，另外加一個帶唯一索引的隨機公開 id，只在網址和 API 露出。這多付
+        |一個索引就能兩者兼得，代價是你隨時要記得手上拿的是哪一個 id。`)],
     ],
   },
 
   {
-    title: "Renaming a column without downtime",
+    title: "不停機改欄位名稱",
     t: "2025-06-11T10:55:00Z",
     msgs: [
-      ["h", C(`I need to rename \`user_email\` to \`email\` on a table with 30 million rows, in a service
-        |that cannot go down. A plain ALTER takes a lock. What is the sequence?`)],
-      ["a", C(`Rename itself is cheap in Postgres, it is a catalogue change. The problem is not the lock
-        |duration, it is that old and new application code cannot both be right at the same time. So do
-        |it as expand and contract, over three deploys.
+      ["h", C(`我要把一張三千萬列的表上的 \`user_email\` 改名成 \`email\`，而這個服務不能停。單純下 ALTER
+        |會上鎖。正確的順序是什麼？`)],
+      ["a", C(`在 Postgres 裡改名本身很便宜，那只是目錄變更。問題不是鎖的時間長短，而是新舊版應用程式碼
+        |沒辦法同時都是對的。所以要做成 expand and contract，分三次部署。
 
-        |Deploy 1: add the new column, write to both, read from the old one. The write path is now
-        |double, the read path is unchanged, and rolling back is free.
+        |第一次部署：新增新欄位，兩邊都寫，仍然讀舊的那個。寫入路徑變成雙寫，讀取路徑不變，要回滾是免費的。
 
-        |Backfill in batches with a pause between them, so autovacuum keeps up and replication lag stays
-        |flat.
+        |分批回填，每批之間留間隔，讓 autovacuum 跟得上、複寫延遲維持平坦。
 
         |\`\`\`sql
         |UPDATE users SET email = user_email
         |WHERE email IS NULL AND id BETWEEN $1 AND $2;
         |\`\`\`
 
-        |Deploy 2: read from the new column, keep writing both. Deploy 3: stop writing the old one, and
-        |drop it in a later release once no replica or reporting job still reads it.`)],
-      ["h", "What about the lock when adding the column?"],
-      ["a", C(`Adding a nullable column with no default is instant in modern Postgres, it only touches
-        |the catalogue. Adding one with a constant default is also instant since version 11.
+        |第二次部署：改讀新欄位，兩邊繼續寫。第三次部署：停止寫舊欄位；等到確定沒有任何複本或報表工作還
+        |在讀它之後，再挑一個後續版本把它刪掉。`)],
+      ["h", "新增欄位的時候會不會上鎖？"],
+      ["a", C(`在現代的 Postgres 裡，新增一個可為 null、沒有預設值的欄位是瞬間完成的，只動到目錄。從第 11
+        |版開始，帶常數預設值的新增也是瞬間完成。
 
-        |What still rewrites the table, and still takes a strong lock, is changing a column type and
-        |adding a not-null constraint. For the constraint, add it as \`NOT VALID\` first and then
-        |\`VALIDATE CONSTRAINT\` in a separate transaction, which takes a much weaker lock.
+        |仍然會重寫整張表、仍然要拿強鎖的，是改欄位型別和加 not-null 約束。
 
-        |And set \`lock_timeout\` before any DDL. Without it, one long-running read query can make your
-        |ALTER wait, and everything behind the ALTER queues behind that, which is how a catalogue change
-        |turns into an outage.`)],
+        |約束的話，先用 \`NOT VALID\` 加上去，再在另一個交易裡 \`VALIDATE CONSTRAINT\`，那個鎖弱很多。
+
+        |另外任何 DDL 之前都先設 \`lock_timeout\`。沒有它的話，一個跑很久的讀取查詢就能讓你的 ALTER 卡住，
+        |而排在 ALTER 後面的所有東西又卡在它後面——一個目錄變更就是這樣變成一次故障的。`)],
     ],
   },
 
   {
-    title: "Structured logging that is actually greppable",
+    title: "真的 grep 得動的結構化日誌",
     t: "2024-09-25T15:48:00Z",
     msgs: [
-      ["h", C(`We are moving from printf logging to JSON logs. What should be in every line, and what
-        |should never be?`)],
-      ["a", C(`Every line: a timestamp in ISO 8601 with a timezone, a level, a stable event name, a
-        |request or trace id, and the service name and version. The stable event name is the one people
-        |forget, and it is the one that makes a log searchable. \`payment.capture.failed\` can be counted
-        |over time; "Failed to capture payment for order 8812" cannot.
+      ["h", C(`我們要從 printf 式的日誌換成 JSON 日誌。每一行一定要有什麼？絕對不能有什麼？`)],
+      ["a", C(`每一行都要有：帶時區的 ISO 8601 時間戳、等級、一個穩定的事件名稱、一個 request 或 trace id，
+        |還有服務名稱和版本。
+
+        |大家最常忘的是那個穩定的事件名稱，而它正是讓日誌搜得動的關鍵。\`payment.capture.failed\` 可以
+        |隨時間計數，「Failed to capture payment for order 8812」不行。
 
         |\`\`\`json
         |{"ts":"2024-09-25T15:48:02.114Z","level":"error","event":"payment.capture.failed",
@@ -297,94 +291,84 @@ export const CONVERSATIONS_2 = [
         | "order_id":8812,"provider":"stripe","attempt":3}
         |\`\`\`
 
-        |Never: anything you would not want in a subpoena. No card numbers, no tokens, no full request
-        |bodies, no email addresses unless you decided that deliberately and can defend it.`)],
-      ["h", "How much should we log? Disk is cheap but our bill is not."],
-      ["a", C(`Log an event at the boundaries and at every decision that would be hard to reconstruct. Do
-        |not log inside loops, and do not log both the attempt and the success of a fast operation that
-        |succeeds almost always; log the failure and count the successes as a metric.
+        |絕對不能有：任何你不希望出現在傳票上的東西。不要卡號、不要 token、不要完整的請求內容、不要
+        |email，除非那是你刻意決定的、而且你講得出理由。`)],
+      ["h", "我們該記多少？硬碟很便宜，但帳單不便宜。"],
+      ["a", C(`在邊界記事件，以及在每一個「事後很難重建」的決策點記事件。
 
-        |A useful rule: if you would not want to read the line during an incident at three in the
-        |morning, it is not a log line, it is a metric or a trace span. Logs are for the narrative,
-        |metrics are for the shape, traces are for the path. Sending all three into the log pipeline is
-        |how the bill gets away from you.`)],
+        |不要在迴圈裡記；一個幾乎都會成功的快速操作，不要同時記「開始嘗試」和「成功」，只記失敗，成功
+        |用 metric 計數。
+
+        |一個好用的原則：凌晨三點處理事故時你不會想讀的那一行，就不是 log，它是 metric 或 trace span。
+        |日誌講的是敘事，metric 講的是形狀，trace 講的是路徑。把三種都倒進日誌管線，帳單就是這樣失控的。`)],
     ],
   },
 
   {
-    title: "Feature flags without a permanent mess",
+    title: "用 feature flag 但不要留下一團爛攤子",
     t: "2025-07-22T11:33:00Z",
     msgs: [
-      ["h", C(`We have 140 feature flags and nobody knows which are dead. How do we stop this from
-        |happening again?`)],
-      ["a", C(`Give flags a type, and give each type a lifetime.
+      ["h", C(`我們有 140 個 feature flag，沒有人知道哪些已經是死的。要怎麼避免這件事再發生？`)],
+      ["a", C(`給 flag 分型別，然後給每一種型別一個壽命。
 
-        |Release flags exist to decouple deploy from launch. They are temporary by definition and should
-        |carry an expiry date at creation. A flag past its date fails the build.
+        |release flag 存在的目的是把部署和上線解耦。它們照定義就是暫時的，建立時就應該帶一個到期日。
+        |過期的 flag 直接讓建置失敗。
 
-        |Operational flags, such as a kill switch on an expensive feature, are permanent and that is
-        |fine. Name them as such and exclude them from the expiry rule.
+        |operational flag，例如某個昂貴功能的 kill switch，是永久的，那沒關係。把它命名成看得出來是這一
+        |類，並排除在到期規則之外。
 
-        |Permission flags are not flags at all, they are authorisation, and they belong in the
-        |entitlement system where they can be audited.
+        |permission flag 根本不是 flag，它是授權，應該放在可以被稽核的權益系統裡。
 
-        |Most of your 140 are release flags nobody deleted, which is a process problem rather than a
-        |tooling one.`)],
-      ["h", "How do we find out which of the 140 are still read?"],
-      ["a", C(`Instrument the read. Have the flag client record the key on every evaluation and ship that
-        |as a low cardinality metric. After two weeks, anything with zero evaluations is dead code and
-        |can be deleted without discussion.
+        |你那 140 個裡面大部分是沒人刪掉的 release flag，那是流程問題，不是工具問題。`)],
+      ["h", "要怎麼查出這 140 個裡面哪些還被讀？"],
+      ["a", C(`在讀取那一刻做觀測。讓 flag 客戶端在每次求值時記下 key，用低基數的 metric 送出去。
 
-        |For the ones that are read but always return the same value, the check is different: they are
-        |live but decided. Remove the branch that never runs, then remove the flag, in two separate
-        |commits so the revert is small if you were wrong about which branch was dead.`)],
+        |兩週之後，求值次數為零的就是死碼，可以直接刪，不用開會討論。
+
+        |至於那些有被讀、但永遠回同一個值的，判斷方式不一樣：它們活著，但已經決定了。先刪掉那條永遠不會
+        |跑的分支，再刪 flag，分成兩個 commit，這樣萬一你判斷錯了哪條分支是死的，revert 也很小。`)],
     ],
   },
 
   {
-    title: "Rust binary exits silently in a distroless image",
+    title: "Rust 二進位檔在 distroless 映像檔裡無聲退出",
     t: "2025-03-06T18:20:00Z",
     msgs: [
-      ["h", C(`My Rust service works in a debian container but immediately exits in distroless with no
-        |error message at all.`)],
-      ["a", C(`Almost certainly dynamic linking against glibc. Distroless static has no loader to report
-        |the failure, which is why you get silence instead of a message.
+      ["h", C(`我的 Rust 服務在 debian 容器裡跑得好好的，換到 distroless 就立刻退出，連錯誤訊息都沒有。`)],
+      ["a", C(`幾乎可以確定是動態連結到 glibc。distroless 的 static 映像檔裡沒有 loader 可以回報這個失敗，
+        |所以你得到的是沉默而不是訊息。
 
-        |Check what the binary needs:
+        |先看這個二進位檔需要什麼：
 
         |\`\`\`sh
         |ldd target/release/myservice
         |\`\`\`
 
-        |If it lists libc, either use the distroless image that ships the C runtime, or build fully
-        |static against musl:
+        |如果它列出 libc，要嘛改用附帶 C runtime 的 distroless 映像檔，要嘛對 musl 做完全靜態的建置：
 
         |\`\`\`sh
         |rustup target add x86_64-unknown-linux-musl
         |cargo build --release --target x86_64-unknown-linux-musl
         |\`\`\`
 
-        |With musl the binary has no dynamic dependencies and the static base image works.`)],
-      ["h", "Any downside to the musl build?"],
-      ["a", C(`One that surprises people: musl's default allocator is much slower than glibc's under
-        |multi-threaded allocation-heavy workloads. If your service allocates a lot across many threads
-        |you can see a large regression that has nothing to do with your code. Linking jemalloc or
-        |mimalloc removes it.
+        |用 musl 之後二進位檔沒有動態相依，static 基底映像檔就能跑。`)],
+      ["h", "musl 建置有什麼壞處嗎？"],
+      ["a", C(`有一個常常讓人意外：musl 的預設配置器在多執行緒、大量配置的工作負載下，比 glibc 慢很多。
+        |如果你的服務在很多執行緒上大量配置記憶體，你可能會看到一段跟你的程式碼毫無關係的大幅退化。
+        |連結 jemalloc 或 mimalloc 可以解掉。
 
-        |The second is TLS certificate roots. A static binary with no base image has no
-        |\`/etc/ssl/certs\`, so outbound HTTPS fails. Either copy the certificate bundle into the image or
-        |use a TLS stack that embeds the roots.`)],
+        |第二個是 TLS 憑證根。一個沒有基底映像檔的靜態二進位檔沒有 \`/etc/ssl/certs\`，所以對外的 HTTPS
+        |會失敗。要嘛把憑證包複製進映像檔，要嘛用一個內嵌根憑證的 TLS 實作。`)],
     ],
   },
 
   {
-    title: "Async methods in Rust traits",
+    title: "Rust trait 裡的 async 方法",
     t: "2025-02-19T12:41:00Z",
     msgs: [
-      ["h", "Can I write async fn in a trait now, or do I still need the macro?"],
-      ["a", C(`You can write it directly for traits used inside your own crate. The remaining limitation
-        |is that a trait with an async method is not automatically object safe, so \`dyn Trait\` does not
-        |work without help.
+      ["h", "現在可以直接在 trait 裡寫 async fn 了嗎？還是還要靠巨集？"],
+      ["a", C(`在自己 crate 內部使用的 trait 可以直接寫。剩下的限制是：帶 async 方法的 trait 不會自動具備
+        |物件安全性，所以 \`dyn Trait\` 沒有額外幫忙是不能用的。
 
         |\`\`\`rust
         |trait Store {
@@ -392,68 +376,61 @@ export const CONVERSATIONS_2 = [
         |}
         |\`\`\`
 
-        |That compiles and is fine for generic code such as \`fn use_store<S: Store>(s: &S)\`. If you need
-        |a trait object you still reach for the macro that boxes the returned future, because a boxed
-        |future has a known size and the raw form does not.`)],
-      ["h", "Is the boxing cost worth worrying about?"],
-      ["a", C(`One heap allocation per call. That matters in a hot loop and is invisible anywhere else.
-        |Write the plain version first and box only when you actually need dynamic dispatch, which in
-        |most services is at a single boundary rather than throughout.
+        |這段可以編譯，而且對 \`fn use_store<S: Store>(s: &S)\` 這種泛型程式碼完全夠用。需要 trait object
+        |的時候你還是得回去用那個把回傳 future 裝箱的巨集，因為裝箱後的 future 有已知大小，原始形式沒有。`)],
+      ["h", "裝箱的成本需要擔心嗎？"],
+      ["a", C(`每次呼叫一次堆積配置。在熱迴圈裡有差，其他地方看不見。
 
-        |The other thing to know is that a plain async method in a public trait leaks auto trait bounds:
-        |callers cannot assume the returned future is \`Send\` unless you say so. For a library used
-        |inside a multi-threaded runtime, that is the difference between a trait that works and a trait
-        |that produces a wall of errors at the call site.`)],
+        |先寫樸素的版本，等到你真的需要動態分派時才裝箱，而多數服務裡那只發生在單一個邊界，不是到處都是。
+
+        |另一件要知道的事：公開 trait 裡的樸素 async 方法會洩漏 auto trait 的界限——呼叫端不能假設回傳的
+        |future 是 \`Send\`，除非你明講。對一個要在多執行緒 runtime 裡使用的函式庫來說，那就是「trait 可以
+        |用」和「trait 在呼叫點吐出一整面錯誤」之間的差別。`)],
     ],
   },
 
   {
-    title: "Why is my Kubernetes pod pending",
+    title: "我的 Kubernetes pod 為什麼一直 Pending",
     t: "2024-12-02T14:15:00Z",
     msgs: [
-      ["h", "A deployment rolled out and one pod has been Pending for ten minutes. Nodes look healthy."],
-      ["a", C(`Pending means the scheduler has not placed it. The reason is always in the events:
+      ["h", "一次 deployment 推出去之後，有一個 pod 已經 Pending 十分鐘了。節點看起來都很健康。"],
+      ["a", C(`Pending 代表排程器還沒把它放上去。原因一定在 events 裡：
 
         |\`\`\`sh
         |kubectl describe pod my-pod | sed -n '/Events/,$p'
         |\`\`\`
 
-        |Four you will actually see. Insufficient cpu or memory, meaning no node has room for the
-        |requests you asked for, which is about requests and not about actual usage. No nodes matching
-        |the node selector or affinity. A taint with no matching toleration. And an unbound persistent
-        |volume claim, often because the volume is in a different availability zone from every node that
-        |could take the pod.`)],
-      ["h", "It says insufficient memory but the nodes are at 40 percent usage."],
-      ["a", C(`Then your requests are far above your real usage. The scheduler packs by requests, not by
-        |current consumption, so a cluster at 40 percent actual memory can be fully requested and unable
-        |to place anything.
+        |你實際上會遇到的有四種。CPU 或記憶體不足，代表沒有節點裝得下你要求的 requests——注意那是 requests
+        |的事，跟實際用量無關。沒有節點符合 node selector 或 affinity。有 taint 但沒有對應的 toleration。
+        |還有 persistent volume claim 綁不上，常常是因為那個 volume 在跟所有可用節點都不同的可用區。`)],
+      ["h", "它說記憶體不足，可是節點用量只有 40%。"],
+      ["a", C(`那代表你的 requests 遠高於真實用量。
 
-        |Look at the gap:
+        |排程器是按 requests 裝箱，不是按當下消耗量，所以一個實際記憶體只用 40% 的叢集，完全可能已經被
+        |request 滿了、什麼都排不進去。
+
+        |看一下落差：
 
         |\`\`\`sh
         |kubectl describe node my-node | grep -A5 "Allocated resources"
         |\`\`\`
 
-        |If requested memory is near allocatable while usage is at 40 percent, lower the requests to
-        |something near the real working set and leave the limits where they are. That is also the
-        |cheapest cost saving most clusters have available, because over-requesting silently buys nodes
-        |that do nothing.`)],
+        |如果 requested memory 接近 allocatable、用量卻只有 40%，就把 requests 調到接近真實工作集，limits
+        |維持原樣。這通常也是多數叢集手上最便宜的成本節省，因為過度 request 等於默默買了一堆什麼都沒做的
+        |節點。`)],
     ],
   },
 
   {
-    title: "Rolling update still drops a few requests",
+    title: "滾動更新還是會掉幾個請求",
     t: "2025-01-18T16:37:00Z",
     msgs: [
-      ["h", C(`We use a rolling update with maxUnavailable set to zero, and we still see a handful of
-        |502s on every deploy.`)],
-      ["a", C(`Zero unavailable guarantees that a replacement pod is ready before an old one goes away.
-        |It does not guarantee that the load balancer has stopped sending traffic to the old one when it
-        |starts shutting down, because endpoint removal and the SIGTERM signal race each other.
+      ["h", C(`我們用滾動更新、maxUnavailable 設 0，每次部署還是會看到零星幾個 502。`)],
+      ["a", C(`maxUnavailable 為 0 保證的是：舊 pod 消失之前，替補的 pod 已經 ready。它沒有保證舊 pod 開始
+        |關機時，負載平衡器已經不再把流量送給它——因為 endpoint 移除和 SIGTERM 是在互相競速。
 
-        |Two things fix almost all of it. A preStop sleep long enough for endpoint propagation, and a
-        |readiness probe that starts failing at the beginning of shutdown so removal begins before the
-        |server stops accepting.
+        |兩件事可以解掉幾乎全部。一個長度足夠讓 endpoint 傳播完成的 preStop sleep，以及一個在關機一開始
+        |就開始失敗的 readiness probe，讓移除先於「伺服器停止接受連線」發生。
 
         |\`\`\`yaml
         |lifecycle:
@@ -461,27 +438,25 @@ export const CONVERSATIONS_2 = [
         |    exec: { command: ["sh", "-c", "sleep 10"] }
         |terminationGracePeriodSeconds: 45
         |\`\`\``)],
-      ["h", "And the application side?"],
-      ["a", C(`Stop accepting new connections, let in-flight requests finish, then close. Most frameworks
-        |have this as one call, and most services never wire it to SIGTERM.
+      ["h", "應用程式那邊呢？"],
+      ["a", C(`停止接受新連線、讓進行中的請求做完、然後關閉。大多數框架這是一個呼叫的事，而大多數服務從來
+        |沒把它接到 SIGTERM 上。
 
-        |Also check that graceful shutdown actually finishes within the grace period. If a request can
-        |take 60 seconds and the grace period is 30, the container is killed and you drop it. Either
-        |raise the grace period above your slowest request or make the slow path cancellable.`)],
+        |另外確認優雅關機真的能在寬限期內做完。如果一個請求可能跑 60 秒、而寬限期是 30 秒，容器會被殺掉，
+        |那個請求就掉了。要嘛把寬限期拉到比你最慢的請求還長，要嘛讓那條慢路徑可以被取消。`)],
     ],
   },
 
   {
-    title: "Property-based testing for a query parser",
+    title: "用 property-based testing 測查詢語法解析器",
     t: "2025-04-25T13:52:00Z",
     msgs: [
-      ["h", C(`I wrote a query parser and my unit tests all pass, but users keep finding inputs that
-        |break it. How do I test the space rather than the examples?`)],
-      ["a", C(`Property tests. Instead of asserting on specific inputs you state a property that should
-        |hold for all inputs, let the library generate thousands of them, and let it shrink any failure
-        |to the smallest case.
+      ["h", C(`我寫了一個查詢語法解析器，單元測試全過，但使用者一直找到會弄壞它的輸入。要怎麼測整個空間，
+        |而不是測那幾個例子？`)],
+      ["a", C(`用 property test。你不再對特定輸入下斷言，而是陳述一個「對所有輸入都該成立」的性質，讓函式
+        |庫生成幾千個輸入，再讓它把任何失敗縮到最小案例。
 
-        |For a parser the two properties that catch the most are round-tripping and totality:
+        |對解析器來說，抓到最多問題的兩個性質是往返和全域性：
 
         |\`\`\`js
         |// round trip: printing a parsed query and parsing it again gives the same tree
@@ -493,60 +468,54 @@ export const CONVERSATIONS_2 = [
         |fc.assert(fc.property(fc.string(), (s) => { parse(s); }));
         |\`\`\`
 
-        |The second is unglamorous and finds more bugs than anything else you will write.`)],
-      ["h", "Writing the generator looks like as much work as the parser."],
-      ["a", C(`For the round trip property, yes, and that is the honest cost. Start with totality, which
-        |needs no generator beyond random strings, and add the structured generator only if the parser is
-        |central enough to earn it.
+        |第二個一點都不華麗，但它抓到的 bug 比你會寫的任何東西都多。`)],
+      ["h", "寫生成器看起來跟寫解析器一樣費工。"],
+      ["a", C(`往返那個性質，確實是，那是誠實的代價。
 
-        |One more cheap property while you are there: for any input, the reported error position must lie
-        |within the input. That single assertion catches a surprising number of off-by-one bugs in error
-        |reporting, which is exactly the code unit tests never cover because nobody writes a test for a
-        |message.`)],
+        |先做全域性，它除了隨機字串以外什麼生成器都不需要；等到這個解析器重要到值得為它投資，再補結構化
+        |的生成器。
+
+        |順便再加一個很便宜的性質：對任何輸入，回報的錯誤位置都必須落在輸入範圍內。那一條斷言抓到的錯誤
+        |回報 off-by-one 多到驚人——而那正是單元測試永遠不會覆蓋到的程式碼，因為沒有人會為一則訊息寫測試。`)],
     ],
   },
 
   {
-    title: "Flaky tests: quarantine or fix",
+    title: "不穩定的測試：隔離還是修好",
     t: "2024-08-14T10:24:00Z",
     msgs: [
-      ["h", C(`Our CI fails about one run in six for reasons unrelated to the change. People just hit
-        |retry now. How do we get out of this?`)],
-      ["a", C(`The retry habit is the real damage: once a red build means nothing, a genuine failure gets
-        |retried too. So the first move is to make the signal meaningful again, even at the cost of
-        |coverage.
+      ["h", C(`我們的 CI 大約每六次就有一次因為跟這次改動無關的原因失敗。現在大家都直接按重試。要怎麼
+        |脫離這個狀態？`)],
+      ["a", C(`按重試這個習慣才是真正的傷害：一旦紅燈不代表任何事，真正的失敗也會被一起重試掉。
 
-        |Track flakiness per test rather than per run. Any test that has failed and then passed on the
-        |same commit within the last 30 days is flaky. Quarantine those: still run them, still record the
-        |result, but do not let them fail the build. The build is trustworthy again.
+        |所以第一步是讓訊號重新有意義，就算要犧牲一點覆蓋率。
 
-        |Then fix the quarantine list on a budget, say two tests a week, and delete anything that has sat
-        |there for three months. A test nobody will fix is not protecting anything.`)],
-      ["h", "What causes most of it, in your experience?"],
-      ["a", C(`Time and order, in that order.
+        |用「每個測試」而不是「每次執行」來追蹤不穩定度。過去 30 天內，在同一個 commit 上先失敗後成功的
+        |測試，就是不穩定的。把它們隔離：照樣執行、照樣記錄結果，但不讓它們讓建置失敗。建置就重新可信了。
 
-        |Time: a sleep standing in for a condition, a timeout tuned to a fast laptop, an assertion on
-        |"now" that crosses a second boundary. Replace sleeps with waits on the actual condition and
-        |inject the clock.
+        |然後給隔離清單排一個預算慢慢修，例如一週兩個，並且刪掉在那裡放了三個月的。沒有人願意修的測試，
+        |保護不了任何東西。`)],
+      ["h", "以你的經驗，大部分是什麼造成的？"],
+      ["a", C(`時間和順序，照這個排名。
 
-        |Order: tests sharing a database row, a temporary directory, a global registry, or a
-        |module-level cache. These pass alone and fail when the suite is sharded differently. Running the
-        |suite in a randomised order in CI surfaces them immediately, and it is one configuration line.`)],
+        |時間：用 sleep 代替等待條件、照著快筆電調出來的逾時、對「現在」下斷言結果跨過了秒的邊界。把
+        |sleep 換成等待真正的條件，並且把時鐘注入進去。
+
+        |順序：測試之間共用同一列資料庫紀錄、同一個暫存目錄、同一個全域註冊表，或某個模組層級的快取。
+        |這些單獨跑會過，換一種分片方式就掛。在 CI 裡用隨機順序跑整套測試可以立刻讓它們現形，而且那只是
+        |一行設定。`)],
     ],
   },
 
   {
-    title: "Reducing a four second Largest Contentful Paint",
+    title: "把四秒的 Largest Contentful Paint 壓下來",
     t: "2025-05-02T09:12:00Z",
     msgs: [
-      ["h", C(`Field data says our LCP is 4.1 seconds at the 75th percentile. Lab tests say 1.2. Where do
-        |I even start?`)],
-      ["a", C(`The gap between lab and field is the finding, not a problem with the measurement. Lab runs
-        |on a fast connection with a warm cache and no third-party scripts. Field is real phones on real
-        |networks.
+      ["h", C(`實地資料說我們的 LCP 在 75 百分位是 4.1 秒，實驗室測出來是 1.2 秒。我到底該從哪開始？`)],
+      ["a", C(`實驗室和實地之間的落差本身就是發現，不是量測有問題。實驗室跑在快速連線、暖快取、沒有第三方
+        |腳本的環境；實地是真的手機、真的網路。
 
-        |Start by finding which element is the LCP element in the field, because it is often not the one
-        |you optimised:
+        |先找出在實地環境裡到底哪一個元素是 LCP 元素，因為它常常不是你優化的那一個：
 
         |\`\`\`js
         |new PerformanceObserver((list) => {
@@ -555,28 +524,26 @@ export const CONVERSATIONS_2 = [
         |}).observe({ type: "largest-contentful-paint", buffered: true });
         |\`\`\`
 
-        |Then split the time into time to first byte, resource load delay, resource load time and element
-        |render delay. Each has a different fix and optimising the wrong one does nothing.`)],
-      ["h", "Load delay is the biggest chunk. What causes that?"],
-      ["a", C(`The browser did not know it needed the resource until late. Usually the image is
-        |discovered by a script, or it is a CSS background, or it sits behind a client-rendered
-        |component.
+        |然後把時間拆成四段：首位元組時間、資源被發現的延遲、資源載入時間、元素繪製延遲。每一段的解法都
+        |不同，優化錯的那一段等於什麼都沒做。`)],
+      ["h", "被發現的延遲佔最大。那是什麼造成的？"],
+      ["a", C(`瀏覽器太晚才知道自己需要那個資源。通常是圖片由腳本發現的、或者它是 CSS 背景、又或者它躲在
+        |一個由用戶端渲染的元件後面。
 
-        |Fixes, in order of effect: put the hero image in the HTML as an \`img\` with a high fetch
-        |priority so the preload scanner finds it in the first bytes; remove lazy loading from anything
-        |above the fold, which is a common self-inflicted wound; and make sure no render-blocking
-        |stylesheet or font sits in front of it in the request chain.`)],
+        |依效果排序的修法：把主視覺圖片以 \`img\` 直接寫在 HTML 裡並給高的 fetch priority，讓 preload
+        |scanner 在前幾個位元組就找到它；把首屏以上的所有 lazy loading 拿掉，那是很常見的自傷；然後確認
+        |請求鏈裡它前面沒有卡著會阻擋渲染的樣式表或字型。`)],
     ],
   },
 
   {
-    title: "Font loading without a flash of invisible text",
+    title: "載入字型時不要讓文字先隱形",
     t: "2024-10-08T11:41:00Z",
     msgs: [
-      ["h", C(`Our headings are invisible for about a second on first load. We use a Google Fonts link
-        |tag. What is the minimum fix?`)],
-      ["a", C(`Add \`display=swap\` to the font URL. Without it the browser blocks text rendering for up
-        |to three seconds waiting for the file, which is the invisible second you are seeing.
+      ["h", C(`第一次載入時，我們的標題會隱形大約一秒。我們用的是 Google Fonts 的 link 標籤。最小的修法
+        |是什麼？`)],
+      ["a", C(`在字型網址加上 \`display=swap\`。沒有它的話，瀏覽器最多會為了等檔案而擋住文字繪製三秒鐘，
+        |那就是你看到的那一秒隱形。
 
         |\`\`\`html
         |<link rel="preconnect" href="https://fonts.googleapis.com">
@@ -584,11 +551,11 @@ export const CONVERSATIONS_2 = [
         |<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:wght@400..700&display=swap">
         |\`\`\`
 
-        |The two preconnects matter more than they look: the stylesheet is on one host and the font files
-        |are on another, so without them you pay two full connection setups in series.`)],
-      ["h", "Now the text reflows when the real font arrives. Is that unavoidable?"],
-      ["a", C(`Largely avoidable. The reflow is a metrics mismatch between the fallback and the real
-        |face. You can tune the fallback so the two occupy nearly the same space:
+        |那兩個 preconnect 比它們看起來重要：樣式表在一個網域，字型檔在另一個網域，沒有它們你會連續付兩
+        |次完整的連線建立成本。`)],
+      ["h", "現在真的字型一到，文字就會重排。這是無法避免的嗎？"],
+      ["a", C(`大致上可以避免。重排是後備字型和真正字面之間的度量不一致造成的。你可以調整後備字型，讓兩者
+        |佔的空間幾乎一樣：
 
         |\`\`\`css
         |@font-face {
@@ -600,61 +567,53 @@ export const CONVERSATIONS_2 = [
         |}
         |\`\`\`
 
-        |Also request only the weights and axes you actually use. A variable font with a full weight
-        |range is one file, which is good, but shipping italics you never set is bytes on the critical
-        |path for nothing.`)],
+        |另外只請求你真的會用到的字重和軸。一個帶完整字重範圍的可變字型是一個檔案，這很好；但把你從來
+        |不會用到的斜體也送上關鍵路徑，就是白白多付位元組。`)],
     ],
   },
 
   {
-    title: "Finding a memory leak in a long-running tab",
+    title: "在長時間開著的分頁裡找記憶體洩漏",
     t: "2025-06-27T20:08:00Z",
     msgs: [
-      ["h", C(`Our dashboard grows to 1.5 GB after a day open. I take heap snapshots but cannot tell what
-        |is holding what.`)],
-      ["a", C(`Use three snapshots, not one. Snapshot, do the repeated action ten times, snapshot, do it
-        |ten more times, snapshot. Then compare the third against the second with the objects-allocated-
-        |between-snapshots filter. Anything still alive that was allocated in that window is your leak,
-        |and the retainers panel shows the chain holding it.
+      ["h", C(`我們的儀表板開一天會長到 1.5 GB。我抓了 heap snapshot，但看不出來是誰扣著誰。`)],
+      ["a", C(`用三張快照，不要只用一張。
 
-        |In a browser dashboard the usual four are: an event listener on \`window\` or \`document\` added
-        |by a component that never removes it, an interval that outlives its owner, a detached DOM
-        |subtree still referenced from an array, and an ever-growing cache with no bound.`)],
-      ["h", "How do I find detached nodes specifically?"],
-      ["a", C(`Filter the snapshot by "Detached" in the class filter. Every entry there is a DOM node no
-        |longer in the document but still reachable from JavaScript, which means something in your code
-        |holds the reference.
+        |先拍一張，把那個重複的動作做十次，再拍一張，再做十次，再拍第三張。然後拿第三張跟第二張比，用
+        |「兩張快照之間配置的物件」這個過濾條件。那個區間內配置、而現在還活著的東西，就是你的洩漏，而
+        |retainers 面板會顯示扣著它的那條參考鏈。
 
-        |The pattern that produces them most often is caching an element lookup in a module-level map and
-        |never deleting on teardown. A \`WeakMap\` keyed by the element fixes it by construction: when the
-        |node goes, the entry goes.
+        |瀏覽器儀表板常見的就四種：某個元件在 \`window\` 或 \`document\` 上加了監聽器卻從不移除；某個
+        |interval 活得比它的擁有者久；某個已經脫離文件的 DOM 子樹還被陣列參考著；還有一個沒有上限、
+        |一直長大的快取。`)],
+      ["h", "脫離文件的節點要怎麼專門找出來？"],
+      ["a", C(`在 class 過濾器裡篩 "Detached"。那裡的每一筆都是已經不在文件裡、但還能從 JavaScript 觸及
+        |的 DOM 節點，也就是說你的程式碼裡有東西握著那個參考。
 
-        |For the interval case, adopt a rule that every interval and every listener in a component
-        |returns its own cleanup, and that the cleanup is registered at the same moment the subscription
-        |is made. Cleanup written later is cleanup that gets forgotten.`)],
+        |最常產生它們的模式，是把元素查找結果快取在模組層級的 map 裡，然後在拆除時忘了刪。改用以元素為
+        |key 的 \`WeakMap\` 可以從結構上解決：節點沒了，項目就沒了。
+
+        |至於 interval，養成一個規則：元件裡每一個 interval、每一個監聽器都要回傳自己的清理函式，而且
+        |清理要在訂閱成立的同一刻就註冊好。之後才補的清理，就是會被忘掉的清理。`)],
     ],
   },
 
   {
-    title: "Choosing a queue: SQS, Kafka or Postgres",
+    title: "選佇列：SQS、Kafka 還是 Postgres",
     t: "2025-07-08T15:19:00Z",
     msgs: [
-      ["h", C(`We need background jobs. About 200 a minute, occasionally bursting to 3,000. Kafka feels
-        |like overkill but people keep suggesting it.`)],
-      ["a", C(`At 200 a minute Kafka is overkill, and the question that actually decides this is not
-        |throughput. It is whether you need replay.
+      ["h", C(`我們需要背景工作，大概每分鐘 200 個，偶爾會衝到 3000。Kafka 感覺太重了，但一直有人建議用它。`)],
+      ["a", C(`每分鐘 200 個，Kafka 確實太重，而且真正決定這件事的問題不是吞吐量，是你需不需要重放。
 
-        |Kafka is a log: consumers hold an offset and can rewind, and many independent consumers can read
-        |the same stream. If your requirement is "rebuild this projection from the last 30 days of
-        |events", that is Kafka's shape and nothing else does it as well.
+        |Kafka 是一份 log：消費者持有 offset，可以倒帶，而且多個彼此獨立的消費者可以讀同一條串流。如果你
+        |的需求是「用過去 30 天的事件重建這份投影」，那就是 Kafka 的形狀，沒有別的東西做得一樣好。
 
-        |A queue is a work list: a message is delivered, worked, and gone. If your requirement is "resize
-        |this image, then forget about it", a queue is the right shape and a log is extra machinery.`)],
-      ["h", "And Postgres? We already run it."],
-      ["a", C(`At your volume, entirely reasonable, and it buys you something real: the job insert can be
-        |in the same transaction as the data change that caused it. No external queue can give you that,
-        |and the dual-write problem it removes is the source of a lot of "the email went out but the
-        |order was rolled back" bugs.
+        |佇列則是一張工作清單：訊息送出、做完、消失。如果你的需求是「把這張圖縮圖，然後就忘了它」，佇列
+        |才是對的形狀，log 只是多出來的機器。`)],
+      ["h", "那 Postgres 呢？我們本來就在跑。"],
+      ["a", C(`在你這個量級完全合理，而且它給你一個很實在的好處：插入工作可以和「引發這個工作的資料異動」
+        |在同一個交易裡。沒有任何外部佇列做得到這件事，而它消掉的雙寫問題，正是一大堆「信寄出去了但訂單
+        |被回滾了」這類 bug 的來源。
 
         |\`\`\`sql
         |SELECT * FROM jobs
@@ -664,94 +623,84 @@ export const CONVERSATIONS_2 = [
         |LIMIT 10;
         |\`\`\`
 
-        |\`SKIP LOCKED\` is what makes this work with many workers. Move to a dedicated queue when the job
-        |table's write volume starts competing with your application traffic for the same disk, or when
-        |you want a retention and replay story your database should not be responsible for.`)],
+        |\`SKIP LOCKED\` 就是讓這招在多個 worker 下能用的關鍵。等到工作表的寫入量開始和你的應用流量搶同
+        |一顆磁碟，或者你想要一套不該由資料庫負責的保留與重放機制時，再換成專用佇列。`)],
     ],
   },
 
   {
-    title: "Idempotency keys on a payments endpoint",
+    title: "付款端點上的 idempotency key",
     t: "2025-08-01T09:58:00Z",
     msgs: [
-      ["h", C(`Clients retry our charge endpoint on timeout and occasionally double charge. We want
-        |idempotency keys. What are the edge cases people miss?`)],
-      ["a", C(`Three, and each one has bitten a real payments integration.
+      ["h", C(`用戶端在逾時的時候會重試我們的扣款端點，偶爾會重複扣款。我們想用 idempotency key。大家最
+        |常漏掉哪些邊界情況？`)],
+      ["a", C(`三個，而且每一個都咬過真實的金流串接。
 
-        |Storing the key only on success. A request that times out mid-flight is exactly the one that
-        |will be retried, so the key must be recorded before the side effect, not after. Insert the key
-        |with a unique constraint first; a duplicate insert tells you this is a retry.
+        |只在成功時才存 key。一個中途逾時的請求，正好就是那個會被重試的請求，所以 key 必須在副作用發生
+        |之前就寫下來，不是之後。先用唯一性約束把 key 插進去；插入重複就代表這是一次重試。
 
-        |Not storing the response. A retry must return the same response as the original, including the
-        |same charge id. If you return a fresh 200 with a different body, a client reconciling by id sees
-        |two charges.
+        |沒有存回應。重試必須回傳跟原本一模一樣的回應，包含同一個扣款 id。如果你回一個內容不同的新 200，
+        |用 id 做對帳的用戶端會看到兩筆扣款。
 
-        |Not binding the key to the request body. If the same key arrives with a different amount, that
-        |is a client bug and you should return a 422 rather than quietly returning the old charge.`)],
-      ["h", "How long do we keep the keys?"],
-      ["a", C(`Long enough to cover every retry policy a client could plausibly use, which in practice
-        |means 24 hours minimum and often longer. If a client's retry queue can be delayed by an outage,
-        |a week is safer.
+        |沒有把 key 綁到請求內容。如果同一把 key 帶著不同金額進來，那是用戶端的 bug，你應該回 422，而不是
+        |安靜地回傳舊的那筆扣款。`)],
+      ["h", "key 要留多久？"],
+      ["a", C(`久到足以涵蓋任何用戶端可能採用的重試策略，實務上至少 24 小時，常常還要更久。如果某個用戶端
+        |的重試佇列可能因為一次故障而延遲，留一週比較安全。
 
-        |Keep the key, a fingerprint of the request, the response body, and the status. The storage cost
-        |is trivial next to the cost of one double charge, and the record is also the artefact you will
-        |want when a customer disputes what happened.`)],
+        |保留 key、請求內容的指紋、回應內容和狀態碼。儲存成本跟一次重複扣款比起來微不足道，而且客戶爭議
+        |發生時，那筆紀錄正是你會需要的證物。`)],
     ],
   },
 
   {
-    title: "Settling naming arguments in review",
+    title: "在 code review 裡收掉命名爭論",
     t: "2024-09-03T14:02:00Z",
     msgs: [
-      ["h", C(`Code review keeps stalling on naming arguments. Is there anything better than "it depends"
-        |to settle them?`)],
-      ["a", C(`A few rules settle most of them without taste entering the room.
+      ["h", C(`Code review 一直卡在命名爭論。除了「看情況」，有沒有比較能收掉這種爭論的東西？`)],
+      ["a", C(`有幾條規則可以在不動用個人品味的前提下收掉大部分。
 
-        |Name for what the reader needs at the call site, not for what the implementation does. A
-        |function that walks a tree and returns a list is \`messagesOnPath\`, not \`traverseMapping\`.
+        |照呼叫端的讀者需要什麼來命名，不要照實作在做什麼。一個走訪樹、回傳清單的函式叫
+        |\`messagesOnPath\`，不叫 \`traverseMapping\`。
 
-        |Length scales with scope. A loop index can be one letter. A module-level export cannot.
+        |長度跟作用域成正比。迴圈索引可以只有一個字母，模組層級的匯出不行。
 
-        |Booleans read as assertions: \`hasCode\`, \`isTruncated\`, \`shouldRetry\`. Never a negation in the
-        |name, because \`!notReady\` is where bugs live.
+        |布林值讀起來要像斷言：\`hasCode\`、\`isTruncated\`、\`shouldRetry\`。名稱裡永遠不要有否定，因為
+        |\`!notReady\` 就是 bug 住的地方。
 
-        |Do not encode the type. \`userList\` says nothing that \`users\` does not, and it lies the day it
-        |becomes a Set.`)],
-      ["h", "What about disagreements over domain terms?"],
-      ["a", C(`Those are worth stalling on, because they are not naming arguments, they are modelling
-        |arguments wearing a disguise. If two people want to call the same thing "customer" and
-        |"account", the team does not agree on what the thing is, and the code will encode that
-        |disagreement as two half-overlapping types.
+        |不要把型別編進名字。\`userList\` 沒有比 \`users\` 多說任何事，而且它變成 Set 的那天就開始說謊。`)],
+      ["h", "那對領域詞彙的分歧呢？"],
+      ["a", C(`那種值得卡住，因為那根本不是命名爭論，是披著命名外衣的建模爭論。
 
-        |Write a short glossary in the repository, one line per term, and make it the tiebreaker. It is
-        |the cheapest document you will ever maintain and it turns a recurring argument into a one-time
-        |decision.`)],
+        |如果兩個人想把同一個東西叫「客戶」和「帳戶」，代表團隊對那個東西是什麼還沒有共識，而程式碼會把
+        |這份分歧編碼成兩個半重疊的型別。
+
+        |在 repo 裡寫一份短短的詞彙表，一個詞一行，並且讓它成為裁決依據。那會是你維護過最便宜的文件，
+        |而且它把一個反覆發生的爭論變成一次性的決定。`)],
     ],
   },
 
   {
-    title: "Making code review faster without lowering the bar",
+    title: "讓 code review 變快又不降低標準",
     t: "2024-11-19T11:26:00Z",
     msgs: [
-      ["h", C(`Our median time to first review is 19 hours. People context switch away and the branch
-        |goes stale. What actually moves this number?`)],
-      ["a", C(`Change size, before anything else. A 60 line change gets reviewed in an hour; a 900 line
-        |change waits for someone to find a clear afternoon, and then gets a worse review because
-        |attention does not last that long. Everything else is secondary.
+      ["h", C(`我們第一次 review 的中位時間是 19 小時。大家切換去做別的事，分支就過期了。什麼東西真的能
+        |改變這個數字？`)],
+      ["a", C(`改動大小，排在所有事情前面。
 
-        |Concretely: split by commit into a mechanical change and a behavioural change, and open them
-        |separately. A rename touching 40 files and a logic change touching 3 are two reviews, and the
-        |first one takes 30 seconds.`)],
-      ["h", "We already say that. It does not happen."],
-      ["a", C(`Then measure and publish it rather than asking. A weekly number for median review latency
-        |and median diff size, visible to the team, changes behaviour in a way that a guideline in a wiki
-        |does not.
+        |60 行的改動一小時內就會被 review；900 行的改動要等某個人找到一個完整的下午，而且因為注意力撐不
+        |了那麼久，review 品質還更差。其他因素都是次要的。
 
-        |Two structural changes also help. Make the author responsible for naming a reviewer rather than
-        |posting into a channel, because a request addressed to everyone is addressed to nobody. And
-        |separate "this blocks merge" from "consider this", explicitly, in the comment itself. A large
-        |share of review latency is authors waiting for a decision on a comment that was never meant to
-        |block them.`)],
+        |具體做法：按 commit 把機械式改動和行為改動分開，各開一個 PR。一個動到 40 個檔案的改名和一個動到
+        |3 個檔案的邏輯變更是兩次 review，而第一次只要 30 秒。`)],
+      ["h", "我們早就這樣講了，但沒有發生。"],
+      ["a", C(`那就別再用「講」的，改成量出來並公開它。
+
+        |每週公布 review 延遲中位數和 diff 大小中位數，全隊看得到，這會改變行為，而 wiki 裡的一條準則不會。
+
+        |另外兩個結構性改動也有用。讓作者負責指名 reviewer，而不是往頻道裡丟一則訊息——丟給所有人的請求
+        |等於丟給沒有人。還有在留言裡明確區分「這件事擋合併」和「這只是建議」。review 延遲有很大一部分，
+        |是作者在等一個本來就不打算擋他的留言的裁決。`)],
     ],
   },
 ];

@@ -16,8 +16,8 @@
 export const GRADIENT_PRESETS = [
   {
     id: 'deep-field',
-    name: 'Deep Field',
-    demonstrates: 'The default. sRGB drains about a third of the chroma a fifth of the way along this ramp. Press Space to watch it come back.',
+    name: '深空',
+    demonstrates: '預設的那一組。這條斜坡走到五分之一的地方，sRGB 會把三分之一的彩度吸掉。按空白鍵看它長回來。',
     scene: {
       mode: 'gradient', type: 'linear', angle: 200, space: 'oklch', easing: 'linear',
       stops: [
@@ -29,8 +29,8 @@ export const GRADIENT_PRESETS = [
   },
   {
     id: 'sodium-lamp',
-    name: 'Sodium Lamp',
-    demonstrates: 'Powerless-hue carry. The near-black endpoint has no hue of its own, so it borrows the orange instead of bending through red.',
+    name: '鈉燈',
+    demonstrates: '無色相端點的色相沿用。接近全黑的那一端本身沒有色相，所以它直接借用橘色，而不是繞一圈彎進紅色裡。',
     scene: {
       mode: 'gradient', type: 'linear', angle: 165, space: 'oklch', easing: 'linear',
       stops: [
@@ -42,8 +42,8 @@ export const GRADIENT_PRESETS = [
   },
   {
     id: 'anodize',
-    name: 'Anodize',
-    demonstrates: 'Two saturated stops and nothing in between, the way gradients actually get written. This is where sRGB turns chalky.',
+    name: '陽極',
+    demonstrates: '兩個高彩度色標，中間什麼都不放——實務上漸層就是這樣寫的。也就是 sRGB 開始泛白的地方。',
     scene: {
       mode: 'gradient', type: 'linear', angle: 135, space: 'oklch', easing: 'linear',
       stops: [
@@ -54,8 +54,8 @@ export const GRADIENT_PRESETS = [
   },
   {
     id: 'cold-cathode',
-    name: 'Cold Cathode',
-    demonstrates: 'Open the middle stop and push its chroma up: the gamut line reports the real clipped chroma and delta E, rather than silently clamping.',
+    name: '冷陰極',
+    demonstrates: '把中間那個色標打開，彩度往上推：色域那一行會告訴你實際被裁到多少彩度、Delta E 是多少，而不是默默夾掉。',
     scene: {
       mode: 'gradient', type: 'linear', angle: 110, space: 'oklch', easing: 'linear',
       stops: [
@@ -67,8 +67,8 @@ export const GRADIENT_PRESETS = [
   },
   {
     id: 'kiln',
-    name: 'Kiln',
-    demonstrates: 'Long hue travel, dark red to amber, where the short-arc rule decides whether the ramp passes through brown or stays lit.',
+    name: '窯',
+    demonstrates: '很長的色相位移，暗紅走到琥珀。短弧規則在這裡決定這條坡是會經過一段土色，還是一路都是亮的。',
     scene: {
       mode: 'gradient', type: 'linear', angle: 90, space: 'oklch', easing: 'linear',
       stops: [
@@ -79,8 +79,8 @@ export const GRADIENT_PRESETS = [
   },
   {
     id: 'mineral-wash',
-    name: 'Mineral Wash',
-    demonstrates: 'Rectangular blending. Switch it to OKLCH on the same stops to feel exactly what the polar form adds.',
+    name: '礦石淡彩',
+    demonstrates: '直角座標混色。同樣這幾個色標切到 OKLCH，就知道極座標到底多做了什麼。',
     scene: {
       mode: 'gradient', type: 'linear', angle: 160, space: 'oklab', easing: 'linear',
       stops: [
@@ -92,8 +92,8 @@ export const GRADIENT_PRESETS = [
   },
   {
     id: 'photoresist',
-    name: 'Photoresist',
-    demonstrates: 'Conic type, and the exact purple and cyan from this tool’s origin story.',
+    name: '光阻',
+    demonstrates: '圓錐型，用的正是當初讓這個工具誕生的那組紫和青。',
     scene: {
       mode: 'gradient', type: 'conic', angle: 45, space: 'oklch', easing: 'linear',
       stops: [
@@ -105,8 +105,8 @@ export const GRADIENT_PRESETS = [
   },
   {
     id: 'overcast',
-    name: 'Overcast',
-    demonstrates: 'A near-neutral ramp. The comparison reports no meaningful dead zone, because there is none. Honesty over theatre.',
+    name: '陰天',
+    demonstrates: '接近中性的斜坡。比對之後會說沒有明顯的死區，因為真的沒有。誠實比表演重要。',
     scene: {
       mode: 'gradient', type: 'linear', angle: 180, space: 'oklab', easing: 'linear',
       stops: [
@@ -118,8 +118,8 @@ export const GRADIENT_PRESETS = [
   },
   {
     id: 'ember-ring',
-    name: 'Ember Ring',
-    demonstrates: 'Radial type with an off-centre origin, and a hot-to-black ramp that gives up a quarter of its chroma in sRGB.',
+    name: '餘燼環',
+    demonstrates: '放射型，原點不在正中間。從高溫走到全黑的坡在 sRGB 裡會賠掉四分之一的彩度。',
     scene: {
       mode: 'gradient', type: 'radial', angle: 0, space: 'oklch', easing: 'linear',
       center: { x: 0.3, y: 0.3 }, radius: 0.9,
@@ -131,8 +131,8 @@ export const GRADIENT_PRESETS = [
   },
   {
     id: 'aurora-sweep',
-    name: 'Aurora Sweep',
-    demonstrates: 'Four stops and a closed loop, where the first and last have to match exactly.',
+    name: '極光',
+    demonstrates: '四個色標繞成一個封閉的圈，第一個和最後一個必須一模一樣才不會接出縫。',
     scene: {
       mode: 'gradient', type: 'conic', angle: 0, space: 'oklch', easing: 'linear',
       stops: [
@@ -145,8 +145,8 @@ export const GRADIENT_PRESETS = [
   },
   {
     id: 'cyanotype',
-    name: 'Cyanotype',
-    demonstrates: 'Low-chroma blue where interpolation barely matters and dithering matters a lot. Put the loupe on it.',
+    name: '藍曬',
+    demonstrates: '低彩度的藍。這種情況插值幾乎沒差，抖色差很多。把放大鏡移上去看。',
     scene: {
       mode: 'gradient', type: 'linear', angle: 155, space: 'oklch', easing: 'linear',
       stops: [
@@ -158,8 +158,8 @@ export const GRADIENT_PRESETS = [
   },
   {
     id: 'step-wedge',
-    name: 'Step Wedge',
-    demonstrates: 'The control specimen. Achromatic and deliberately sRGB, because banding is worst on a neutral ramp and this is where the dither loupe convinces.',
+    name: '灰階梯',
+    demonstrates: '對照組。無彩色，而且故意用 sRGB——色帶在中性斜坡上最明顯，抖色放大鏡在這裡最有說服力。',
     scene: {
       mode: 'gradient', type: 'linear', angle: 90, space: 'srgb', easing: 'linear',
       stops: [
@@ -173,8 +173,8 @@ export const GRADIENT_PRESETS = [
 export const MESH_PRESETS = [
   {
     id: 'bloom',
-    name: 'Bloom',
-    demonstrates: 'Minimum viable field. Two warm and two cool lobes meeting in the centre.',
+    name: '綻放',
+    demonstrates: '最精簡的網格。兩個暖色團、兩個冷色團，在正中間碰頭。',
     scene: {
       mode: 'mesh', space: 'oklab', falloff: 2.4,
       mesh: [
@@ -187,8 +187,8 @@ export const MESH_PRESETS = [
   },
   {
     id: 'interference',
-    name: 'Interference',
-    demonstrates: 'Where sRGB mesh tools produce grey seams and OKLab does not.',
+    name: '干涉',
+    demonstrates: '別的 sRGB 網格工具在這裡會接出灰色的縫，OKLab 不會。',
     scene: {
       mode: 'mesh', space: 'oklab', falloff: 2.2,
       mesh: [
@@ -204,8 +204,8 @@ export const MESH_PRESETS = [
   },
   {
     id: 'cross-section',
-    name: 'Cross Section',
-    demonstrates: 'The maximum point count. Performance ceiling, and the case that justifies WebGL.',
+    name: '剖面',
+    demonstrates: '點數拉到上限。效能天花板，也是為什麼需要 WebGL 的那個例子。',
     scene: {
       mode: 'mesh', space: 'oklab', falloff: 2.6,
       mesh: [
@@ -236,7 +236,7 @@ export const REFERENCE_SET = {
   workbench: DEFAULT_PRESET_ID,
   grain: { amp: 14, size: 2 },
   dither: true,
-  probe: { text: 'Shipping this on Friday', size: 32, weight: 600, fg: '#FFFFFF' },
+  probe: { text: '禮拜五就要上線', size: 32, weight: 600, fg: '#FFFFFF' },
   gradients: GRADIENT_PRESETS,
   meshes: MESH_PRESETS,
 };

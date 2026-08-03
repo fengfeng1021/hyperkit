@@ -9,9 +9,9 @@ export const TOKENS = ['design', 'template', 'form', 'colorway', 'w', 'h', 'blen
 export const ILLEGAL = /[/\\:*?"<>|]/g;
 export const DEFAULT_PATTERN = '{design}__{template}__{w}x{h}';
 export const GROUPINGS = [
-  { id: 'by-design', label: 'By design' },
-  { id: 'by-template', label: 'By template' },
-  { id: 'flat', label: 'Flat' }
+  { id: 'by-design', label: '依設計' },
+  { id: 'by-template', label: '依版型' },
+  { id: 'flat', label: '不分' }
 ];
 
 export function hasIllegal(pattern) {

@@ -739,7 +739,7 @@ body.is-dragging::after {
 .dthumb[aria-selected="true"] .dthumb-name { color: var(--ink); font-weight: 700; }
 .dthumb.is-new canvas { border-color: var(--olive); border-width: var(--border-w-emph); }
 .dthumb.is-soft .dthumb-name::after {
-  content: " soft";
+  content: " 偏糊";
   color: var(--brick-ink);
 }
 

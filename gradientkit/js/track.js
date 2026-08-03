@@ -49,7 +49,7 @@ export function createTrack(root, ctx) {
       el.dataset.index = String(i);
       el.tabIndex = i === activeIndex ? 0 : -1;
       el.setAttribute('aria-valuenow', stop.pos.toFixed(2));
-      el.setAttribute('aria-valuetext', `${stop.pos.toFixed(1)} percent, ${nameColor(stop.hex)}`);
+      el.setAttribute('aria-valuetext', `${stop.pos.toFixed(1)}%，${nameColor(stop.hex)}`);
       el.querySelector('.gk-stop-value').textContent = `${stop.pos.toFixed(2)}%`;
       const twin = list.some((o, j) => j !== i && Math.abs(o.pos - stop.pos) < 0.01);
       el.classList.toggle('is-hardstop', twin);
@@ -78,8 +78,8 @@ export function createTrack(root, ctx) {
     if (!stop) { readoutEl.textContent = ''; return; }
     const twin = list.some((o, j) => j !== activeIndex && Math.abs(o.pos - stop.pos) < 0.01);
     readoutEl.textContent = twin
-      ? `hard stop at ${stop.pos.toFixed(1)}%`
-      : `${stop.hex} at ${stop.pos.toFixed(2)}%`;
+      ? `${stop.pos.toFixed(1)}% 硬邊`
+      : `${stop.hex}　${stop.pos.toFixed(2)}%`;
   }
 
   function posFromEvent(e) {
@@ -180,7 +180,7 @@ export function createTrack(root, ctx) {
 
   function insertAt(pos) {
     if (stops().length >= 16) {
-      ctx.notice?.('Sixteen stops is the maximum. Delete one to add another.');
+      ctx.notice?.('色標最多十六個。想再加就先刪掉一個。');
       return;
     }
     const ramp = ctx.getRamp();
@@ -253,7 +253,7 @@ export function createTrack(root, ctx) {
 
   function removeStop(index) {
     if (stops().length <= HANDLE_MIN) {
-      ctx.notice?.('Two stops is the minimum for a gradient.');
+      ctx.notice?.('漸層至少要留兩個色標。');
       return;
     }
     ctx.store.commit((s) => { s.stops.splice(index, 1); return s; }, 'stop-delete');
@@ -280,7 +280,7 @@ export function createTrack(root, ctx) {
     const el = document.createElement('div');
     el.className = 'gk-popover';
     el.setAttribute('role', 'dialog');
-    el.setAttribute('aria-label', `Color of stop ${index + 1}`);
+    el.setAttribute('aria-label', `第 ${index + 1} 個色標的顏色`);
 
     const current = stops()[index].hex;
     const lch = hexToOklch(current);
@@ -289,7 +289,7 @@ export function createTrack(root, ctx) {
       <div class="gk-pop-row">
         <label class="gk-pop-label" for="pop-hex">Hex</label>
         <input class="gk-pop-hex" id="pop-hex" type="text" spellcheck="false" autocomplete="off" value="${current}">
-        ${'EyeDropper' in window ? `<button type="button" class="gk-pop-pick">${iconMarkup('pipette')}<span class="gk-sr">Pick a color from the screen</span></button>` : ''}
+        ${'EyeDropper' in window ? `<button type="button" class="gk-pop-pick">${iconMarkup('pipette')}<span class="gk-sr">從螢幕上吸一個顏色</span></button>` : ''}
       </div>
       <p class="gk-pop-msg" role="status"></p>
       <div class="gk-pop-triple">
@@ -323,11 +323,11 @@ export function createTrack(root, ctx) {
     function paintGamut() {
       const { L, C, H } = currentLch();
       if (isInSrgb(L, C, H)) {
-        gamut.textContent = 'In sRGB.';
+        gamut.textContent = '在 sRGB 色域內。';
         gamut.classList.remove('is-clipped');
       } else {
         const m = gamutMapOklch(L, C, H);
-        gamut.textContent = `Chroma reduced to ${m.clippedC.toFixed(3)} for sRGB. Delta E ${m.deltaE.toFixed(3)}.`;
+        gamut.textContent = `為了塞進 sRGB，彩度被壓到 ${m.clippedC.toFixed(3)}，Delta E ${m.deltaE.toFixed(3)}。`;
         gamut.classList.add('is-clipped');
       }
     }
@@ -361,7 +361,7 @@ export function createTrack(root, ctx) {
         const rgb = parseHex(hexInput.value);
         if (!rgb) {
           el.classList.add('is-error');
-          msg.textContent = 'Not a color. Try #3A5BFF or oklch(62% 0.21 264).';
+          msg.textContent = '這不是顏色。試試 #3A5BFF 或 oklch(62% 0.21 264)。';
           return;
         }
         el.classList.remove('is-error');
@@ -422,7 +422,7 @@ export function createTrack(root, ctx) {
         <span class="gk-pop-key">${label}</span>
         <input class="gk-pop-rail" type="range" data-lch="${key}" data-decimals="${decimals}"
                min="${min}" max="${max}" step="${step}" value="${value}"
-               aria-label="${label === 'L' ? 'Lightness' : label === 'C' ? 'Chroma' : 'Hue'}">
+               aria-label="${label === 'L' ? '明度' : label === 'C' ? '彩度' : '色相'}">
         <span class="gk-pop-num">${Number(value).toFixed(decimals)}</span>
       </div>`;
   }

@@ -51,8 +51,8 @@ export function createSweep(overlay, ctx) {
         <button type="button" class="gk-sweep-grip"
                 role="slider" aria-orientation="horizontal"
                 aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"
-                aria-label="Comparison divider. Left of it is the corrected space.">
-          <span class="gk-sr">Drag or use arrow keys to move the comparison divider</span>
+                aria-label="比對接縫。左邊是修正過的色彩空間。">
+          <span class="gk-sr">拖曳或用方向鍵移動比對接縫</span>
         </button>
       </div>
       <p class="gk-sweep-label"></p>
@@ -109,7 +109,7 @@ export function createSweep(overlay, ctx) {
       // sweep and a selector query per frame is a query too many.
       const pct = Math.round(seam * 100);
       gripEl.setAttribute('aria-valuenow', String(pct));
-      gripEl.setAttribute('aria-valuetext', `${pct} percent across the stage`);
+      gripEl.setAttribute('aria-valuetext', `位在載物台 ${pct}% 的地方`);
     }
     ctx.renderer.setSweep(seam, shake, fromSpace);
   }
@@ -137,7 +137,7 @@ export function createSweep(overlay, ctx) {
   function open(from, to) {
     const state = ctx.store.get();
     if (state.mode === 'mesh') {
-      ctx.notice('A mesh field blends every point at once, so there is no two-space seam to draw.');
+      ctx.notice('網格是所有點一次混完的，沒有兩個色彩空間可以劃出一條接縫來比。');
       return null;
     }
     fromSpace = from;
@@ -157,18 +157,18 @@ export function createSweep(overlay, ctx) {
       deficit.hidden = false;
       bracket.style.left = `${report.spanLo * 100}%`;
       bracket.style.width = `${Math.max(2, (report.spanHi - report.spanLo) * 100)}%`;
-      deficit.textContent = `${SPACE_LABELS[report.poorer]} chroma -${report.worstPct}% here`;
+      deficit.textContent = `${SPACE_LABELS[report.poorer]} 這裡少了 ${report.worstPct}% 彩度`;
       placeDeficit(report.worstT);
       const recovered = report.poorer === from;
       ctx.announce(recovered
-        ? `Now interpolating in ${SPACE_LABELS[to]}. Chroma recovered ${report.worstPct} percent at ${Math.round(report.worstT * 100)} percent position.`
-        : `Now interpolating in ${SPACE_LABELS[to]}, which gives up ${report.worstPct} percent of the chroma ${SPACE_LABELS[from]} had at ${Math.round(report.worstT * 100)} percent position.`);
+        ? `現在改用 ${SPACE_LABELS[to]} 插值。在 ${Math.round(report.worstT * 100)}% 的位置補回了 ${report.worstPct}% 的彩度。`
+        : `現在改用 ${SPACE_LABELS[to]} 插值，在 ${Math.round(report.worstT * 100)}% 的位置比 ${SPACE_LABELS[from]} 少了 ${report.worstPct}% 的彩度。`);
     } else {
       bracket.hidden = true;
       deficit.hidden = false;
-      deficit.textContent = `No chroma difference between these two. ${SPACE_LABELS[from]} is fine here.`;
+      deficit.textContent = `這兩個沒有彩度差。這組顏色用 ${SPACE_LABELS[from]} 就可以了。`;
       placeDeficit(0.5);
-      ctx.announce(`No meaningful chroma difference between ${SPACE_LABELS[from]} and ${SPACE_LABELS[to]} for these colors.`);
+      ctx.announce(`這組顏色在 ${SPACE_LABELS[from]} 和 ${SPACE_LABELS[to]} 之間沒有明顯的彩度差。`);
     }
 
     const landing = report.meaningful ? report.worstT : 0.5;

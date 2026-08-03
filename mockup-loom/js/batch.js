@@ -58,7 +58,7 @@ export class Batch {
     const name = el('p', { class: 'wcard-name', text: job.file, title: job.file });
     const meta = el('p', {
       class: 'wcard-meta',
-      text: `${job.templateLabel} - ${job.blendLabel} - light ${job.light.azimuth} deg`
+      text: `${job.templateLabel}・${job.blendLabel}・光 ${job.light.azimuth} 度`
     });
     const actions = el('div', { class: 'wcard-actions' });
     const node = el('div', {
@@ -88,10 +88,10 @@ export class Batch {
       fail(onRetry) {
         node.classList.add('is-failed');
         shot.textContent = '';
-        name.textContent = 'Render failed';
+        name.textContent = '這張沒算出來';
         actions.textContent = '';
         actions.appendChild(el('button', {
-          type: 'button', class: 'btn btn-text', text: 'Retry', onclick: onRetry
+          type: 'button', class: 'btn btn-text', text: '重算', onclick: onRetry
         }));
       }
     };
@@ -171,10 +171,10 @@ export class Batch {
   _wireActions(card, job, url) {
     card.actions.textContent = '';
     card.actions.appendChild(el('a', {
-      class: 'btn btn-text', href: url, target: '_blank', rel: 'noopener', text: 'Open'
+      class: 'btn btn-text', href: url, target: '_blank', rel: 'noopener', text: '開啟'
     }));
     card.actions.appendChild(el('a', {
-      class: 'btn btn-text', href: url, download: job.file, text: 'Download'
+      class: 'btn btn-text', href: url, download: job.file, text: '下載'
     }));
   }
 

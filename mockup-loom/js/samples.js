@@ -162,10 +162,10 @@ export function calibrationGrid() {
 }
 
 export const SAMPLE_SPECS = [
-  { id: 'loom-monogram', name: 'Loom Monogram', draw: loomMonogram },
-  { id: 'warp-weft-grid', name: 'Warp and Weft', draw: warpAndWeft },
-  { id: 'shuttle-mark', name: 'Shuttle Mark', draw: shuttleMark },
-  { id: 'selvedge-stripe', name: 'Selvedge Stripe', draw: selvedgeStripe }
+  { id: 'loom-monogram', name: '織機字標', draw: loomMonogram },
+  { id: 'warp-weft-grid', name: '經緯格', draw: warpAndWeft },
+  { id: 'shuttle-mark', name: '梭子印記', draw: shuttleMark },
+  { id: 'selvedge-stripe', name: '布邊條紋', draw: selvedgeStripe }
 ];
 
 /** Build the four sample designs. Synchronous: it is all Canvas 2D. */

@@ -42,7 +42,7 @@ export class Dropzone {
         if (type === 'dragenter') this._depth++;
         document.body.classList.add('is-dragging');
         zone.classList.add('is-over');
-        this.title.textContent = 'Release to add';
+        this.title.textContent = '放開就收進來';
       });
     });
     window.addEventListener('dragleave', (ev) => {
@@ -67,7 +67,7 @@ export class Dropzone {
   }
 
   setMobileCopy(on) {
-    this.idleTitle = on ? 'Add designs' : 'Drop designs here';
+    this.idleTitle = on ? '加入設計' : '設計拖到這裡';
     if (!this.zone.classList.contains('is-over')) this.title.textContent = this.idleTitle;
   }
 
@@ -156,7 +156,7 @@ export class Dropzone {
         msg.textContent = text;
         msg.hidden = false;
         actions.appendChild(el('button', {
-          type: 'button', class: 'btn btn-text', text: 'Dismiss', onclick: () => node.remove()
+          type: 'button', class: 'btn btn-text', text: '知道了', onclick: () => node.remove()
         }));
       },
       fail(text, extra) {
@@ -171,7 +171,7 @@ export class Dropzone {
           }));
         }
         actions.appendChild(el('button', {
-          type: 'button', class: 'btn btn-text', text: 'Remove', onclick: () => { node.remove(); }
+          type: 'button', class: 'btn btn-text', text: '移掉', onclick: () => { node.remove(); }
         }));
       }
     };
@@ -184,12 +184,12 @@ export class Dropzone {
       this.summary.hidden = false;
       this.summary.textContent = '';
       this.summary.appendChild(document.createTextNode(
-        `${failedRows.length} of ${this.total} files were skipped. `
+        `${this.total} 個檔案裡跳過了 ${failedRows.length} 個。`
       ));
       const btn = el('button', {
         type: 'button',
         class: 'btn btn-text',
-        text: this.filtering ? 'Show all' : 'Show only skipped',
+        text: this.filtering ? '全部顯示' : '只看跳過的',
         onclick: () => { this.filtering = !this.filtering; this._applyFilter(); this._summarise(); }
       });
       this.summary.appendChild(btn);

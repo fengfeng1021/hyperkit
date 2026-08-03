@@ -317,6 +317,7 @@ export function mixOklch(c1, c2, t) {
 export const SPACE_IDS = { srgb: 0, hsl: 1, oklab: 2, oklch: 3 };
 export const SPACE_LABELS = { srgb: 'sRGB', hsl: 'HSL', oklab: 'OKLab', oklch: 'OKLCH' };
 export const SPACE_ORDER = ['srgb', 'hsl', 'oklab', 'oklch'];
+export const TYPE_LABELS = { linear: '線性', radial: '放射', conic: '圓錐' };
 
 export function mixInSpace(space, c1, c2, t) {
   switch (space) {
@@ -410,10 +411,10 @@ export const CVD = {
 
 export const VISION_ORDER = ['normal', 'protanopia', 'deuteranopia', 'tritanopia'];
 export const VISION_LABELS = {
-  normal: 'Normal',
-  protanopia: 'Protanopia',
-  deuteranopia: 'Deuteranopia',
-  tritanopia: 'Tritanopia',
+  normal: '一般',
+  protanopia: '紅色盲',
+  deuteranopia: '綠色盲',
+  tritanopia: '藍黃色盲',
 };
 
 /** Apply a CVD matrix to a gamma-encoded sRGB triple, doing the work in
@@ -477,34 +478,36 @@ export function hexToOklchString(hex) {
    -------------------------------------------------------------------------- */
 
 const HUE_NAMES = [
-  [345, 360, 'red'], [0, 15, 'red'], [15, 45, 'orange'], [45, 70, 'amber'],
-  [70, 100, 'olive'], [100, 150, 'green'], [150, 180, 'teal'], [180, 210, 'cyan'],
-  [210, 250, 'azure'], [250, 275, 'blue'], [275, 300, 'indigo'],
-  [300, 330, 'violet'], [330, 345, 'magenta'],
+  [345, 360, '紅'], [0, 15, '紅'], [15, 45, '橘'], [45, 70, '琥珀'],
+  [70, 100, '橄欖綠'], [100, 150, '綠'], [150, 180, '藍綠'], [180, 210, '青'],
+  [210, 250, '天藍'], [250, 275, '藍'], [275, 300, '靛'],
+  [300, 330, '紫'], [330, 345, '洋紅'],
 ];
 
 export function nameColor(hex) {
   const lch = hexToOklch(hex);
-  if (!lch) return 'unknown color';
+  if (!lch) return '無法辨識的顏色';
   const { L, C, H } = lch;
   if (C < 0.02 || Number.isNaN(H)) {
-    if (L < 0.1) return 'black';
-    if (L < 0.32) return 'charcoal';
-    if (L < 0.58) return 'grey';
-    if (L < 0.84) return 'silver';
-    return 'white';
+    if (L < 0.1) return '黑';
+    if (L < 0.32) return '炭黑';
+    if (L < 0.58) return '灰';
+    if (L < 0.84) return '銀灰';
+    return '白';
   }
   const h = ((H % 360) + 360) % 360;
-  let base = 'grey';
+  let base = '灰';
   for (const [lo, hi, name] of HUE_NAMES) {
     if (h >= lo && h < hi) { base = name; break; }
   }
   let prefix = '';
-  if (L < 0.26) prefix = 'deep ';
-  else if (L < 0.46) prefix = 'dark ';
-  else if (L > 0.86) prefix = 'pale ';
-  else if (L > 0.72) prefix = 'light ';
-  if (C < 0.05) prefix += 'muted ';
+  if (L < 0.26) prefix = '深';
+  else if (L < 0.46) prefix = '暗';
+  else if (L > 0.86) prefix = '淡';
+  else if (L > 0.72) prefix = '淺';
+  // Chinese puts the saturation qualifier ahead of the lightness one, so this
+  // prepends where the English version appended.
+  if (C < 0.05) prefix = '濁' + prefix;
   return prefix + base;
 }
 

@@ -94,11 +94,11 @@ export class Reader {
       el("span", { class: "reader__dot", "aria-hidden": "true", text: "/" }),
       el("span", { text: day(rec.createdAt) }),
       el("span", { class: "reader__dot", "aria-hidden": "true", text: "/" }),
-      el("span", { text: `${num(path.length)} messages on this path` }),
+      el("span", { text: `這條路徑上 ${num(path.length)} 則訊息` }),
     ];
     if (rec.nodes.length > path.length) {
       meta.push(
-        el("span", { class: "reader__alt", text: `${num(rec.nodes.length - path.length)} on other branches` })
+        el("span", { class: "reader__alt", text: `另外 ${num(rec.nodes.length - path.length)} 則在其他分支` })
       );
     }
     this.metaEl.append(...meta);
@@ -119,12 +119,12 @@ export class Reader {
       this.pagingHost.append(
         el("p", {
           class: "reader__paging-note",
-          text: `Showing the latest ${num(visible.length)} of ${num(path.length)} messages.`,
+          text: `目前顯示最新的 ${num(visible.length)} 則，全部共 ${num(path.length)} 則。`,
         }),
         el("button", {
           type: "button",
           class: "btn btn--line btn--sm",
-          text: `Load ${num(Math.min(PAGE, path.length - visible.length))} earlier`,
+          text: `再載入前面 ${num(Math.min(PAGE, path.length - visible.length))} 則`,
           onclick: () => this.loadEarlier(),
         })
       );
@@ -168,7 +168,7 @@ export class Reader {
     clear(row);
 
     const head = el("div", { class: "msg__head" });
-    head.append(el("span", { class: "msg__role", text: node.role === "human" ? "You" : "Assistant" }));
+    head.append(el("span", { class: "msg__role", text: node.role === "human" ? "你" : "AI" }));
 
     const fork = this.forks.get(nodeIndex);
     if (fork) {
@@ -184,17 +184,17 @@ export class Reader {
         onclick: () => this.copy(node.text, copyBtn),
       },
       icon("copy", 12),
-      el("span", { text: "Copy" })
+      el("span", { text: "複製" })
     );
     const linkBtn = el("button", {
       type: "button",
       class: "linkbtn",
-      text: "Link",
+      text: "連結",
       onclick: () => {
         location.hash = `c=${encodeURIComponent(rec.id)}&m=${nodeIndex}`;
-        linkBtn.textContent = "Link copied to the address bar";
+        linkBtn.textContent = "連結已寫進網址列";
         setTimeout(() => {
-          linkBtn.textContent = "Link";
+          linkBtn.textContent = "連結";
         }, 1600);
       },
     });
@@ -217,7 +217,7 @@ export class Reader {
         el("button", {
           type: "button",
           class: "btn btn--line btn--sm msg__more",
-          text: `Show the remaining ${num(node.text.length - LONG_HEAD)} characters`,
+          text: `顯示剩下的 ${num(node.text.length - LONG_HEAD)} 個字`,
           onclick: () => {
             this.expanded.add(key);
             row.dataset.key = "";
@@ -248,13 +248,13 @@ export class Reader {
     const head = el("figcaption", { class: "code__head" });
     head.append(el("span", { class: "code__lang", text: result.language }));
     if (result.skipped) {
-      head.append(el("span", { class: "code__note", text: "Highlighting skipped for a very long block" }));
+      head.append(el("span", { class: "code__note", text: "區塊太長，略過語法標色" }));
     }
     const copy = el(
       "button",
       { type: "button", class: "linkbtn code__copy", onclick: () => this.copy(part.text, copy) },
       icon("copy", 12),
-      el("span", { text: "Copy" })
+      el("span", { text: "複製" })
     );
     head.append(copy);
     const pre = el("pre", { class: "code__pre", tabindex: "0" });
@@ -266,13 +266,13 @@ export class Reader {
   }
 
   branchSwitcher(nodeIndex, fork) {
-    const wrap = el("div", { class: "branch", role: "group", "aria-label": "Branch at this message" });
+    const wrap = el("div", { class: "branch", role: "group", "aria-label": "這則訊息的分支" });
     const prev = el(
       "button",
       {
         type: "button",
         class: "branch__arrow",
-        "aria-label": "Previous branch",
+        "aria-label": "上一條分支",
         onclick: () => this.switchBranch(nodeIndex, -1),
       },
       icon("chev-left", 10)
@@ -282,7 +282,7 @@ export class Reader {
       {
         type: "button",
         class: "branch__arrow",
-        "aria-label": "Next branch",
+        "aria-label": "下一條分支",
         onclick: () => this.switchBranch(nodeIndex, 1),
       },
       icon("chev-right", 10)
@@ -304,13 +304,13 @@ export class Reader {
     const original = label.textContent;
     try {
       await navigator.clipboard.writeText(text);
-      label.textContent = "Copied";
+      label.textContent = "已複製";
       setTimeout(() => {
         label.textContent = original;
       }, 1600);
     } catch (err) {
       console.debug("chatvault: clipboard blocked", err);
-      label.textContent = "Copy blocked by the browser. Select the text and press Ctrl+C.";
+      label.textContent = "瀏覽器擋下複製，請選取文字後按 Ctrl+C";
       button.classList.add("is-error");
       setTimeout(() => {
         label.textContent = original;
@@ -341,7 +341,7 @@ export class Reader {
     });
     this.matchIndex = 0;
     this.matchBar.hidden = this.matches.length === 0;
-    this.matchCount.textContent = `${num(this.matches.length)} ${this.matches.length === 1 ? "match" : "matches"}`;
+    this.matchCount.textContent = `${num(this.matches.length)} 處命中`;
   }
 
   step(delta) {
@@ -349,7 +349,7 @@ export class Reader {
     this.matchIndex = (this.matchIndex + delta + this.matches.length) % this.matches.length;
     const target = this.matches[this.matchIndex];
     this.list.scrollToIndex(target.rowIndex, "center");
-    this.matchCount.textContent = `${this.matchIndex + 1} of ${num(this.matches.length)}`;
+    this.matchCount.textContent = `第 ${this.matchIndex + 1} / ${num(this.matches.length)} 處`;
     requestAnimationFrame(() => {
       const marks = this.track.querySelectorAll("mark.hit");
       marks.forEach((m) => m.classList.remove("is-current"));
@@ -386,7 +386,7 @@ export class Reader {
 }
 
 export function sourceLabel(source) {
-  return { chatgpt: "ChatGPT", claude: "Claude", gemini: "Gemini", custom: "Custom" }[source] || source;
+  return { chatgpt: "ChatGPT", claude: "Claude", gemini: "Gemini", custom: "自訂" }[source] || source;
 }
 
 export { state };

@@ -1,167 +1,152 @@
-# Mockup Loom
+# 情境織機 Mockup Loom
 
-**The print bends with the cloth, not on top of it.**
+**印花跟著布料起伏，不是浮在上面。**
 
-A browser tool for print-on-demand sellers. Put a design on a garment, watch it
-follow every fold instead of sitting on it like a sticker, then do that for N
-designs across M templates and walk away with a structured ZIP that is already
-named correctly.
+給印製代工賣家用的瀏覽器工具。把設計放到衣服上，看它順著每一道皺褶一起彎，
+而不是像貼紙那樣浮著；接著把 N 個設計乘上 M 個版型一次算完，拿走一包資料夾
+已經分好、檔名已經取好的 ZIP。
 
-Free, unlimited, no account, no watermark, nothing uploaded.
+免費、不限次數、不用帳號、沒有浮水印、什麼都不會上傳。
 
 ---
 
-## What it does
+## 它在做什麼
 
-- **Real displacement, not a flat paste.** A WebGL2 fragment shader samples the
-  design through a procedurally generated cloth height field. The `FLAT` /
-  `WOVEN` switch below the stage moves one scalar, and that scalar gates five
-  things at once: the UV offset along the height gradient, a normal parallax
-  term that sinks the print into the fold, the diffuse light landing on the ink,
-  the ambient occlusion pressing on it, and the weave and seam biting its edge.
-  The fabric stays lit either way, so the comparison is honest: only the print
-  changes.
-- **Six forms.** Tee, hoodie, tote, mug, poster, sticker, each with its own
-  colourways, print area and fold recipe. The mug and the sticker use a macro
-  height profile, so the print genuinely wraps the cylinder and domes over the
-  vinyl.
-- **Placement.** Drag, scale from any corner, rotate from the grip. Or type the
-  numbers. Or use the keyboard: arrows move, `[` `]` rotate, `-` `=` scale.
-- **A light you can turn.** Azimuth on a dial, elevation and intensity on
-  sliders. Everything re-lights live, including the whole batch wall.
-- **Batch.** N designs times M templates, one render per animation frame so the
-  tab keeps breathing. Cards exist before their renders do, so the wall never
-  reflows under your cursor.
-- **Export.** A structured ZIP with a folder tree you can preview before you
-  commit to it, filenames from a token pattern you control, and a MANIFEST.txt
-  that records exactly what produced each file.
+- **真的位移，不是平貼上去。** WebGL2 的 fragment shader 會透過程式算出來的
+  布料高度場去取樣設計圖。預覽台下面那個「平貼／服貼」開關只推動一個純量，
+  而這個純量同時管五件事：沿著高度梯度的 UV 位移、把印花沉進皺褶的法線視差、
+  打在油墨上的漫射光、壓在上面的環境遮蔽，以及織紋和車縫線咬掉的邊緣。
+  兩邊的布都一樣有打光，所以這個比較是誠實的：只有印花在變。
+- **六種版型。** T 恤、帽 T、帆布袋、馬克杯、海報、貼紙，各自有自己的顏色、
+  可印範圍和皺褶配方。馬克杯和貼紙用的是巨觀高度剖面，所以印花是真的繞著
+  圓柱包過去、真的隆在貼紙上。
+- **擺放。** 用拖的、抓任一角縮放、抓握把旋轉。或者直接打數字。或者用鍵盤：
+  方向鍵移動、`[` `]` 旋轉、`-` `=` 縮放。
+- **光可以轉。** 方位用轉盤，高度和強度用滑桿。改了就即時重打光，整面批次牆
+  也跟著一起重算。
+- **批次。** N 個設計乘 M 個版型，一個動畫影格算一張，讓分頁還喘得過氣。
+  卡片會先排好才填圖，所以整面牆不會在你游標底下重排。
+- **輸出。** 一包分好資料夾的 ZIP，按下去之前可以先看資料夾長什麼樣；檔名
+  照你自己寫的代號規則取；還附一份 MANIFEST.txt，記下每個檔案是怎麼算出來的。
 
-## How to use it
+## 怎麼用
 
-1. Press **Load the sample set**, or drop your own PNG, JPG or WEBP anywhere on
-   the page. Transparent PNG works best.
-2. Throw the **FLAT / WOVEN** switch. That is the whole product in 300ms.
-3. Pick a form and a colourway on the left, adjust placement and light on the
-   right.
-4. Switch to **Batch**, tick the designs and forms you want, press **Render N**.
-5. Press **Preview the ZIP** to see the folder tree, then **Export ZIP**.
+1. 按 **載入範例設計**，或把自己的 PNG、JPG、WEBP 拖到頁面上任何地方。
+   去背的 PNG 效果最好。
+2. 把 **平貼／服貼** 開關撥過去。整個產品就是這 300 毫秒。
+3. 左邊挑版型和顏色，右邊調擺放和打光。
+4. 切到 **批次**，勾好要算的設計和版型，按 **開始算 N 張**。
+5. 按 **先看 ZIP 長怎樣** 確認資料夾結構，再按 **輸出 ZIP**。
 
-### Keyboard
+### 鍵盤快捷鍵
 
-| Key | Action |
+| 按鍵 | 做什麼 |
 |---|---|
-| `W` | Throw the weave switch |
-| `F` | Hold to peek at FLAT |
-| `1` - `6` | Switch template form |
-| `B` | Cycle the blend mode |
-| `E` | Export ZIP |
-| `R` | Render the batch |
-| `?` | Open and close the keyboard map |
-| `Esc` | Step back one layer |
+| `W` | 撥動平貼／服貼開關 |
+| `F` | 按住偷看平貼的樣子 |
+| `1` - `6` | 換版型 |
+| `B` | 輪流切換疊色方式 |
+| `E` | 輸出 ZIP |
+| `R` | 開始算這批 |
+| `?` | 開關快捷鍵表 |
+| `Esc` | 退回上一層 |
 
-Every composite control is a single tab stop with arrow keys inside it, so six
-templates and six colourways cost two tabs, not twelve.
+每一組複合控制項只佔一個 tab 停留點，裡面用方向鍵移動，所以六個版型加六個
+顏色只要按兩次 tab，不是十二次。
 
-## Procedural templates, stated plainly
+## 版型是算出來的，這件事講清楚
 
-There is no photography in this project. Every template is generated in your
-browser from a seed, using value noise, fbm, domain warping and a ridged crease
-term, plus Canvas 2D for the silhouettes, seams and baked structure. The seed is
-printed under the render and written into MANIFEST.txt, because a generated
-template is reproducible in a way a photograph is not: the same seed always
-weaves the same cloth.
+這個專案裡沒有任何攝影。每一個版型都是在你的瀏覽器裡從一顆種子生出來的，
+用 value noise、fbm、domain warping 和一個 ridged 折痕項，再加上 Canvas 2D
+畫輪廓、車縫線和烤好的結構。種子會印在算出來的圖下面，也會寫進 MANIFEST.txt，
+因為算出來的版型有照片做不到的一件事：同一顆種子永遠織出同一塊布。
 
-Two textures feed the shader:
+餵給 shader 的有兩張貼圖：
 
-| Texture | R | G | B | A |
+| 貼圖 | R | G | B | A |
 |---|---|---|---|---|
-| Field (512, square) | height | occlusion | heather | thread |
-| Shape (1024, aspect correct) | coverage | print area | baked shading and contact shadow | seam |
+| Field（512，正方） | 高度 | 遮蔽 | 混紡雜色 | 紗線 |
+| Shape（1024，維持比例） | 覆蓋範圍 | 可印範圍 | 烤好的明暗與接觸陰影 | 車縫線 |
 
-Colourways are content, not interface, so they live in
-`js/templates/colorways.js` and never in CSS.
+布料顏色是內容不是介面，所以它們住在 `js/templates/colorways.js`，不會出現在
+CSS 裡。
 
-## Privacy
+## 隱私
 
-Your designs stay in this tab. Nothing is uploaded.
+設計只留在這個分頁，不會上傳。
 
-This is a technical fact, not a marketing line:
+這是技術事實，不是行銷詞：
 
-- No network request carries image data. The only outbound requests the page
-  makes at all are for the Google Fonts stylesheet and the GSAP CDN bundle, both
-  at load time, before you have given the page anything.
-- Designs live in memory and in GPU textures. They are never written to
-  localStorage, IndexedDB, cookies or anywhere else.
-- localStorage holds settings only: last template, colourway, light, blend,
-  output size, naming pattern and folder grouping. Under a kilobyte. If
-  localStorage is disabled the tool runs on defaults and says nothing about it.
-- There is no analytics, no error reporting, no telemetry.
+- 沒有任何一個網路請求帶著圖像資料。這個頁面總共只會對外要兩樣東西：
+  Google Fonts 的樣式表和 GSAP 的 CDN 檔，都在載入時就要完了，那時候你還
+  什麼都沒給它。
+- 設計只存在記憶體和 GPU 貼圖裡。不會寫進 localStorage、IndexedDB、cookie
+  或任何其他地方。
+- localStorage 只放設定：上次用的版型、顏色、光線、疊色、輸出尺寸、檔名規則
+  和資料夾分法，加起來不到 1 KB。如果 localStorage 被關掉，工具就用預設值跑，
+  也不會囉嗦。
+- 沒有分析工具、沒有錯誤回報、沒有遙測。
 
-Because designs are deliberately not persisted, the page asks before you leave
-if you have finished renders that have not been exported yet.
+正因為設計是刻意不保存的，所以當你有算好但還沒輸出的圖時，離開頁面前會先問
+你一聲。
 
-## Technical notes
+## 技術筆記
 
-- Static. No build step, no bundler, no npm, no framework. Native HTML, native
-  CSS custom properties, native ES modules. GSAP 3 comes from a CDN.
-- Every path is relative, so the folder works at any depth.
-- **Exactly two WebGL2 contexts** for the whole page: one interactive stage, one
-  export oven. Batch wall cards are `<img>` elements backed by blob URLs, so
-  five hundred results do not mean five hundred contexts. Blob URLs are revoked
-  when a card is replaced or the wall is cleared.
-- **The ZIP writer is written here** (`js/export/zip.js`), STORE method, with a
-  CRC32 table, explicit folder entries and an offset check against the end of
-  central directory. PNG data is already deflated, so compressing it again would
-  only cost you time. A one-file archive is built and measured before every real
-  export; if the writer is broken you find out in milliseconds rather than after
-  waiting for five hundred renders.
-- **Reduced mode.** Without WebGL2 the tool does not break, it does less: a
-  Canvas 2D composite with baked shading, no displacement, no live lighting.
-  Placement, blending, batch and ZIP export all still work, a banner says
-  exactly what changed, and MANIFEST.txt records that the export was made in
-  reduced mode.
-- **Context loss** is handled: the last good render stays on screen, textures
-  and programs are rebuilt on restore, and a batch pauses rather than losing the
-  work it already finished.
-- Template maps are generated once per form and cached. If the first one comes
-  in over budget on your machine, later ones drop an octave rather than making
-  you wait.
-- `?calib=1` loads a straight 20x20 grid as a design. That is the calibration
-  card: the lines must be dead straight on `FLAT` and visibly bent on `WOVEN`.
+- 純靜態。沒有 build step、沒有 bundler、沒有 npm、沒有框架。原生 HTML、原生
+  CSS custom properties、原生 ES modules。GSAP 3 從 CDN 來。
+- 所有路徑都是相對路徑，這個資料夾丟到哪一層都能跑。
+- **整頁只開兩個 WebGL2 context**：一個互動預覽台，一個輸出用的烤箱。批次牆
+  的卡片是 `<img>`，背後接 blob URL，所以五百張結果不等於五百個 context。
+  卡片被換掉或整面牆清空時，blob URL 會被 revoke。
+- **ZIP writer 是自己寫的**（`js/export/zip.js`），用 STORE method，含 CRC32
+  表、明確的資料夾項目，還有對 end of central directory 的位移檢查。PNG 本來
+  就已經壓過了，再壓一次只是浪費你的時間。每次真正輸出之前，都會先建一個
+  單檔封存來量一次；writer 如果壞了，你會在幾毫秒內知道，而不是等五百張算完
+  才發現。
+- **精簡模式。** 沒有 WebGL2 的時候，工具不會壞，只是少做一些事：改用
+  Canvas 2D 合成加烤好的明暗，沒有位移、沒有即時打光。擺放、疊色、批次和
+  ZIP 輸出通通還在，橫幅會講清楚差在哪裡，MANIFEST.txt 也會記下這批是在精簡
+  模式下輸出的。
+- **Context loss 有處理**：最後一張算好的圖會留在畫面上，恢復時重建貼圖和
+  program，批次是暫停，而不是把已經算完的東西丟掉。
+- 版型貼圖每種版型只生一次，之後就用快取。如果第一張在你的機器上超出時間
+  預算，後面幾張會自動降一個 octave，而不是讓你乾等。
+- `?calib=1` 會載入一張 20x20 的直線格當設計。那是校正卡：格線在「平貼」時
+  必須筆直，在「服貼」時必須看得出被折彎。
 
-## Running it
+## 怎麼跑起來
 
-The tool is a static folder. Serve it with any static server and open it:
+這就是一個靜態資料夾。用任何靜態伺服器發出來就能開：
 
 ```
 python -m http.server 8000
-# then open http://localhost:8000/mockup-loom/
+# 然後開 http://localhost:8000/mockup-loom/
 ```
 
-A local server is needed because browsers refuse to load ES modules over
-`file://`. No server-side code runs; the server only hands over files.
+需要本機伺服器是因為瀏覽器不肯從 `file://` 載入 ES modules。沒有任何伺服器端
+程式在跑，伺服器只負責把檔案遞出來。
 
-## Files
+## 檔案
 
 ```
 mockup-loom/
   index.html
   css/          tokens.css, style.css
   js/
-    main.js           wiring and state
-    stage.js          the render surface and its overlays
-    placement.js      move, scale, rotate
-    weave-switch.js   the signature control and the one gating scalar
-    batch.js          the wall and the render queue
-    designs.js        import, validation, the design store
-    samples.js        the four sample designs, drawn in code
-    loom/             noise.js, weave.js  (the procedural core)
+    main.js           接線與狀態
+    stage.js          預覽台與它的覆蓋層
+    placement.js      移動、縮放、旋轉
+    weave-switch.js   招牌控制項，以及那唯一一個開關純量
+    batch.js          批次牆與算圖佇列
+    designs.js        匯入、驗證、設計清單
+    samples.js        四個範例設計，用程式碼畫的
+    loom/             noise.js, weave.js（程序生成的核心）
     templates/        forms.js, colorways.js, index.js
     render/           shader.js, gl.js, fallback2d.js, oven.js
     export/           zip.js, naming.js, manifest.js, tree.js
-    ui/               the component layer
+    ui/               元件層
   PRODUCT.md
   docs/             INTERACTION.md, DESIGN-DIRECTION.md
 ```
 
-Part of [Hyperkit](../index.html).
+隸屬 [Hyperkit](../index.html)。

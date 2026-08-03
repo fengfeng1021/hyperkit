@@ -55,20 +55,20 @@ const overlayEl = $('#stage-overlay');
 const renderer = createRenderer(stageCanvas, {
   onFallback: () => {
     notice({
-      message: 'Software renderer. The stage preview is lower resolution. Exports are full resolution.',
+      message: '目前跑的是軟體算圖，載物台上的預覽解析度比較低。輸出的檔案是全解析度的。',
       persistent: false,
     });
   },
   onContextLost: (count) => {
     if (count <= 2) {
-      notice({ message: 'The graphics context restarted. Your gradient is unchanged.' });
+      notice({ message: '繪圖環境重啟過一次。你的漸層沒有變動。' });
     }
   },
 });
 
 if (renderer.kind !== 'webgl2') {
   notice({
-    message: 'Software renderer. The stage preview is lower resolution. Exports are full resolution.',
+    message: '目前跑的是軟體算圖，載物台上的預覽解析度比較低。輸出的檔案是全解析度的。',
   });
 }
 
@@ -179,7 +179,7 @@ const spaceGroup = bindRadioGroup($('#space-group'), {
 
 const angleField = new NumericField($('#field-angle'), {
   min: 0, max: 360, step: 1, decimals: 0,
-  rangeMessage: 'Angle is 0 to 360.',
+  rangeMessage: '角度只吃 0 到 360。',
   onChange(v, live) {
     (live ? store.set : store.commit).call(store, { angle: v }, 'angle', 'angle');
   },
@@ -187,21 +187,21 @@ const angleField = new NumericField($('#field-angle'), {
 
 const cxField = new NumericField($('#field-cx'), {
   min: 0, max: 100, step: 1, decimals: 0,
-  rangeMessage: 'Center x is 0 to 100.',
+  rangeMessage: '中心 x 只吃 0 到 100。',
   onChange(v, live) {
     (live ? store.set : store.commit).call(store, (s) => { s.center = { ...s.center, x: v / 100 }; return s; }, 'center', 'cx');
   },
 });
 const cyField = new NumericField($('#field-cy'), {
   min: 0, max: 100, step: 1, decimals: 0,
-  rangeMessage: 'Center y is 0 to 100.',
+  rangeMessage: '中心 y 只吃 0 到 100。',
   onChange(v, live) {
     (live ? store.set : store.commit).call(store, (s) => { s.center = { ...s.center, y: v / 100 }; return s; }, 'center', 'cy');
   },
 });
 const radiusField = new NumericField($('#field-radius'), {
   min: 5, max: 300, step: 1, decimals: 0,
-  rangeMessage: 'Radius is 5 to 300.',
+  rangeMessage: '半徑只吃 5 到 300。',
   onChange(v, live) {
     (live ? store.set : store.commit).call(store, { radius: v / 100 }, 'radius', 'radius');
   },
@@ -214,7 +214,7 @@ $('#in-easing').addEventListener('change', (e) => {
 function syncGeometry() {
   const s = store.get();
   const isRadial = s.type === 'radial';
-  angleField.setDisabled(isRadial, isRadial ? 'Radial gradients use a center and a radius, not an angle.' : '');
+  angleField.setDisabled(isRadial, isRadial ? '放射漸層是用中心點和半徑決定的，沒有角度可以調。' : '');
   $('#radial-fields').hidden = !isRadial;
 }
 
@@ -223,7 +223,7 @@ function syncCompareLabel() {
   const from = s.space === 'oklch' ? 'srgb' : s.space;
   const to = s.space === 'oklch' ? 'oklch' : 'oklch';
   $('#btn-compare .gk-btn-label').textContent =
-    s.space === 'oklch' ? 'Compare against sRGB' : `Compare ${SPACE_LABELS[from]} against ${SPACE_LABELS[to]}`;
+    s.space === 'oklch' ? '跟 sRGB 比一次' : `拿 ${SPACE_LABELS[from]} 跟 ${SPACE_LABELS[to]} 比`;
 }
 
 $('#btn-compare').addEventListener('click', () => {
@@ -257,7 +257,7 @@ function renderStopList() {
   stops.forEach((stop, i) => {
     const row = stopListEl.children[i];
     row.querySelector('.gk-swatch').style.setProperty('--c', stop.hex);
-    row.querySelector('.gk-swatch').setAttribute('aria-label', `Color of stop ${i + 1}, ${nameColor(stop.hex)}`);
+    row.querySelector('.gk-swatch').setAttribute('aria-label', `第 ${i + 1} 個色標的顏色，${nameColor(stop.hex)}`);
     row.querySelector('.gk-stoprow-hex').textContent = stop.hex;
     const field = stopFields[i];
     if (field && document.activeElement !== field.input) field.set(stop.pos, { silent: true });
@@ -276,14 +276,14 @@ function makeStopRow(i) {
     <button type="button" class="gk-swatch"></button>
     <span class="gk-stoprow-hex"></span>
     <div class="gk-num gk-num--compact">
-      <label class="gk-num-label" for="stop-pos-${i}">at</label>
+      <label class="gk-num-label" for="stop-pos-${i}">在</label>
       <input class="gk-num-input" id="stop-pos-${i}" type="text" inputmode="decimal" value="0"
              autocomplete="off" spellcheck="false">
       <span class="gk-num-unit">%</span>
       <p class="gk-num-msg" role="status"></p>
     </div>
     <button type="button" class="gk-stoprow-del" aria-describedby="stop-del-reason">
-      ${iconMarkup('minus')}<span class="gk-sr">Delete stop ${i + 1}</span>
+      ${iconMarkup('minus')}<span class="gk-sr">刪掉第 ${i + 1} 個色標</span>
     </button>`;
 
   li.querySelector('.gk-swatch').addEventListener('click', () => {
@@ -292,7 +292,7 @@ function makeStopRow(i) {
   });
   li.querySelector('.gk-stoprow-del').addEventListener('click', () => {
     if (store.get().stops.length <= 2) {
-      notice('Two stops is the minimum for a gradient.');
+      notice('漸層至少要留兩個色標。');
       return;
     }
     store.commit((s) => { s.stops.splice(i, 1); return s; }, 'stop-delete');
@@ -300,7 +300,7 @@ function makeStopRow(i) {
 
   stopFields[i] = new NumericField(li.querySelector('.gk-num'), {
     min: 0, max: 100, step: 0.5, decimals: 2,
-    rangeMessage: 'Position is 0 to 100.',
+    rangeMessage: '位置只吃 0 到 100。',
     onChange(v, live) {
       (live ? store.set : store.commit).call(store, (s) => {
         if (s.stops[i]) s.stops[i].pos = v;
@@ -327,16 +327,16 @@ function renderMeshList() {
     const li = document.createElement('li');
     li.className = 'gk-stoprow';
     li.innerHTML = `
-      <button type="button" class="gk-swatch" style="--c:${p.hex}" aria-label="Color of point ${i + 1}, ${nameColor(p.hex)}"></button>
+      <button type="button" class="gk-swatch" style="--c:${p.hex}" aria-label="第 ${i + 1} 個網格點的顏色，${nameColor(p.hex)}"></button>
       <span class="gk-stoprow-hex">${p.hex}</span>
       <span class="gk-stoprow-coord">${Math.round(p.x * 100)}, ${Math.round(p.y * 100)}</span>
       <button type="button" class="gk-stoprow-del"${s.mesh.length <= 3 ? ' aria-disabled="true" class="is-disabled"' : ''}>
-        ${iconMarkup('minus')}<span class="gk-sr">Delete point ${i + 1}</span>
+        ${iconMarkup('minus')}<span class="gk-sr">刪掉第 ${i + 1} 個網格點</span>
       </button>`;
     li.querySelector('.gk-swatch').addEventListener('click', () => cycleMeshColor(i));
     li.querySelector('.gk-stoprow-del').addEventListener('click', () => {
       if (store.get().mesh.length <= 3) {
-        notice('A mesh field needs at least three points.');
+        notice('網格至少要留三個點。');
         return;
       }
       store.commit((st) => { st.mesh.splice(i, 1); return st; }, 'mesh-delete');
@@ -382,7 +382,7 @@ function renderMeshPoints() {
     b.style.top = `${p.y * 100}%`;
     b.style.setProperty('--ring', `${p.r * 100}%`);
     b.style.setProperty('--c', p.hex);
-    b.querySelector('.gk-sr').textContent = `Mesh point ${i + 1}, ${nameColor(p.hex)}, at ${Math.round(p.x * 100)} and ${Math.round(p.y * 100)} percent`;
+    b.querySelector('.gk-sr').textContent = `第 ${i + 1} 個網格點，${nameColor(p.hex)}，位在 ${Math.round(p.x * 100)}%、${Math.round(p.y * 100)}%`;
   });
 }
 
@@ -440,7 +440,7 @@ meshPointsEl.addEventListener('keydown', (e) => {
 $('#btn-add-point').addEventListener('click', () => {
   const s = store.get();
   if (s.mesh.length >= 12) {
-    notice('Twelve points is the maximum for a mesh field.');
+    notice('網格點最多十二個。');
     return;
   }
   const r = currentRamp();
@@ -468,13 +468,13 @@ function syncMode() {
   $('#panel-stops').hidden = mesh;
   $('#panel-mesh').hidden = !mesh;
   $('#track').hidden = mesh;
-  spaceGroup.setDisabled('hsl', mesh, mesh ? 'Mesh fields blend in a rectangular space. HSL has no rectangular form.' : '');
+  spaceGroup.setDisabled('hsl', mesh, mesh ? '網格是在直角座標空間裡混色的，HSL 沒有直角形式可以用。' : '');
   if (mesh && s.space === 'hsl') {
     store.set({ space: 'oklab' }, 'space');
     spaceGroup.set('oklab');
   }
   $('#space-reason').textContent = mesh
-    ? 'Mesh fields blend in a rectangular space. HSL has no rectangular form.'
+    ? '網格是在直角座標空間裡混色的，HSL 沒有直角形式可以用。'
     : '';
 }
 
@@ -511,8 +511,8 @@ function syncVision() {
   const s = store.get();
   const on = s.vision !== 'normal';
   $('#vision-note').textContent = on
-    ? `Stage is simulating ${VISION_LABELS[s.vision].toLowerCase()}. Exports are unaffected.`
-    : 'Exports are unaffected by this preview.';
+    ? `載物台正在模擬${VISION_LABELS[s.vision]}。輸出的檔案不受影響。`
+    : '這只是預覽，輸出的檔案不受影響。';
   $('#vision-note').classList.toggle('is-strong', on);
 }
 
@@ -582,16 +582,16 @@ $('#btn-save').addEventListener('click', () => {
   if (btn.getAttribute('aria-disabled') === 'true') return;
   const s = store.get();
   const hash = encodeHash(s);
-  const result = libraryUi.trySave(hash, s.name || 'Untitled gradient');
+  const result = libraryUi.trySave(hash, s.name || '未命名漸層');
   if (result === 'ok') {
-    notice({ message: 'Saved to this browser only.', kind: 'saved', duration: 3200 });
+    notice({ message: '只存在這個瀏覽器裡。', kind: 'saved', duration: 3200 });
   } else if (result === 'quota') {
     notice({
-      message: "This browser's storage is full. Delete a saved gradient to make room.",
+      message: '這個瀏覽器的儲存空間滿了。刪掉一個存過的漸層再存一次。',
       assertive: true,
     });
   } else if (result === 'blocked') {
-    notice({ message: 'This browser is blocking local storage, so saving is off. Share links still work.' });
+    notice({ message: '這個瀏覽器擋掉了本機儲存，所以存不進去。分享連結還是照常可以用。' });
   }
   libraryUi.syncSaveButton(hash);
 });
@@ -619,7 +619,7 @@ function loadPreset(preset) {
   next.probe = { ...store.get().probe };
   store.replace(next, 'preset');
   syncAll();
-  announce(`${preset.name} loaded. ${preset.demonstrates}`);
+  announce(`已載入「${preset.name}」。${preset.demonstrates}`);
   stageEl.classList.remove('is-dissolving');
   void stageEl.offsetWidth;
   stageEl.classList.add('is-dissolving');
@@ -645,8 +645,8 @@ $('#btn-reference').addEventListener('click', () => {
   };
   store.replace(next, 'reference-set');
   syncAll();
-  referenceBtn.success('Loaded');
-  announce('Reference set loaded. Fifteen specimens are on the shelf and the workbench is set to Deep Field.');
+  referenceBtn.success('已載入');
+  announce('範例櫃已載入。十五組標本都在架上，工作區換成「深空」。');
   shelf.scrollIntoView();
 });
 
@@ -655,23 +655,23 @@ $('#btn-copylink').addEventListener('click', async () => {
   const url = `${window.location.origin}${window.location.pathname}${encodeHash(store.get())}`;
   const res = await copyText(url);
   if (res.ok) {
-    copyLinkBtn.success('Copied');
+    copyLinkBtn.success('已複製');
   } else {
     copyLinkBtn.reset();
     notice({
-      message: 'The browser blocked clipboard access. The link is in the address bar, copy it from there.',
+      message: '瀏覽器擋掉了剪貼簿。連結就在網址列上，從那裡複製。',
       assertive: true,
     });
   }
 });
 
 armable($('#btn-reset'), {
-  armedLabel: 'Press again to reset',
+  armedLabel: '再按一次就重設',
   onFire() {
     store.replace(defaultState(), 'reset');
     sweep.close();
     syncAll();
-    announce('Reset to the default gradient.');
+    announce('已重設回預設的漸層。');
   },
 });
 
@@ -680,20 +680,20 @@ armable($('#btn-reset'), {
    -------------------------------------------------------------------------- */
 
 const SHORTCUTS = [
-  ['Space', 'Compare the current space against OKLCH'],
-  ['1 2 3', 'Linear, radial, conic'],
-  ['Q W E R', 'sRGB, HSL, OKLab, OKLCH without the comparison'],
-  ['M', 'Switch between gradient and mesh'],
-  ['G', 'Grain on or off'],
-  ['D', 'Ordered dither on or off'],
-  ['C', 'Cycle the vision simulation'],
-  ['T', 'Jump to the contrast probe'],
-  ['+ and -', 'Add a stop at the widest gap, delete the focused stop'],
-  ['Ctrl or Cmd + C', 'Copy the open output tab'],
-  ['Ctrl or Cmd + S', 'Save to this browser'],
-  ['Ctrl or Cmd + Z', 'Undo, add Shift to redo'],
-  ['? ', 'Open and close this panel'],
-  ['Esc', 'Cancel a drag, close a popover, revert a field'],
+  ['Space', '拿目前的色彩空間跟 OKLCH 比一次'],
+  ['1 2 3', '線性、放射、圓錐'],
+  ['Q W E R', '切到 sRGB、HSL、OKLab、OKLCH，不跑比對'],
+  ['M', '在漸層和網格之間切換'],
+  ['G', '顆粒開關'],
+  ['D', '有序抖色開關'],
+  ['C', '輪流切換色覺模擬'],
+  ['T', '跳到對比量測'],
+  ['+ 和 -', '在最寬的空隙加一個色標、刪掉目前選到的'],
+  ['Ctrl 或 Cmd + C', '複製目前開著的輸出分頁'],
+  ['Ctrl 或 Cmd + S', '存進這個瀏覽器'],
+  ['Ctrl 或 Cmd + Z', '復原，加 Shift 是重做'],
+  ['? ', '開關這個面板'],
+  ['Esc', '取消拖曳、關掉小面板、還原欄位'],
 ];
 
 let sheet = null;
@@ -708,11 +708,11 @@ function toggleSheet(force) {
   if (sheet) return;
   sheet = document.createElement('aside');
   sheet.className = 'gk-sheet';
-  sheet.setAttribute('aria-label', 'Keyboard shortcuts');
+  sheet.setAttribute('aria-label', '鍵盤快速鍵');
   sheet.innerHTML = `
     <div class="gk-sheet-head">
-      <h2 class="gk-sheet-title" tabindex="-1">Keyboard</h2>
-      <button type="button" class="gk-sheet-close">${iconMarkup('x')}<span class="gk-sr">Close the shortcut panel</span></button>
+      <h2 class="gk-sheet-title" tabindex="-1">鍵盤</h2>
+      <button type="button" class="gk-sheet-close">${iconMarkup('x')}<span class="gk-sr">關掉快速鍵面板</span></button>
     </div>
     <dl class="gk-sheet-list">
       ${SHORTCUTS.map(([k, d]) => `<div class="gk-sheet-row"><dt>${k.trim()}</dt><dd>${d}</dd></div>`).join('')}
@@ -787,7 +787,7 @@ stageEl.addEventListener('dragenter', (e) => {
   e.preventDefault();
   dragDepth += 1;
   dropEl.hidden = false;
-  dropText.textContent = 'Drop an image to pull four stops from it.';
+  dropText.textContent = '丟一張圖進來，從裡面抓四個色標。';
   dropBar.style.setProperty('--progress', '0%');
 });
 stageEl.addEventListener('dragover', (e) => {
@@ -807,14 +807,14 @@ stageEl.addEventListener('drop', async (e) => {
     notice({ message: check.message, kind: 'image', assertive: true });
     return;
   }
-  dropText.textContent = 'Reading image.';
+  dropText.textContent = '正在讀這張圖。';
   try {
     const result = await extractStops(file, (p) => dropBar.style.setProperty('--progress', `${Math.round(p * 100)}%`));
     dropEl.hidden = true;
     store.commit((s) => { s.stops = result.stops; s.name = file.name.replace(/\.[^.]+$/, ''); return s; }, 'extract');
     syncAll();
     notice({
-      message: `Four stops pulled from ${file.name}. Undo with Ctrl+Z.`,
+      message: `已經從 ${file.name} 抓出四個色標。想還原就按 Ctrl+Z。`,
       kind: 'image',
       duration: 4000,
     });
@@ -858,10 +858,10 @@ window.addEventListener('keydown', (e) => {
     e.preventDefault();
     const ok = e.shiftKey ? store.redo() : store.undo();
     if (!ok) {
-      announce(e.shiftKey ? 'Nothing to redo.' : 'Nothing to undo yet.');
+      announce(e.shiftKey ? '沒有可以重做的了。' : '還沒有可以復原的動作。');
     } else {
       syncAll();
-      announce(e.shiftKey ? 'Redone.' : 'Undone.');
+      announce(e.shiftKey ? '已重做。' : '已復原。');
     }
     return;
   }
@@ -895,7 +895,7 @@ window.addEventListener('keydown', (e) => {
       const space = SPACE_ORDER['qwer'.indexOf(e.key)];
       if (!space) break;
       if (s.mode === 'mesh' && space === 'hsl') {
-        announce('Mesh fields blend in a rectangular space. HSL has no rectangular form.');
+        announce('網格是在直角座標空間裡混色的，HSL 沒有直角形式可以用。');
         break;
       }
       store.commit({ space }, 'space');
@@ -1088,16 +1088,16 @@ fastPass();
 
 if (parsed.warnings.includes('unreadable')) {
   notice({
-    message: 'That link could not be read, so the default gradient is loaded.',
+    message: '這個連結讀不出來，所以先載入預設的漸層。',
     action: {
-      label: 'Copy a working link',
+      label: '複製一條能用的連結',
       onClick: () => $('#btn-copylink').click(),
     },
   });
 } else if (parsed.warnings.includes('newer')) {
-  notice({ message: 'Part of that link came from a newer version and was skipped.' });
+  notice({ message: '這個連結裡有一段來自比較新的版本，那段被跳過了。' });
 } else if (parsed.warnings.some((w) => w.startsWith('field:'))) {
-  notice({ message: 'Part of that link was malformed, so those settings fell back to their defaults.' });
+  notice({ message: '這個連結有一段格式壞掉了，那幾項設定退回預設值。' });
 }
 
 if (!library.storageAvailable()) {

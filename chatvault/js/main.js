@@ -164,7 +164,7 @@ async function restoreVault() {
   try {
     const records = await loadAll();
     if (!records.length) return;
-    setStatus(`Reopening ${num(records.length)} stored conversations`);
+    setStatus(`重新開啟已存的 ${num(records.length)} 段對話`);
     const { buildIndexFor } = await import("./reindex.js");
     const built = await buildIndexFor(records);
     await adoptVault(records, built.index, { restored: true, ms: built.ms });
@@ -238,8 +238,8 @@ function resetDropzone() {
   parsing = false;
   dom.dropzone.dataset.state = "idle";
   dom.dropzone.removeAttribute("aria-disabled");
-  dom.dropzoneLabel.textContent = "Drop your export here";
-  dom.dropzoneSub.textContent = "or click to choose a file";
+  dom.dropzoneLabel.textContent = "把匯出檔拖到這裡";
+  dom.dropzoneSub.textContent = "或點一下選檔案";
   dom.dropzoneProgress.hidden = true;
   drawer.reset();
   tabStrip.reset();
@@ -247,7 +247,7 @@ function resetDropzone() {
 
 async function loadSample() {
   try {
-    setStatus("Fetching the sample vault");
+    setStatus("正在抓範例資料");
     const res = await fetch("./assets/sample-vault.json");
     if (!res.ok) throw new Error(`sample fetch ${res.status}`);
     const blob = await res.blob();
@@ -258,8 +258,8 @@ async function loadSample() {
     console.debug("chatvault: sample unavailable", err);
     showNotice(dom.dropzoneNotice, {
       tone: "alert",
-      title: "The sample vault could not be loaded.",
-      body: "It lives at assets/sample-vault.json next to this page. Reload, or drop your own export instead.",
+      title: "範例資料載入失敗。",
+      body: "它就在這個頁面旁邊的 assets/sample-vault.json。重新整理再試一次，或改成丟你自己的匯出檔。",
     });
   }
 }
@@ -290,8 +290,8 @@ function startIngest(file, opts) {
   parsing = true;
   dom.dropzone.dataset.state = "parsing";
   dom.dropzone.setAttribute("aria-disabled", "true");
-  dom.dropzoneLabel.textContent = `Reading ${file.name}`;
-  dom.dropzoneSub.textContent = "Finish reading this file first";
+  dom.dropzoneLabel.textContent = `正在讀 ${file.name}`;
+  dom.dropzoneSub.textContent = "先把這個檔案讀完";
   dom.dropzoneProgress.hidden = false;
   dom.dropzoneProgress.setAttribute("aria-valuenow", "0");
   drawer.reset();
@@ -310,9 +310,9 @@ function startIngest(file, opts) {
   showNotice(dom.dropzoneNotice, {
     ...FAILURES["worker-unavailable"](),
     actions: [
-      { label: "Parse anyway", primary: true, onClick: () => runOnMainThread(file, opts) },
+      { label: "還是解析", primary: true, onClick: () => runOnMainThread(file, opts) },
       {
-        label: "Cancel",
+        label: "取消",
         onClick: () => {
           hideNotice(dom.dropzoneNotice);
           resetDropzone();
@@ -341,8 +341,8 @@ function writeParsingSub() {
   const p = state.parsing;
   if (!p) return;
   dom.dropzoneSub.textContent =
-    `${formatBytes(p.read)} of ${formatBytes(p.total)}` +
-    ` · ${num(p.conversations)} conversations`;
+    `已讀 ${formatBytes(p.read)}，共 ${formatBytes(p.total)}` +
+    ` · ${num(p.conversations)} 段對話`;
 }
 
 function handleWorkerEvent(msg) {
@@ -354,14 +354,14 @@ function handleWorkerEvent(msg) {
       dom.dropzoneProgress.setAttribute("aria-valuenow", String(pct));
       $(".dropzone__bar", dom.dropzoneProgress).style.width = `${pct}%`;
       writeParsingSub();
-      setStatus(`Reading ${msg.name}: ${formatBytes(msg.read)} of ${formatBytes(msg.total)}`);
+      setStatus(`正在讀 ${msg.name}：已讀 ${formatBytes(msg.read)}，共 ${formatBytes(msg.total)}`);
       break;
     }
     case "detected":
-      setStatus(`Recognised as a ${sourceLabel(msg.source)} export: ${msg.reason}`);
+      setStatus(`認出是 ${sourceLabel(msg.source)} 的匯出檔：${msg.reason}`);
       break;
     case "entry":
-      setStatus(`Opening ${msg.name} inside the archive`);
+      setStatus(`正在打開壓縮檔裡的 ${msg.name}`);
       break;
     case "batch":
       state.parsing.conversations = msg.count;
@@ -370,7 +370,7 @@ function handleWorkerEvent(msg) {
       emit("ingest:batch", msg);
       break;
     case "indexing":
-      setStatus(`Indexing ${num(msg.conversations)} conversations`);
+      setStatus(`正在為 ${num(msg.conversations)} 段對話建索引`);
       break;
     case "indexProgress":
       if (msg.term) tabStrip.push(msg.term);
@@ -379,8 +379,8 @@ function handleWorkerEvent(msg) {
     case "truncated":
       showNotice(ingestNoticeHost(), {
         tone: "alert",
-        title: `Parsing stopped at conversation ${num(msg.parsed)} of about ${num(msg.estimated)}.`,
-        body: `The file looks truncated after ${formatBytes(msg.bytes)}. What was read is saved and searchable.`,
+        title: `解析停在第 ${num(msg.parsed)} 段對話，全檔大約有 ${num(msg.estimated)} 段。`,
+        body: `檔案在 ${formatBytes(msg.bytes)} 之後看起來就被截斷了。已經讀到的部分都存好了，可以搜。`,
       });
       break;
     case "done":
@@ -423,8 +423,8 @@ function handleIngestError(msg) {
     showNotice(host, {
       ...FAILURES["unknown-format"](),
       actions: [
-        { label: "Map the fields", primary: true, onClick: () => wizard.open(pendingWizardDetail) },
-        { label: "Try another file", onClick: () => resetDropzone() },
+        { label: "自己指認欄位", primary: true, onClick: () => wizard.open(pendingWizardDetail) },
+        { label: "換一個檔案", onClick: () => resetDropzone() },
       ],
     });
     return;
@@ -449,7 +449,7 @@ function handleIngestError(msg) {
     showNotice(host, {
       ...FAILURES["zip-no-candidate"](msg.detail),
       node: list,
-      actions: [{ label: "Try another file", onClick: () => resetDropzone() }],
+      actions: [{ label: "換一個檔案", onClick: () => resetDropzone() }],
     });
     return;
   }
@@ -457,7 +457,7 @@ function handleIngestError(msg) {
   const spec = FAILURES[msg.code] ? FAILURES[msg.code](msg.detail) : FAILURES.unexpected(msg.detail);
   showNotice(host, {
     ...spec,
-    actions: [{ label: "Try another file", primary: true, onClick: () => resetDropzone() }],
+    actions: [{ label: "換一個檔案", primary: true, onClick: () => resetDropzone() }],
   });
 }
 
@@ -486,18 +486,18 @@ async function finishIngest(msg) {
       showNotice(dom.pageNotice, {
         ...FAILURES.quota({
           needed: formatBytes(incoming.reduce((n, r) => n + r.charCount * 2, 0)),
-          allowed: est ? formatBytes(est.quota) : "less than needed",
+          allowed: est ? formatBytes(est.quota) : "不夠用的量",
         }),
         actions: [
           {
-            label: "Keep this vault when storage runs low",
+            label: "空間不足時保留這份資料",
             primary: true,
             onClick: async () => {
               const ok = await requestPersistence();
-              setStatus(ok ? "This browser will keep the vault when storage runs low." : "The browser declined to make this vault persistent.");
+              setStatus(ok ? "空間不足時，這個瀏覽器會保留這份資料。" : "瀏覽器拒絕把這份資料標記為常駐。");
             },
           },
-          { label: "Remove a source", onClick: () => toggleVaultPanel(true) },
+          { label: "移除某個來源", onClick: () => toggleVaultPanel(true) },
         ],
       });
     } else {
@@ -518,8 +518,8 @@ async function finishIngest(msg) {
   if (merged.existing > 0) {
     showNotice(dom.pageNotice, {
       tone: "amber",
-      title: `${num(merged.added)} new conversations added. ${num(merged.existing)} were already in your vault.`,
-      body: "Duplicates were matched on the export's own conversation id, not on the title.",
+      title: `新增了 ${num(merged.added)} 段對話，另外 ${num(merged.existing)} 段本來就在金庫裡。`,
+      body: "重複與否是比對匯出檔自己的對話 id，不是比標題。",
       autoDismiss: 6000,
     });
   }
@@ -575,8 +575,8 @@ async function adoptVault(records, index, meta) {
   dom.sampleBadge.hidden = !state.sample;
 
   const messages = records.reduce((n, r) => n + r.msgCount, 0);
-  const when = meta && meta.ms ? ` Indexed in ${seconds(meta.ms)}.` : "";
-  setStatus(`${num(records.length)} conversations. ${num(messages)} messages.${when} Nothing left this tab.`);
+  const when = meta && meta.ms ? `建索引花了 ${seconds(meta.ms)}。` : "";
+  setStatus(`${num(records.length)} 段對話，${num(messages)} 則訊息。${when}沒有東西離開這個分頁。`);
   putMeta("lastOpened", Date.now()).catch(() => {});
 
   if (meta && meta.fresh) {
@@ -606,7 +606,7 @@ function wireSearch() {
       e.preventDefault();
       state.includeAlternate = true;
       runSearch();
-      setStatus("Including messages on branches you did not keep.");
+      setStatus("連你沒有留下的分支訊息一起搜。");
     } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
       e.preventDefault();
       indexList.move(e.key === "ArrowDown" ? 1 : -1);
@@ -724,9 +724,7 @@ function paint(rows, results, parsed) {
   if (hits) rows.forEach((row, i) => hits.set(row.conv, { rank: i }));
   spine.applyResults(hits);
 
-  const summary = `${num(rows.length)} ${rows.length === 1 ? "conversation" : "conversations"}, ${num(
-    results.total.messages
-  )} ${results.total.messages === 1 ? "message" : "messages"}`;
+  const summary = `${num(rows.length)} 段對話，${num(results.total.messages)} 則訊息`;
   indexList.setCount(summary);
   announce(summary);
 
@@ -765,7 +763,7 @@ function renderChips() {
       el("button", {
         type: "button",
         class: "chip__x",
-        "aria-label": `Remove the term ${item.word} from this search`,
+        "aria-label": `把 ${item.word} 這個詞從這次搜尋裡拿掉`,
         onclick: () => {
           state.expansionBlocklist.add(item.word);
           state.removedExpansions.push(item.word);
@@ -781,7 +779,7 @@ function renderChips() {
       el("button", {
         type: "button",
         class: "linkbtn",
-        text: `Restore removed terms (${state.removedExpansions.length})`,
+        text: `把拿掉的詞放回來（${state.removedExpansions.length}）`,
         onclick: () => {
           state.expansionBlocklist.clear();
           state.removedExpansions = [];
@@ -914,8 +912,8 @@ function syncFilterUi() {
   const n = activeFilterCount();
   const clearRow = $("#clear-filters");
   clearRow.hidden = n === 0;
-  clearRow.textContent = `Clear all filters (${n})`;
-  dom.filtersToggle.textContent = n ? `Filters (${n})` : "Filters";
+  clearRow.textContent = `清掉所有篩選（${n}）`;
+  dom.filtersToggle.textContent = n ? `篩選（${n}）` : "篩選";
 }
 
 /* ----------------------------------------------------------- conversation */
@@ -1024,10 +1022,10 @@ function toggleExport(open) {
 function updateExportLabels(count) {
   const many = $$("#export-popover button[data-export^='all-']");
   for (const btn of many) {
-    const format = btn.dataset.export === "all-markdown" ? "Markdown (.zip)" : "JSON";
-    btn.textContent = `All ${num(count)} results as ${format}`;
+    const format = btn.dataset.export === "all-markdown" ? "Markdown（.zip）" : "JSON";
+    btn.textContent = `全部 ${num(count)} 筆結果存成 ${format}`;
     btn.disabled = count === 0;
-    btn.title = count === 0 ? "No conversations in the current filter" : "";
+    btn.title = count === 0 ? "目前的篩選條件下沒有對話" : "";
   }
   const single = $$("#export-popover button[data-export^='one-']");
   for (const btn of single) btn.disabled = !state.selectedId;
@@ -1041,18 +1039,18 @@ async function runExport(kind, btn) {
       if (!rec) return;
       const info = exportOne(rec, kind === "one-json" ? "json" : "markdown", choicesFor(rec.id));
       toggleExport(false);
-      setStatus(`Saved ${info.filename} (${formatBytes(info.size)})`, 6000);
+      setStatus(`已存出 ${info.filename}（${formatBytes(info.size)}）`, 6000);
       return;
     }
     const rows = state.results ? state.results.conversations : [];
     const records = rows.map((r) => state.byId.get(state.index.convIds[r.conv])).filter(Boolean);
     const original = btn.textContent;
     const info = await exportMany(records, kind === "all-json" ? "json" : "markdown", (done, total) => {
-      btn.textContent = `Packing ${num(done)} of ${num(total)}`;
+      btn.textContent = `打包中 ${num(done)} / ${num(total)}`;
     });
     btn.textContent = original;
     toggleExport(false);
-    setStatus(`Saved ${info.filename} (${formatBytes(info.size)})`, 6000);
+    setStatus(`已存出 ${info.filename}（${formatBytes(info.size)}）`, 6000);
   } catch (err) {
     if (err instanceof ExportTooLarge) {
       showNotice(dom.pageNotice, FAILURES["export-too-large"]());
@@ -1075,8 +1073,8 @@ function wireVaultPanel() {
   $("#persist-btn").addEventListener("click", async () => {
     const ok = await requestPersistence();
     $("#persist-state").textContent = ok
-      ? "This browser will keep the vault when storage runs low."
-      : "The browser declined. Your vault may be evicted if storage runs low.";
+      ? "空間不足時，這個瀏覽器會保留這份資料。"
+      : "瀏覽器拒絕了。空間不足時這份資料可能會被清掉。";
   });
   const confirmInput = $("#delete-confirm");
   const confirmBtn = $("#delete-btn");
@@ -1111,12 +1109,12 @@ async function toggleVaultPanel(open) {
         "li",
         { class: "vaultrow" },
         el("span", { class: "vaultrow__name", text: sourceLabel(source) }),
-        el("span", { class: "vaultrow__n", text: `${num(entry.count)} conversations` }),
-        el("span", { class: "vaultrow__size", text: `${formatBytes(entry.chars)} of text` }),
+        el("span", { class: "vaultrow__n", text: `${num(entry.count)} 段對話` }),
+        el("span", { class: "vaultrow__size", text: `${formatBytes(entry.chars)} 的文字` }),
         el("button", {
           type: "button",
           class: "linkbtn linkbtn--alert",
-          text: "Remove",
+          text: "移除",
           onclick: async () => {
             await removeSource(source);
             location.reload();
@@ -1127,11 +1125,11 @@ async function toggleVaultPanel(open) {
   }
   const est = await storageEstimate();
   $("#vault-usage").textContent = est
-    ? `${formatBytes(est.usage)} used of about ${formatBytes(est.quota)} this browser will allow`
-    : "This browser does not report a storage estimate.";
+    ? `已用 ${formatBytes(est.usage)}，這個瀏覽器大約允許 ${formatBytes(est.quota)}`
+    : "這個瀏覽器不提供儲存空間的估計值。";
   $("#persist-state").textContent = (await isPersisted())
-    ? "This vault is already marked as persistent."
-    : "Not persistent yet. The browser may evict it if storage runs low.";
+    ? "這份資料已經標記為常駐了。"
+    : "還不是常駐。空間不足時瀏覽器可能會把它清掉。";
 }
 
 /* ------------------------------------------------------------------ rail */
@@ -1161,7 +1159,7 @@ function setView(view) {
   // below 768 only one pane is on screen, so switching view also switches pane
   if (window.innerWidth < 768) dom.workspace.dataset.pane = view === "stats" ? "reader" : "index";
   if (view === "stats") {
-    statsView.render(parsing ? `Statistics finish when indexing finishes. ${progressPercent()} percent read.` : "");
+    statsView.render(parsing ? `索引建完，統計才會完整。目前讀了 ${progressPercent()}%。` : "");
   }
 }
 
@@ -1206,7 +1204,7 @@ function updateSemanticEntry() {
   if (expandedBtn) {
     expandedBtn.disabled = state.records.length < 40;
     expandedBtn.setAttribute("aria-disabled", String(expandedBtn.disabled));
-    expandedBtn.title = expandedBtn.disabled ? "Needs at least 40 conversations to learn related terms." : "";
+    expandedBtn.title = expandedBtn.disabled ? "至少要有 40 段對話，才學得出相關詞。" : "";
   }
   dom.semanticEnable.hidden = !enough;
   positionModeIndicator();
@@ -1226,7 +1224,7 @@ function wireSemantic() {
     if (!semantic.enable(docs)) {
       showNotice(dom.pageNotice, {
         ...FAILURES["semantic-failed"](),
-        actions: [{ label: "Try again", onClick: () => $("#semantic-go").click() }],
+        actions: [{ label: "再試一次", onClick: () => $("#semantic-go").click() }],
       });
     }
   });
@@ -1239,13 +1237,13 @@ function wireSemantic() {
     const line = $("#semantic-state");
     if (s.state === "downloading") {
       line.textContent = s.progress.total
-        ? `Downloading the model: ${formatBytes(s.progress.loaded)} of ${formatBytes(s.progress.total)}`
-        : "Downloading the model";
-      dom.semanticEnable.textContent = "Cancel download";
+        ? `正在下載模型：${formatBytes(s.progress.loaded)} / ${formatBytes(s.progress.total)}`
+        : "正在下載模型";
+      dom.semanticEnable.textContent = "取消下載";
     } else if (s.state === "building") {
-      line.textContent = `Building vectors: ${num(s.progress.done)} of ${num(s.progress.of)} conversations`;
+      line.textContent = `正在建向量：${num(s.progress.done)} / ${num(s.progress.of)} 段對話`;
     } else if (s.state === "ready") {
-      line.textContent = "Meaning search is ready. It runs in this tab.";
+      line.textContent = "語意搜尋準備好了，它跑在這個分頁裡。";
       dom.semanticPanel.hidden = true;
       dom.semanticEnable.hidden = true;
       const btn = $('.mode__btn[data-mode="meaning"]', dom.modeToggle);
@@ -1256,14 +1254,14 @@ function wireSemantic() {
       positionModeIndicator();
     } else if (s.state === "failed") {
       line.textContent = "";
-      dom.semanticEnable.textContent = "Enable meaning search";
+      dom.semanticEnable.textContent = "開啟語意搜尋";
       showNotice(dom.pageNotice, {
         ...FAILURES["semantic-failed"](),
-        actions: [{ label: "Try again", onClick: () => $("#semantic-go").click() }],
+        actions: [{ label: "再試一次", onClick: () => $("#semantic-go").click() }],
       });
     } else if (s.state === "cancelled") {
-      line.textContent = "Download cancelled. Keyword search is unaffected.";
-      dom.semanticEnable.textContent = "Enable meaning search";
+      line.textContent = "已取消下載。關鍵字搜尋不受影響。";
+      dom.semanticEnable.textContent = "開啟語意搜尋";
     }
   });
 }

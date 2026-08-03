@@ -11,8 +11,16 @@ import { buildRamp, resampleHexStops, rampAt } from './gradient.js';
 import { hexToOklch, formatOklch, toHex } from './color.js';
 import { renderToCanvas } from './render.js';
 
-const slug = (name) =>
-  (name || 'gradient').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'gradient';
+/* A class name and a filename both have to be ASCII, and every preset name in
+   this build is Chinese, so slugging the name alone would collapse all fifteen
+   specimens to `gradient`. The preset id is already a stable ASCII slug of the
+   same thing, so it is the fallback before the generic word. */
+const slug = (name, fallback = 'gradient') =>
+  (name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+  || fallback
+  || 'gradient';
+
+const sceneSlug = (scene) => slug(scene.name, slug(scene.presetId));
 
 const SPACE_CSS = { srgb: 'srgb', hsl: 'hsl', oklab: 'oklab', oklch: 'oklch' };
 const SPACE_LABEL = { srgb: 'sRGB', hsl: 'HSL', oklab: 'OKLab', oklch: 'OKLCH' };
@@ -55,7 +63,7 @@ const pct = (p) => `${(+p.toFixed(2))}%`;
    -------------------------------------------------------------------------- */
 
 export function buildCss(scene) {
-  const name = slug(scene.name);
+  const name = sceneSlug(scene);
   const stops = sortedStops(scene);
   const ramp = buildRamp(scene.stops, scene.space, scene.easing, 512);
 
@@ -114,14 +122,14 @@ export function verifyCss(out) {
   let note = '';
   if (out.plain) {
     note = fallbackOk
-      ? 'Validated in this browser. sRGB interpolation is the default everywhere, so no fallback block is needed.'
-      : 'That gradient did not validate in this browser. That is a bug in GradientKit, not in your gradient.';
+      ? '已在這個瀏覽器驗過。sRGB 插值本來就是各家的預設行為，所以不需要備援區塊。'
+      : '這段漸層在這個瀏覽器裡沒驗過。這是漸層工坊的問題，不是你的漸層有問題。';
   } else if (!fallbackOk) {
-    note = 'The fallback block did not validate in this browser. That is a bug in GradientKit, not in your gradient.';
+    note = '備援那一段在這個瀏覽器裡沒驗過。這是漸層工坊的問題，不是你的漸層有問題。';
   } else if (!modernOk) {
-    note = 'This browser cannot parse the modern block, so only the fallback was verified here. The modern block still ships correctly to browsers that support it.';
+    note = '這個瀏覽器看不懂新式那一段，所以只驗到備援。新式那段送到支援的瀏覽器上還是正常的。';
   } else {
-    note = 'Both blocks validated in this browser.';
+    note = '兩段都在這個瀏覽器裡驗過了。';
   }
   return { fallbackOk, modernOk, note };
 }
@@ -132,7 +140,7 @@ export function verifyCss(out) {
    -------------------------------------------------------------------------- */
 
 export function buildSvg(scene) {
-  const name = slug(scene.name);
+  const name = sceneSlug(scene);
   const ramp = buildRamp(scene.stops, scene.space, scene.easing, 512);
   const stops = resampleHexStops(ramp, 17);
   const stopTags = stops
@@ -195,7 +203,7 @@ ${stopTags}
  *  of exactly what the Stage shows rather than silently emitting something
  *  that renders differently. */
 export async function buildSvgRaster(scene, size = 512) {
-  const name = slug(scene.name);
+  const name = sceneSlug(scene);
   const canvas = await renderToCanvas({ ...scene, vision: 'normal' }, size);
   const dataUri = await canvasToDataUrl(canvas);
   return {
@@ -228,7 +236,7 @@ async function canvasToDataUrl(canvas) {
    -------------------------------------------------------------------------- */
 
 export function buildTailwind(scene) {
-  const name = slug(scene.name);
+  const name = sceneSlug(scene);
   const css = buildCss(scene);
   const ramp = buildRamp(scene.stops, scene.space, scene.easing, 512);
   const mid = rampAt(ramp, 0.5);
@@ -304,7 +312,7 @@ export function downloadBlob(blob, filename) {
 }
 
 export function suggestedFilename(scene, size) {
-  return `${slug(scene.name)}-${size}.png`;
+  return `${sceneSlug(scene)}-${size}.png`;
 }
 
 export { slug };

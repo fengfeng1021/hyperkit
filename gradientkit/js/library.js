@@ -85,11 +85,11 @@ export function hasSeen() {
 export function relativeTime(ms) {
   const diff = Date.now() - ms;
   const mins = Math.round(diff / 60000);
-  if (mins < 1) return 'just now';
-  if (mins < 60) return `${mins} min ago`;
+  if (mins < 1) return '剛剛';
+  if (mins < 60) return `${mins} 分鐘前`;
   const hours = Math.round(mins / 60);
-  if (hours < 24) return `${hours} h ago`;
+  if (hours < 24) return `${hours} 小時前`;
   const days = Math.round(hours / 24);
-  if (days < 30) return `${days} d ago`;
+  if (days < 30) return `${days} 天前`;
   return new Date(ms).toISOString().slice(0, 10);
 }

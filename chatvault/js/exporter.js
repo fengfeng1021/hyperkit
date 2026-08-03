@@ -33,15 +33,15 @@ export function toMarkdown(rec, choices) {
   const lines = [];
   lines.push(`# ${rec.title}`);
   lines.push("");
-  lines.push(`Source: ${SOURCES[rec.source] ? SOURCES[rec.source].label : rec.source}`);
-  lines.push(`Started: ${isoDay(rec.createdAt)}`);
-  lines.push(`Messages on this path: ${path.length} of ${rec.nodes.length} stored`);
+  lines.push(`來源：${SOURCES[rec.source] ? SOURCES[rec.source].label : rec.source}`);
+  lines.push(`開始：${isoDay(rec.createdAt)}`);
+  lines.push(`這條路徑上的訊息：${path.length} 則，檔案裡共存了 ${rec.nodes.length} 則`);
   lines.push("");
   lines.push("---");
   lines.push("");
   for (const i of path) {
     const node = rec.nodes[i];
-    lines.push(`## ${node.role === "human" ? "You" : "Assistant"}`);
+    lines.push(`## ${node.role === "human" ? "你" : "AI"}`);
     lines.push("");
     lines.push(node.text);
     lines.push("");

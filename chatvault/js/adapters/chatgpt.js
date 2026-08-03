@@ -85,7 +85,7 @@ export function adaptChatGPT(record) {
     id: dedupeKey("chatgpt", convId, record.title, createdAt, nodes[0].text),
     source: "chatgpt",
     convId,
-    title: (record.title || "").trim() || "Untitled conversation",
+    title: (record.title || "").trim() || "未命名對話",
     createdAt,
     updatedAt: (record.update_time || 0) * 1000 || 0,
     nodes,

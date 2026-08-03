@@ -338,20 +338,20 @@ export function describeScene(scene) {
   if (scene.mode === 'mesh') {
     const names = scene.mesh.map((p) => nameColor(p.hex));
     const unique = [...new Set(names)];
-    return `Mesh field with ${scene.mesh.length} points, blended in OKLab. Colors: ${unique.join(', ')}.`;
+    return `網格，${scene.mesh.length} 個點，在 OKLab 裡混色。顏色：${unique.join('、')}。`;
   }
   const typeWord = scene.type === 'linear'
-    ? `Linear gradient at ${Math.round(scene.angle)} degrees`
+    ? `線性漸層，${Math.round(scene.angle)} 度`
     : scene.type === 'radial'
-      ? 'Radial gradient'
-      : `Conic gradient from ${Math.round(scene.angle)} degrees`;
+      ? '放射漸層'
+      : `圓錐漸層，從 ${Math.round(scene.angle)} 度起算`;
   const spaceWord = { srgb: 'sRGB', hsl: 'HSL', oklab: 'OKLab', oklch: 'OKLCH' }[scene.space];
   const stopWords = scene.stops
     .slice()
     .sort((a, b) => a.pos - b.pos)
-    .map((s) => `${nameColor(s.hex)} at ${Math.round(s.pos)} percent`)
-    .join(', ');
-  return `${typeWord}, interpolated in ${spaceWord}, ${scene.stops.length} stops: ${stopWords}.`;
+    .map((s) => `${Math.round(s.pos)}% 的${nameColor(s.hex)}`)
+    .join('、');
+  return `${typeWord}，在 ${spaceWord} 裡插值，${scene.stops.length} 個色標：${stopWords}。`;
 }
 
 /* --------------------------------------------------------------------------

@@ -181,10 +181,10 @@ export function createProbe(els, ctx) {
     const threshold = aaThreshold(state.probe.size, state.probe.weight);
     const pass = worst >= threshold;
     readout.textContent = `${worst.toFixed(2)}:1`;
-    verdict.textContent = pass ? 'PASS AA' : 'FAIL AA';
+    verdict.textContent = pass ? '通過 AA' : '沒過 AA';
     verdict.dataset.pass = String(pass);
     const worstAcross = nx + worstX * nw;
-    position.textContent = `worst at ${(worstAcross * 100).toFixed(1)}%`;
+    position.textContent = `最糟在 ${(worstAcross * 100).toFixed(1)}%`;
 
     els.marker.hidden = false;
     els.marker.style.left = `${worstAcross * 100}%`;
@@ -193,7 +193,7 @@ export function createProbe(els, ctx) {
     const now = Date.now();
     if (now - lastAnnounce > 800) {
       lastAnnounce = now;
-      ctx.announce(`Contrast ${worst.toFixed(2)} to 1. ${pass ? 'Passes' : 'Fails'} AA at ${state.probe.size} pixels.`);
+      ctx.announce(`對比 ${worst.toFixed(2)} 比 1，在 ${state.probe.size} 像素下${pass ? '通過' : '沒過'} AA。`);
     }
     return { ratio: worst, pass, at: worstAcross };
   }
@@ -346,7 +346,7 @@ export function createLibrary(els, ctx) {
       const del = document.createElement('button');
       del.type = 'button';
       del.className = 'gk-lib-delete';
-      del.innerHTML = `${iconMarkup('x')}<span class="gk-sr">Delete ${escapeHtml(entry.name)}</span>`;
+      del.innerHTML = `${iconMarkup('x')}<span class="gk-sr">刪掉「${escapeHtml(entry.name)}」</span>`;
       del.addEventListener('click', () => {
         library.remove(entry.hash);
         quotaBlocked = false;
@@ -373,8 +373,8 @@ export function createLibrary(els, ctx) {
     saveBtn.setAttribute('aria-disabled', String(dup || quotaBlocked));
     saveBtn.classList.toggle('is-disabled', dup || quotaBlocked);
     els.saveReason.textContent = quotaBlocked
-      ? 'Storage is full. Delete a saved gradient to make room.'
-      : dup ? 'Already saved.' : '';
+      ? '儲存空間滿了。刪掉一個存過的漸層再存一次。'
+      : dup ? '這個已經存過了。' : '';
   }
 
   return { render, trySave, syncSaveButton, get quotaBlocked() { return quotaBlocked; } };
@@ -392,7 +392,7 @@ export function bandingSentence(state) {
   if (state.grain.amp > 0) return '';
   const ramp = buildRamp(state.stops, state.space, state.easing, 1024);
   if (!detectsBanding(ramp, 1200)) return '';
-  return 'Grain off. 8-bit banding is visible in the loupe at this amplitude.';
+  return '顆粒關著。在這個強度下，放大鏡裡看得到 8-bit 色帶。';
 }
 
 export { formatOklch, hexToOklch };

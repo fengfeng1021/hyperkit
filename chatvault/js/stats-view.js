@@ -34,9 +34,9 @@ export class StatsView {
 
     const headline = el("div", { class: "stats__headline" });
     headline.append(
-      statLine(num(d.conversations), d.conversations === 1 ? "conversation" : "conversations"),
-      statLine(num(d.messages), d.messages === 1 ? "message" : "messages"),
-      statLine(formatSpan(d.earliest, d.latest), `from ${month(d.earliest)} to ${month(d.latest)}`)
+      statLine(num(d.conversations), "段對話"),
+      statLine(num(d.messages), "則訊息"),
+      statLine(formatSpan(d.earliest, d.latest), `從 ${month(d.earliest)} 到 ${month(d.latest)}`)
     );
     this.root.append(headline);
 
@@ -44,30 +44,30 @@ export class StatsView {
       const row = el("p", { class: "stats__sources" });
       row.append(
         document.createTextNode(
-          d.perSource.map(([s, n]) => `${num(n)} from ${labelOf(s)}`).join(", ")
+          d.perSource.map(([s, n]) => `${labelOf(s)} ${num(n)} 段`).join("、")
         )
       );
       this.root.append(row);
     }
 
-    this.root.append(el("h3", { class: "stats__head", text: "Messages by month" }));
+    this.root.append(el("h3", { class: "stats__head", text: "每個月的訊息量" }));
     this.monthCanvas = el("canvas", { class: "stats__canvas stats__canvas--months", role: "img" });
     this.root.append(this.monthCanvas);
     this.root.append(
       el("p", {
         class: "stats__caption",
         text: d.monthSeries.length
-          ? `Busiest month: ${busiestLabel(d.monthSeries)}.`
-          : "No dated messages in this vault.",
+          ? `最密集的一個月：${busiestLabel(d.monthSeries)}。`
+          : "這份資料裡沒有帶日期的訊息。",
       })
     );
 
-    this.root.append(el("h3", { class: "stats__head", text: "When you write" }));
+    this.root.append(el("h3", { class: "stats__head", text: "你都幾點在打字" }));
     this.hourCanvas = el("canvas", { class: "stats__canvas stats__canvas--hours", role: "img" });
     this.root.append(this.hourCanvas);
     this.root.append(el("p", { class: "stats__caption", text: hourCaption(d.hours) }));
 
-    this.root.append(el("h3", { class: "stats__head", text: "What you asked about" }));
+    this.root.append(el("h3", { class: "stats__head", text: "你都在問什麼" }));
     const tags = el("div", { class: "tagstrip" });
     for (const item of d.vocabulary) {
       tags.append(
@@ -75,23 +75,23 @@ export class StatsView {
           type: "button",
           class: "tag",
           onclick: () => this.onTermClick && this.onTermClick(item.term),
-          title: `${item.term} appears in ${num(item.conversations)} conversations`,
+          title: `${item.term} 出現在 ${num(item.conversations)} 段對話裡`,
           text: item.term,
         })
       );
     }
     if (!d.vocabulary.length) {
-      tags.append(el("p", { class: "stats__caption", text: "Your own messages carried no repeated subject terms yet." }));
+      tags.append(el("p", { class: "stats__caption", text: "你自己的訊息裡還沒有重複出現的主題詞。" }));
     }
     this.root.append(tags);
     this.root.append(
       el("p", {
         class: "stats__caption",
-        text: "Taken from your messages only, weighted so that words appearing in every conversation lose weight.",
+        text: "只取自你說的話，並且對每段對話都出現的詞降低權重。",
       })
     );
 
-    this.root.append(el("h3", { class: "stats__head", text: "Longest conversation" }));
+    this.root.append(el("h3", { class: "stats__head", text: "最長的一段對話" }));
     if (d.longest) {
       const line = el("p", { class: "stats__longest" });
       line.append(
@@ -101,7 +101,7 @@ export class StatsView {
           text: d.longest.title,
           onclick: () => this.onOpenConversation && this.onOpenConversation(d.longest.id),
         }),
-        el("span", { text: ` ${num(d.longest.msgCount)} messages` })
+        el("span", { text: ` ${num(d.longest.msgCount)} 則訊息` })
       );
       this.root.append(line);
     }
@@ -149,7 +149,7 @@ export class StatsView {
     ctx.c.fillRect(0, baseline + 0.5, w, 1);
     canvas.setAttribute(
       "aria-label",
-      `Messages by month from ${series[0].key} to ${series[series.length - 1].key}. Busiest month ${peak.key} with ${peak.count} messages.`
+      `從 ${series[0].key} 到 ${series[series.length - 1].key} 每個月的訊息量。最密集的是 ${peak.key}，共 ${peak.count} 則。`
     );
   }
 
@@ -206,21 +206,21 @@ function statLine(value, label) {
 
 function busiestLabel(series) {
   const peak = series.reduce((a, b) => (b.count > a.count ? b : a), series[0]);
-  return `${peak.key} with ${num(peak.count)} messages`;
+  return `${peak.key}，共 ${num(peak.count)} 則`;
 }
 
 function hourCaption(hours) {
   const max = Math.max(...hours);
-  if (!max) return "No dated messages in this vault.";
+  if (!max) return "這份資料裡沒有帶日期的訊息。";
   const at = hours.indexOf(max);
   const total = hours.reduce((a, b) => a + b, 0);
   const night = hours.slice(0, 6).reduce((a, b) => a + b, 0);
   const share = Math.round((night / Math.max(1, total)) * 100);
-  return `Your busiest hour is ${String(at).padStart(2, "0")}:00. ${share} percent of your messages fall between midnight and 06:00.`;
+  return `你最常發訊息的時段是 ${String(at).padStart(2, "0")}:00。有 ${share}% 的訊息落在午夜到早上六點之間。`;
 }
 
 function labelOf(source) {
-  return { chatgpt: "ChatGPT", claude: "Claude", gemini: "Gemini", custom: "Custom" }[source] || source;
+  return { chatgpt: "ChatGPT", claude: "Claude", gemini: "Gemini", custom: "自訂" }[source] || source;
 }
 
 export { day };

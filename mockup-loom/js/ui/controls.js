@@ -27,8 +27,8 @@ export class NumberField {
       value: this._text(value)
     });
 
-    this.down = el('button', { type: 'button', class: 'nf-step', 'aria-label': `${label} down` }, [icon('remove')]);
-    this.up = el('button', { type: 'button', class: 'nf-step', 'aria-label': `${label} up` }, [icon('add')]);
+    this.down = el('button', { type: 'button', class: 'nf-step', 'aria-label': `${label} 減少` }, [icon('remove')]);
+    this.up = el('button', { type: 'button', class: 'nf-step', 'aria-label': `${label} 增加` }, [icon('add')]);
 
     this.root = el('div', { class: 'nf' }, [
       el('span', { class: 'nf-label', text: label }),

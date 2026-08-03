@@ -60,7 +60,7 @@ function toRecord(group, i) {
     }
   }
   if (!nodes.length) return null;
-  const title = nodes[0].text.slice(0, 80).replace(/\s+/g, " ").trim() || "Gemini session";
+  const title = nodes[0].text.slice(0, 80).replace(/\s+/g, " ").trim() || "Gemini 對話";
   return finalize({
     id: dedupeKey("gemini", `${group.start}-${i}`, title, group.start, nodes[0].text),
     source: "gemini",

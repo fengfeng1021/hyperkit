@@ -9,7 +9,7 @@
    it. Phrases are checked against real positions. */
 
 import { positionsAt, findPosting, ROLE_CODE, SOURCE_CODE } from "./index-build.js";
-import { isContentTerm, variantsOf, trigramSimilarity } from "./tokenize.js";
+import { isContentTerm, variantsOf, trigramSimilarity, cjkBigrams } from "./tokenize.js";
 
 const K1 = 1.2;
 const B = 0.62; // lower than the usual 0.75: a chat message's length says little about its relevance
@@ -38,6 +38,10 @@ export function parseQuery(raw) {
     errors: [],
     free: "",
     conditions: [],
+    // CJK bigrams standing behind terms and required, for scoring only. They
+    // stay out of terms so that highlighting, expansion and the "closest terms"
+    // diagnostic keep working on what the user actually typed.
+    cjk: [],
   };
   if (!raw) return q;
 
@@ -119,6 +123,15 @@ export function parseQuery(raw) {
   }
 
   q.free = free.join(" ").trim();
+
+  const seen = new Set([...q.terms, ...q.required]);
+  for (const w of [...q.terms, ...q.required, ...q.phrases.filter((p) => !p.negate).flatMap((p) => p.words)]) {
+    for (const g of cjkBigrams(w)) {
+      if (seen.has(g)) continue;
+      seen.add(g);
+      q.cjk.push(g);
+    }
+  }
   return q;
 }
 
@@ -290,7 +303,20 @@ export function runQuery(index, parsed, options = {}) {
   let requiredConvs = null;
   for (const w of parsed.required) {
     const id = index.termId.get(w);
-    const set = id === undefined ? new Set() : convsContaining(index, id, new Set());
+    let set;
+    if (id !== undefined) {
+      set = convsContaining(index, id, new Set());
+    } else {
+      // a CJK run that is not a term of its own is required through its
+      // bigrams, all of which have to be present
+      set = null;
+      for (const g of cjkBigrams(w)) {
+        const gid = index.termId.get(g);
+        const part = gid === undefined ? new Set() : convsContaining(index, gid, new Set());
+        set = set === null ? part : new Set([...set].filter((c) => part.has(c)));
+      }
+      if (set === null) set = new Set();
+    }
     requiredConvs = requiredConvs === null ? set : new Set([...requiredConvs].filter((c) => set.has(c)));
   }
 
@@ -298,6 +324,12 @@ export function runQuery(index, parsed, options = {}) {
   for (const w of [...parsed.terms, ...parsed.required]) {
     const id = index.termId.get(w);
     if (id !== undefined) scoring.push({ termId: id, word: w, weight: 1 });
+  }
+  // Bigrams score at less than a full term so that a conversation holding the
+  // whole run still ranks above one that only holds a piece of it.
+  for (const g of parsed.cjk || []) {
+    const id = index.termId.get(g);
+    if (id !== undefined) scoring.push({ termId: id, word: g, weight: 0.85 });
   }
   for (const e of expansions) {
     const id = index.termId.get(e.word);

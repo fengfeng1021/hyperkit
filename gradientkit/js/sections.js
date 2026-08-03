@@ -10,7 +10,7 @@
    ========================================================================== */
 
 import { buildRamp, rampToCssGradient, chromaDeficit, rasterize } from './gradient.js';
-import { SPACE_ORDER, SPACE_LABELS } from './color.js';
+import { SPACE_ORDER, SPACE_LABELS, TYPE_LABELS } from './color.js';
 import { GRADIENT_PRESETS, MESH_PRESETS } from './presets.js';
 
 /* --------------------------------------------------------------------------
@@ -26,8 +26,8 @@ export function createBands(root, ctx) {
     row.dataset.space = space;
     row.innerHTML = `
       <div class="gk-band-name">${SPACE_LABELS[space]}</div>
-      <div class="gk-band-swatch" role="img" aria-label="${SPACE_LABELS[space]} interpolation of the current endpoint colors"></div>
-      <div class="gk-band-metric"><span class="gk-band-num">0%</span><span class="gk-band-unit">chroma deficit</span></div>
+      <div class="gk-band-swatch" role="img" aria-label="目前兩端顏色在 ${SPACE_LABELS[space]} 裡插值的結果"></div>
+      <div class="gk-band-metric"><span class="gk-band-num">0%</span><span class="gk-band-unit">彩度損失</span></div>
     `;
     root.appendChild(row);
     bands.set(space, {
@@ -82,8 +82,8 @@ export function createShelf(root, ctx) {
       <span class="gk-tile-art" aria-hidden="true"></span>
       <span class="gk-tile-name">${preset.name}</span>
       <span class="gk-tile-meta">${preset.kind === 'mesh'
-        ? `${preset.scene.mesh.length} points, OKLab`
-        : `${preset.scene.type}, ${SPACE_LABELS[preset.scene.space]}`}</span>
+        ? `${preset.scene.mesh.length} 點・OKLab`
+        : `${TYPE_LABELS[preset.scene.type]}・${SPACE_LABELS[preset.scene.space]}`}</span>
       <span class="gk-sr">. ${preset.demonstrates}</span>
     `;
     const art = tile.querySelector('.gk-tile-art');

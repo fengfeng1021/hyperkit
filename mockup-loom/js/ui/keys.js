@@ -7,14 +7,14 @@
 import { el, $$ } from '../util/dom.js';
 
 export const SHORTCUTS = [
-  ['W', 'Throw the weave switch'],
-  ['F', 'Hold to peek at FLAT'],
-  ['1 - 6', 'Switch template form'],
-  ['B', 'Cycle the blend mode'],
-  ['E', 'Export ZIP'],
-  ['R', 'Render the batch'],
-  ['?', 'Open and close this map'],
-  ['Esc', 'Step back one layer']
+  ['W', '撥動平貼／服貼開關'],
+  ['F', '按住偷看平貼的樣子'],
+  ['1 - 6', '換版型'],
+  ['B', '輪流切換疊色方式'],
+  ['E', '輸出 ZIP'],
+  ['R', '開始算這批'],
+  ['?', '開關這張表'],
+  ['Esc', '退回上一層']
 ];
 
 export class KeyboardOverlay {

@@ -44,15 +44,15 @@ export function icon(name, size = 12, extraClass = "") {
 const NF = new Intl.NumberFormat("en-US");
 export const num = (n) => NF.format(Math.round(n));
 
-const DAY = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" });
-const MONTH = new Intl.DateTimeFormat("en-GB", { month: "short", year: "numeric" });
+const DAY = new Intl.DateTimeFormat("zh-TW", { year: "numeric", month: "long", day: "numeric" });
+const MONTH = new Intl.DateTimeFormat("zh-TW", { year: "numeric", month: "long" });
 export function day(ms) {
   const d = new Date(ms);
-  return Number.isNaN(d.getTime()) ? "undated" : DAY.format(d);
+  return Number.isNaN(d.getTime()) ? "無日期" : DAY.format(d);
 }
 export function month(ms) {
   const d = new Date(ms);
-  return Number.isNaN(d.getTime()) ? "undated" : MONTH.format(d);
+  return Number.isNaN(d.getTime()) ? "無日期" : MONTH.format(d);
 }
 
 export function seconds(ms) {
@@ -63,6 +63,8 @@ export function seconds(ms) {
 export function escapeHtml(s) {
   return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 }
+
+const CJK_ANY = /[぀-ヿ㐀-䶿一-鿿豈-﫿가-힯]/u;
 
 /** Mark query terms inside a plain-text fragment. Returns a DocumentFragment. */
 export function markTerms(text, terms, focusIndex = -1) {
@@ -79,7 +81,16 @@ export function markTerms(text, terms, focusIndex = -1) {
     frag.append(document.createTextNode(text));
     return frag;
   }
-  const re = new RegExp(`(?<![\\p{L}\\p{N}_])(${escaped.join("|")})(?![\\p{L}\\p{N}_])`, "giu");
+  // A word boundary is the right rule for a spaced script and the wrong one for
+  // CJK, where 連線池 lives inside 連線池的上限 with a letter on both sides and
+  // would never match. Terms in a script that does not space its words are
+  // matched bare; everything else keeps the boundary.
+  const spaced = escaped.filter((t) => !CJK_ANY.test(t));
+  const dense = escaped.filter((t) => CJK_ANY.test(t));
+  const parts = [];
+  if (spaced.length) parts.push(`(?<![\\p{L}\\p{N}_])(?:${spaced.join("|")})(?![\\p{L}\\p{N}_])`);
+  if (dense.length) parts.push(`(?:${dense.join("|")})`);
+  const re = new RegExp(`(${parts.join("|")})`, "giu");
   let last = 0;
   let seen = 0;
   let m;

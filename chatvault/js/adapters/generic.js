@@ -99,9 +99,9 @@ export function previewMapping(record, mapping, n = 3) {
 }
 
 export const MAPPING_FIELDS = [
-  { key: "title", label: "Conversation title", wants: "string" },
-  { key: "createdAt", label: "Created at", wants: "string" },
-  { key: "messages", label: "Messages array", wants: "array" },
-  { key: "role", label: "Message role field", wants: "string" },
-  { key: "text", label: "Message text field", wants: "string" },
+  { key: "title", label: "對話標題", wants: "string" },
+  { key: "createdAt", label: "建立時間", wants: "string" },
+  { key: "messages", label: "訊息陣列", wants: "array" },
+  { key: "role", label: "訊息的角色欄位", wants: "string" },
+  { key: "text", label: "訊息的內文欄位", wants: "string" },
 ];

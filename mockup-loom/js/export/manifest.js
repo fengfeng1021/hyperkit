@@ -10,33 +10,33 @@ export function buildManifest({ paths, light, blendLabel, outputWidth, date, red
   const d = String(date.getDate()).padStart(2, '0');
   const L = [];
 
-  L.push(`Mockup Loom export - ${y}-${m}-${d}`);
-  L.push('Templates in this export are procedurally generated (noise-based), not photographic.');
-  if (reduced) L.push('Rendered in reduced mode (no WebGL2): displacement disabled.');
+  L.push(`情境織機 輸出紀錄 - ${y}-${m}-${d}`);
+  L.push('這批版型都是程式用雜訊算出來的，沒有一張是照片。');
+  if (reduced) L.push('這批是在精簡模式下算的（沒有 WebGL2）：印花沒有吃進皺褶。');
   L.push('');
-  L.push(`Light      azimuth ${light.azimuth}, elevation ${light.elevation}, intensity ${light.intensity}`);
-  L.push(`Blend      ${blendLabel}`);
-  L.push(`Output     ${outputWidth} px on the width of each form`);
-  L.push(`Files      ${paths.length}`);
-  if (renamed) L.push(`Renamed    ${renamed} file names collided and were suffixed`);
+  L.push(`光線   方位 ${light.azimuth}、高度 ${light.elevation}、強度 ${light.intensity}`);
+  L.push(`疊色   ${blendLabel}`);
+  L.push(`尺寸   每個版型的寬邊 ${outputWidth} px`);
+  L.push(`檔案   ${paths.length} 個`);
+  if (renamed) L.push(`改名   有 ${renamed} 個檔名撞到，後面補了編號`);
   L.push('');
 
   for (const entry of paths) {
     const j = entry.job;
     L.push(entry.path.split('/').slice(1).join('/'));
-    L.push(`  design    ${j.designSlug}${j.designSample ? ' (sample)' : ''}`);
-    L.push(`  template  ${j.templateLabel} (seed ${j.seed})`);
-    L.push(`  size      ${j.w} x ${j.h}`);
+    L.push(`  設計  ${j.designSlug}${j.designSample ? '（範例）' : ''}`);
+    L.push(`  版型  ${j.templateLabel}（種子 ${j.seed}）`);
+    L.push(`  尺寸  ${j.w} x ${j.h}`);
     L.push(
-      `  placement x ${fmt(j.placement.x)}  y ${fmt(j.placement.y)}` +
-      `  scale ${fmt(j.placement.scale)}  rotation ${Math.round(j.placement.rotation)}`
+      `  擺放  x ${fmt(j.placement.x)}  y ${fmt(j.placement.y)}` +
+      `  大小 ${fmt(j.placement.scale)}  角度 ${Math.round(j.placement.rotation)}`
     );
-    L.push(`  weave     ${j.woven ? 'woven (displacement on)' : 'flat (displacement off)'}`);
+    L.push(`  織法  ${j.woven ? '服貼（印花吃進皺褶）' : '平貼（印花沒吃進去）'}`);
   }
 
   L.push('');
-  L.push('Nothing in this export left your browser. The templates were generated');
-  L.push('from their seeds on this machine and can be regenerated identically.');
+  L.push('這批圖沒有任何一張離開過你的瀏覽器。版型是在這台機器上');
+  L.push('用種子算出來的，換一台機器也算得出一模一樣的結果。');
   L.push('');
 
   return L.join('\n');

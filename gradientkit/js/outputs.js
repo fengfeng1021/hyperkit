@@ -56,7 +56,7 @@ export function createOutputs(els, ctx) {
     });
     codeEl.replaceChildren(...rows);
     if (metaEl) {
-      metaEl.textContent = `${lines.length} ${lines.length === 1 ? 'line' : 'lines'}, ${currentText.length} chars`;
+      metaEl.textContent = `${lines.length} 行 ${currentText.length} 字`;
     }
     requestAnimationFrame(syncScrollHint);
     if (changed) {
@@ -80,17 +80,17 @@ export function createOutputs(els, ctx) {
       const out = buildSvg(scene);
       if (out.needsRaster) {
         setCode(out.code);
-        noteEl.textContent = 'A conic gradient has no SVG primitive, so this tab embeds a 512px raster of exactly what the Stage shows.';
+        noteEl.textContent = '圓錐漸層在 SVG 裡沒有對應的原生元素，所以這個分頁改成嵌一張 512px 的點陣圖，內容就是載物台上看到的。';
         const token = ++rasterToken;
         try {
           const raster = await buildSvgRaster(scene, 512);
           if (token === rasterToken && active === 'svg') setCode(raster.code);
         } catch {
-          noteEl.textContent = 'This device could not render the 512px raster. Use the PNG tab instead.';
+          noteEl.textContent = '這台裝置畫不出那張 512px 的點陣圖。改用 PNG 分頁輸出。';
         }
       } else {
         setCode(out.code);
-        noteEl.textContent = 'SVG gradients are sRGB only, so the stops are resampled from the OKLCH curve at 17 positions.';
+        noteEl.textContent = 'SVG 漸層只吃 sRGB，所以色標是從 OKLCH 曲線上重新取十七個位置抓下來的。';
       }
       noteEl.dataset.state = 'ok';
       copyBtn.hidden = false;
@@ -98,13 +98,13 @@ export function createOutputs(els, ctx) {
     } else if (active === 'tailwind') {
       const out = buildTailwind(scene);
       setCode(out.code);
-      noteEl.textContent = 'Tailwind v4 @theme. A v3 config object is not emitted, because v3 config files are the thing v4 replaces.';
+      noteEl.textContent = 'Tailwind v4 的 @theme。不產 v3 的 config 物件，因為 v3 config 正是 v4 要取代掉的東西。';
       noteEl.dataset.state = 'ok';
       copyBtn.hidden = false;
       els.pngPanel.hidden = true;
     } else {
-      setCode(`${suggestedFilename(scene, pngSize)}\n${pngSize} x ${pngSize} px\ndither ${scene.dither ? 'on' : 'off'}, grain ${scene.grain.amp}/${scene.grain.size}\nvision simulation is never baked in`);
-      noteEl.textContent = 'Rendered by the same shader at the target size, so dither and grain land at full resolution instead of being upscaled.';
+      setCode(`${suggestedFilename(scene, pngSize)}\n${pngSize} x ${pngSize} px\ndither ${scene.dither ? 'on' : 'off'}, grain ${scene.grain.amp}/${scene.grain.size}\n色覺模擬永遠不會被烤進檔案裡`);
+      noteEl.textContent = '用同一支 shader 直接在目標尺寸算一次，所以抖色和顆粒是全解析度長出來的，不是放大來的。';
       noteEl.dataset.state = 'ok';
       copyBtn.hidden = true;
       els.pngPanel.hidden = false;
@@ -114,11 +114,11 @@ export function createOutputs(els, ctx) {
   copyBtn.addEventListener('click', async () => {
     const res = await copyText(currentText, codeEl);
     if (res.ok) {
-      copy.success('Copied');
+      copy.success('已複製');
     } else {
-      copy.label('Select and copy');
+      copy.label('自己按 Ctrl+C');
       ctx.notice({
-        message: 'The browser blocked clipboard access. The code is selected, press Ctrl+C.',
+        message: '瀏覽器擋掉了剪貼簿。程式碼已經幫你選起來了，按 Ctrl+C 複製。',
         assertive: true,
       });
       setTimeout(() => copy.reset(), 4000);
@@ -137,28 +137,28 @@ export function createOutputs(els, ctx) {
 
   pngBtn.addEventListener('click', async () => {
     const scene = ctx.store.get();
-    png.loading(`Rendering ${pngSize}px`);
+    png.loading(`正在算 ${pngSize}px`);
     png.progress(0);
     try {
       const result = await exportPng({ ...scene, vision: 'normal' }, pngSize, (p) => png.progress(p));
       const name = suggestedFilename(scene, result.size);
       const url = downloadBlob(result.blob, name);
-      png.success('Downloaded');
+      png.success('已下載');
       if (result.downgraded) {
         ctx.notice({
-          message: `The ${pngSize}px export was too large for this device, so a ${result.size}px file was saved instead.`,
+          message: `${pngSize}px 對這台裝置來說太大了，所以改存成 ${result.size}px 的檔案。`,
         });
       } else if (!document.hasFocus()) {
         ctx.notice({
-          message: 'The download may have been blocked. Use this link to save the file.',
-          action: { label: `Save ${name}`, onClick: () => { const a = document.createElement('a'); a.href = url; a.download = name; a.click(); } },
+          message: '下載可能被擋掉了。用這個連結把檔案存下來。',
+          action: { label: `存成 ${name}`, onClick: () => { const a = document.createElement('a'); a.href = url; a.download = name; a.click(); } },
         });
       }
-      pngNote.textContent = `Last export: ${name}`;
+      pngNote.textContent = `上次輸出：${name}`;
     } catch (err) {
       png.reset();
       ctx.notice({
-        message: 'That export could not be rendered on this device. Try a smaller size.',
+        message: '這台裝置算不出這張圖。挑一個小一點的尺寸再試。',
         assertive: true,
       });
     }

@@ -86,10 +86,14 @@
      TYPE FAMILIES
      Literata is the only serif in the whole portfolio, justified by
      long-form reading and by the catalogue-card typographic tradition.
+     Noto Serif TC sits behind every stack, including the monospace one:
+     Literata, Public Sans and Spline Sans Mono carry no CJK glyphs, and a
+     fallback to the system sans would put half a sentence in a grotesque.
+     Latin and digits still resolve to the family in front of it.
      ------------------------------------------------------------------ */
-  --font-read: "Literata", Georgia, "Times New Roman", serif;
-  --font-ui:   "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: "Spline Sans Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --font-read: "Literata", "Noto Serif TC", Georgia, "Times New Roman", serif;
+  --font-ui:   "Public Sans", "Noto Serif TC", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Spline Sans Mono", ui-monospace, "SF Mono", Menlo, "Noto Serif TC", monospace;
 
   /* ------------------------------------------------------------------
      TYPE SCALE

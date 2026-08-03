@@ -133,7 +133,7 @@ export class WeaveSwitch {
     if (!this.animator) this.verdict.hidden = !(on && this.enabled);
     else if (!this.enabled) this.verdict.hidden = true;
     if (this.enabled && !this.used) {
-      this.note.textContent = 'Press W or drag the switch.';
+      this.note.textContent = '按 W，或直接把開關撥過去。';
       this.note.hidden = false;
     } else if (this.enabled && this.used && !this.note.dataset.sticky) {
       this.note.hidden = true;

@@ -64,7 +64,7 @@ export function createNoticeHost(slot, liveRegions) {
       const close = document.createElement('button');
       close.type = 'button';
       close.className = 'gk-notice-close';
-      close.innerHTML = `${iconMarkup('x')}<span class="gk-sr">Dismiss this message</span>`;
+      close.innerHTML = `${iconMarkup('x')}<span class="gk-sr">關掉這則訊息</span>`;
       close.addEventListener('click', clear);
       close.addEventListener('keydown', (e) => { if (e.key === 'Escape') clear(); });
       el.appendChild(close);

@@ -49,7 +49,7 @@ export function defaultState() {
     // The probe ships with a specimen already mounted. A contrast readout that
     // reads --.-- until you type is the one measurement in here nobody would
     // ever discover, and the empty state is indistinguishable from a bug.
-    probe: { text: 'Shipping this on Friday', size: 32, weight: 600, fg: '#FFFFFF', x: 0.5, y: 0.28 },
+    probe: { text: '禮拜五就要上線', size: 32, weight: 600, fg: '#FFFFFF', x: 0.5, y: 0.28 },
   };
 }
 

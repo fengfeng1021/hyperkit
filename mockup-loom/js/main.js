@@ -40,10 +40,10 @@ import { buildTreeLines, renderTree } from './export/tree.js';
 import { installMotion } from './motion.js';
 
 const BLENDS = [
-  { id: '0', label: 'Normal' },
-  { id: '1', label: 'Multiply' },
-  { id: '2', label: 'Screen' },
-  { id: '3', label: 'Overlay' }
+  { id: '0', label: '正常' },
+  { id: '1', label: '色彩增值' },
+  { id: '2', label: '濾色' },
+  { id: '3', label: '覆蓋' }
 ];
 
 /* ---------------------------------------------------------------------- */
@@ -103,11 +103,11 @@ try {
   oven = new Oven({ reduced: true });
   banner.show({
     id: 'reduced',
-    text: 'This browser has no WebGL2, so displacement is off. Placement, blending and export still work.',
+    text: '這個瀏覽器沒有 WebGL2，所以印花不會吃進皺褶。擺放、疊色、輸出都還是正常的。',
     detail: [
-      'The design sits flat on the fabric.',
-      'Fabric shading and shadows are baked, not lit.',
-      'Everything else, including batch and ZIP export, works.'
+      '設計會平貼在布上，不跟著折。',
+      '布料的明暗和陰影是先烤好的，不是即時打光。',
+      '其他都能用，包含批次和 ZIP 輸出。'
     ]
   });
 }
@@ -144,7 +144,7 @@ const weave = new WeaveSwitch({
   onFirstUse: () => { settings.switchUsed = true; persist(); }
 });
 weave.setUsed(!!settings.switchUsed);
-weave.setEnabled(false, state.reduced ? 'Needs WebGL2.' : 'Load a design to compare.');
+weave.setEnabled(false, state.reduced ? '這個要 WebGL2 才動得了。' : '先放一張設計上去，才看得出差別。');
 if (state.reduced) $('#weave-note').dataset.sticky = 'true';
 
 /* ---------------------------------------------------------------------- */
@@ -152,14 +152,14 @@ if (state.reduced) $('#weave-note').dataset.sticky = 'true';
 /* ---------------------------------------------------------------------- */
 
 const modeSeg = new Segmented($('#mode-host'), {
-  name: 'Mode',
-  options: [{ id: 'single', label: 'Single' }, { id: 'batch', label: 'Batch' }],
+  name: '模式',
+  options: [{ id: 'single', label: '單張' }, { id: 'batch', label: '批次' }],
   value: 'single',
   onChange: (id) => setMode(id)
 });
 
 const blendSeg = new Segmented($('#blend-host'), {
-  name: 'Blend',
+  name: '疊色',
   labelledBy: 'h-blend',
   options: BLENDS,
   value: String(state.blend),
@@ -172,7 +172,7 @@ const blendSeg = new Segmented($('#blend-host'), {
 });
 
 const foldersSeg = new Segmented($('#folders-host'), {
-  name: 'Folders',
+  name: '資料夾',
   labelledBy: 'h-folders',
   options: GROUPINGS,
   value: state.grouping,
@@ -190,12 +190,12 @@ fields.y = new NumberField(fieldHost, {
   precision: 1, suffix: '%', onChange: (v) => { state.placement.y = v / 100; syncRenderer(); }
 });
 fields.scale = new NumberField(fieldHost, {
-  label: 'Scale', value: state.placement.scale * 100, min: 4, max: 400, step: 1,
+  label: '大小', value: state.placement.scale * 100, min: 4, max: 400, step: 1,
   precision: 0, suffix: '%', onChange: (v) => { state.placement.scale = v / 100; syncRenderer(); }
 });
 fields.rotation = new NumberField(fieldHost, {
-  label: 'Rotation', value: state.placement.rotation, min: -180, max: 180, step: 1,
-  precision: 0, suffix: ' deg', onChange: (v) => { state.placement.rotation = v; syncRenderer(); }
+  label: '角度', value: state.placement.rotation, min: -180, max: 180, step: 1,
+  precision: 0, suffix: ' 度', onChange: (v) => { state.placement.rotation = v; syncRenderer(); }
 });
 
 const dial = new LightDial($('#dial-host'), {
@@ -205,13 +205,13 @@ const dial = new LightDial($('#dial-host'), {
 });
 
 const elevation = new Slider($('#elevation-host'), {
-  label: 'Elevation', value: state.light.elevation, min: 0, max: 90, suffix: ' deg',
+  label: '高度', value: state.light.elevation, min: 0, max: 90, suffix: ' 度',
   onChange: (v) => { state.light.elevation = v; syncRenderer(); },
   onCommit: () => persist()
 });
 
 const intensity = new Slider($('#intensity-host'), {
-  label: 'Intensity', value: state.light.intensity, min: 0, max: 100,
+  label: '強度', value: state.light.intensity, min: 0, max: 100,
   onChange: (v) => { state.light.intensity = v; syncRenderer(); },
   onCommit: () => persist()
 });
@@ -323,7 +323,7 @@ store.onChange(() => {
   state.designAspect = design ? design.aspect : 1;
   renderer.setDesign(design ? design.source : null);
   weave.setEnabled(!state.reduced && store.length > 0,
-    state.reduced ? 'Needs WebGL2.' : (store.length ? '' : 'Load a design to compare.'));
+    state.reduced ? '這個要 WebGL2 才動得了。' : (store.length ? '' : '先放一張設計上去，才看得出差別。'));
   stage.pframe.hidden = !design;
   syncRenderer();
   syncPlacementFields();
@@ -411,7 +411,7 @@ async function mountForm() {
   const maps = await picker.ensureMaps(state.form);
   renderer.setMaps(maps.shape, maps.field);
   stage.setForm(state.form);
-  stage.setSeed(`Procedural template - generated, not photographed. Seed ${maps.seed}`);
+  stage.setSeed(`程式算出來的，不是拍的。種子 ${maps.seed}`);
   syncRenderer();
   syncPlacementFields();
   picker.refreshThumb(state.form, state.cw);
@@ -427,8 +427,8 @@ function loadSamples() {
   const existing = new Set(store.items.map((d) => d.id));
   const made = buildSampleSet().filter((d) => !existing.has(d.id));
   if (!made.length) {
-    btn.textContent = 'Sample set is loaded';
-    setTimeout(() => { btn.textContent = 'Load the sample set'; }, 1600);
+    btn.textContent = '範例已經在裡面了';
+    setTimeout(() => { btn.textContent = '載入範例設計'; }, 1600);
     return;
   }
   store.add(made);
@@ -451,7 +451,7 @@ function removeDesign(id) {
   const removed = store.remove(id);
   if (!removed) return;
   toast(toastHost, {
-    text: `Removed ${removed.item.name}`,
+    text: `已移除 ${removed.item.name}`,
     onUndo: () => store.restore(removed.item, removed.index)
   });
 }
@@ -524,30 +524,29 @@ function syncBatchCounts() {
   const n = d * t;
   // The figure counts to its new value: ticking a design changed how much
   // work is about to happen, and that is worth two tenths of a second.
-  motion.rollFigure($('#wall-count'), n, (v) => `${v} ${v === 1 ? 'render' : 'renders'}`);
-  $('#wall-sub').textContent =
-    `${d} ${d === 1 ? 'design' : 'designs'} x ${t} ${t === 1 ? 'template' : 'templates'}`;
+  motion.rollFigure($('#wall-count'), n, (v) => `${v} 張`);
+  $('#wall-sub').textContent = `${d} 個設計 × ${t} 個版型`;
   const renderBtn = $('#render-batch');
-  renderBtn.textContent = `Render ${n}`;
+  renderBtn.textContent = `開始算 ${n} 張`;
   renderBtn.setAttribute('aria-disabled', String(n === 0));
-  $('#select-all').textContent = `Select all ${store.length} x ${FORMS.length}`;
+  $('#select-all').textContent = `全選 ${store.length} × ${FORMS.length}`;
   $('#wall-empty').hidden = n > 0 || batch.hasResults;
   $('#wall-empty').textContent = store.length === 0
-    ? 'Load the sample set or drop your own designs, then pick templates below them.'
-    : 'Pick designs on the left and templates below them.';
+    ? '按上面載入範例設計，或把自己的圖拖進來，再挑下面的版型。'
+    : '左邊挑設計，下面挑版型。';
 
   const hint = $('#wall-hint');
   if (n > 2000) {
     hint.hidden = false;
-    hint.textContent = `${n} renders is too many for one pass. Deselect some designs or templates.`;
+    hint.textContent = `一次算 ${n} 張太多了。先取消掉一些設計或版型。`;
   } else if (n > 400) {
     hint.hidden = false;
     const gb = ((n * state.outputWidth * state.outputWidth * 4) / 1073741824).toFixed(1);
     hint.textContent =
-      `${n} renders at ${state.outputWidth} px will use roughly ${gb} GB of memory. Render in two passes if the tab slows down.`;
+      `${n} 張 ${state.outputWidth} px 大概會吃掉 ${gb} GB 記憶體。分頁如果卡住，就分兩批算。`;
   } else if (n > 60 && window.matchMedia('(max-width: 767px)').matches) {
     hint.hidden = false;
-    hint.textContent = 'Large batches can be slow on phones. Consider 60 or fewer.';
+    hint.textContent = '手機一次算太多會很慢，建議控制在 60 張以內。';
   } else {
     hint.hidden = true;
   }
@@ -579,10 +578,10 @@ async function runBatch() {
     hint.hidden = false;
     hint.textContent = '';
     hint.appendChild(document.createTextNode(
-      `${batch.failed.length} of ${jobs.length} renders ran out of memory. `
+      `${jobs.length} 張裡有 ${batch.failed.length} 張記憶體不夠，沒算完。`
     ));
     hint.appendChild(el('button', {
-      type: 'button', class: 'btn btn-text', text: `Retry ${batch.failed.length}`,
+      type: 'button', class: 'btn btn-text', text: `重算這 ${batch.failed.length} 張`,
       onclick: () => batch.retryFailed()
     }));
   }
@@ -603,9 +602,9 @@ function setButtonProgress(btn, label, ratio) {
 function onBatchProgress(done, total) {
   const btn = $('#render-batch');
   if (batch.running) {
-    setButtonProgress(btn, `Rendering ${done} / ${total}`, done / Math.max(1, total));
+    setButtonProgress(btn, `算到 ${done} / ${total}`, done / Math.max(1, total));
   } else {
-    setButtonProgress(btn, `Render ${total}`, null);
+    setButtonProgress(btn, `開始算 ${total} 張`, null);
   }
 }
 
@@ -613,7 +612,7 @@ function syncBatchButtons() {
   $('#cancel-batch').hidden = !batch.running;
   const busy = batch.running;
   designList.setBusy(busy);
-  dropzone.setDisabled(busy, busy ? 'Rendering. Add designs when it finishes.' : null);
+  dropzone.setDisabled(busy, busy ? '正在算，算完再加設計' : null);
   syncExportButton();
 }
 
@@ -658,13 +657,13 @@ function syncExportButton() {
   if (batch.running) {
     btn.setAttribute('aria-disabled', 'true');
     why.hidden = false;
-    why.textContent = 'Wait for the render to finish.';
+    why.textContent = '等這批算完再輸出。';
     return;
   }
   const n = exportableJobs().length;
   btn.setAttribute('aria-disabled', String(n === 0));
   why.hidden = n > 0;
-  if (n === 0) why.textContent = 'Render something first.';
+  if (n === 0) why.textContent = '先算一張出來再輸出。';
 }
 
 function currentPlan() {
@@ -690,7 +689,7 @@ function refreshNamePreview() {
   const err = $('#name-error');
   if (hasIllegal(state.pattern)) {
     err.hidden = false;
-    err.textContent = 'These characters are removed from file names: / \\ : * ? " < >';
+    err.textContent = '檔名裡這幾個字元會被拿掉：/ \\ : * ? " < >';
   } else {
     err.hidden = true;
   }
@@ -701,7 +700,7 @@ function showTree() {
   if (!plan.paths.length) {
     const err = $('#export-error');
     err.hidden = false;
-    err.textContent = 'There is nothing to export yet. Load a design, then render.';
+    err.textContent = '現在還沒有東西可以輸出。先放一張設計上去，再算一次。';
     return;
   }
   $('#export-error').hidden = true;
@@ -711,7 +710,7 @@ function showTree() {
   const err = $('#name-error');
   if (plan.duplicates > 0) {
     err.hidden = false;
-    err.textContent = 'Your pattern makes duplicate names. Add {template} to keep them unique.';
+    err.textContent = '這個規則會取出一樣的檔名。加上 {template} 就不會撞名。';
   }
 }
 
@@ -721,7 +720,7 @@ async function exportZip() {
   const errEl = $('#export-error');
   errEl.hidden = true;
 
-  const label = 'Export ZIP';
+  const label = '輸出 ZIP';
   setButtonProgress(btn, label, 0);
 
   try {
@@ -729,7 +728,7 @@ async function exportZip() {
   } catch (err) {
     setButtonProgress(btn, label, null);
     errEl.hidden = false;
-    errEl.textContent = 'The archive writer failed its own check, so nothing was written. Reload the page and try again.';
+    errEl.textContent = '打包程式自我檢查沒過，所以一個檔案都沒寫出來。重新整理頁面再試一次。';
     return;
   }
 
@@ -754,9 +753,9 @@ async function exportZip() {
       const buf = new Uint8Array(await blob.arrayBuffer());
       zip.add(entry.path, buf);
       done++;
-      setButtonProgress(btn, `Writing ${done} / ${plan.paths.length}`, done / plan.paths.length);
+      setButtonProgress(btn, `寫入 ${done} / ${plan.paths.length}`, done / plan.paths.length);
       if (zip.bytes > 2 * 1024 * 1024 * 1024) {
-        throw new Error(`This ZIP would be about ${(zip.bytes / 1073741824).toFixed(1)} GB. Split it: export by design, then by template.`);
+        throw new Error(`這包 ZIP 大概會有 ${(zip.bytes / 1073741824).toFixed(1)} GB。分開輸出吧：先照設計匯一次，再照版型匯一次。`);
       }
     }
 
@@ -781,14 +780,14 @@ async function exportZip() {
     setTimeout(() => URL.revokeObjectURL(url), 4000);
 
     state.exported = true;
-    setButtonProgress(btn, `Saved ${name}`, null);
+    setButtonProgress(btn, `已存下 ${name}`, null);
     setTimeout(() => setButtonProgress(btn, label, null), 1600);
   } catch (err) {
     setButtonProgress(btn, label, null);
     errEl.hidden = false;
     errEl.textContent = err && err.message
       ? err.message
-      : 'The download could not start. Try exporting fewer files.';
+      : '下載沒能開始。少選幾個檔案再試一次。';
   }
 }
 
@@ -846,20 +845,20 @@ if (!state.reduced) {
   canvas.addEventListener('webglcontextlost', (ev) => {
     ev.preventDefault();
     renderer.lost = true;
-    banner.show({ id: 'lost', text: 'The graphics context was lost. Restoring.', tone: 'error' });
+    banner.show({ id: 'lost', text: '繪圖環境斷掉了，正在接回來。', tone: 'error' });
     lostTimer = setTimeout(() => {
       banner.show({
         id: 'lost-hard',
-        text: 'Could not restore the graphics context.',
+        text: '接不回繪圖環境了。',
         tone: 'error',
-        action: { label: 'Reload the page', run: () => window.location.reload() }
+        action: { label: '重新整理頁面', run: () => window.location.reload() }
       });
     }, 6000);
     if (batch.running) {
       batch.cancel();
       banner.show({
         id: 'lost-batch',
-        text: `Paused at ${batch.done} of ${batch.total}. Finished renders are safe.`,
+        text: `算到 ${batch.total} 張裡的第 ${batch.done} 張就停了。已經算好的都還在。`,
         tone: 'error'
       });
     }
@@ -871,7 +870,7 @@ if (!state.reduced) {
     await mountForm();
     renderer.setDesign(store.selected ? store.selected.source : null);
     weave.apply(weave.woven ? 1 : 0);
-    banner.show({ id: 'restored', text: 'Restored.' });
+    banner.show({ id: 'restored', text: '接回來了。' });
     banner.autoClearAfter(2000);
   });
 }

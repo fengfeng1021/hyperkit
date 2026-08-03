@@ -1,10 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-Hant-TW">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>GradientKit - perceptually even gradients, measured</title>
-<meta name="description" content="A gradient editor that interpolates in OKLCH instead of sRGB, shows you the exact point where the grey band disappears, and hands you production CSS with an sRGB fallback.">
+<title>漸層工坊 - 漸層混得勻不勻，量給你看</title>
+<meta name="description" content="一個在 OKLCH 而不是 sRGB 裡插值的漸層編輯器。它會指出灰帶最嚴重的那一點在哪，並給你可以直接上線的 CSS，連 sRGB 備援一起。">
+<meta property="og:title" content="漸層工坊 - 漸層混得勻不勻，量給你看">
+<meta property="og:description" content="一個在 OKLCH 而不是 sRGB 裡插值的漸層編輯器。它會指出灰帶最嚴重的那一點在哪，並給你可以直接上線的 CSS，連 sRGB 備援一起。">
+<meta property="og:type" content="website">
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#000000">
 
@@ -14,7 +17,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fragment+Mono:ital@0;1&family=Sora:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fragment+Mono:ital@0;1&family=Noto+Sans+TC:wght@400;500&family=Sora:wght@400;500;600&display=swap">
 
 <link rel="stylesheet" href="./css/tokens.css">
 <link rel="stylesheet" href="./css/style.css">
@@ -76,72 +79,72 @@
   review, the verdict, and DESIGN.md
 -->
 
-<a class="gk-skip" href="#rail-left">Skip to gradient controls</a>
+<a class="gk-skip" href="#rail-left">跳到漸層控制</a>
 
 <header class="gk-bar">
-  <h1 class="gk-wordmark"><a href="../index.html">GradientKit</a></h1>
-  <p class="gk-proposition">Perceptually even gradients, measured.</p>
+  <h1 class="gk-wordmark"><a href="../index.html">漸層工坊</a></h1>
+  <p class="gk-proposition">漸層混得勻不勻，量給你看。</p>
 
   <div class="gk-bar-actions">
-    <div class="gk-seg" role="radiogroup" aria-label="Editing mode" id="mode-group">
-      <button type="button" role="radio" class="gk-seg-cell" data-value="gradient" aria-checked="true" tabindex="0">Gradient</button>
-      <button type="button" role="radio" class="gk-seg-cell" data-value="mesh" aria-checked="false" tabindex="-1">Mesh</button>
+    <div class="gk-seg" role="radiogroup" aria-label="編輯模式" id="mode-group">
+      <button type="button" role="radio" class="gk-seg-cell" data-value="gradient" aria-checked="true" tabindex="0">漸層</button>
+      <button type="button" role="radio" class="gk-seg-cell" data-value="mesh" aria-checked="false" tabindex="-1">網格</button>
     </div>
     <button type="button" class="gk-btn" id="btn-reference">
-      <span class="gk-btn-icon"></span><span class="gk-btn-label">Load reference set</span>
+      <span class="gk-btn-icon"></span><span class="gk-btn-label">載入範例櫃</span>
     </button>
     <button type="button" class="gk-btn" id="btn-copylink">
-      <span class="gk-btn-icon"></span><span class="gk-btn-label">Copy link</span>
+      <span class="gk-btn-icon"></span><span class="gk-btn-label">複製連結</span>
     </button>
     <button type="button" class="gk-btn gk-btn--arm" id="btn-reset">
-      <span class="gk-btn-label">Reset</span>
+      <span class="gk-btn-label">重設</span>
     </button>
   </div>
 </header>
 
 <main class="gk-work" id="work" data-mtab="stops">
 
-  <nav class="gk-mtabs" aria-label="Panel groups">
-    <button type="button" class="gk-mtab" data-mgroup="stops" aria-current="true">Stops</button>
-    <button type="button" class="gk-mtab" data-mgroup="space">Space</button>
-    <button type="button" class="gk-mtab" data-mgroup="output">Output</button>
-    <button type="button" class="gk-mtab" data-mgroup="measure">Measure</button>
+  <nav class="gk-mtabs" aria-label="面板分組">
+    <button type="button" class="gk-mtab" data-mgroup="stops" aria-current="true">色標</button>
+    <button type="button" class="gk-mtab" data-mgroup="space">空間</button>
+    <button type="button" class="gk-mtab" data-mgroup="output">輸出</button>
+    <button type="button" class="gk-mtab" data-mgroup="measure">量測</button>
   </nav>
 
   <!-- ==================== LEFT RAIL: composition ==================== -->
-  <aside class="gk-rail gk-rail--left" id="rail-left" aria-label="Composition controls">
+  <aside class="gk-rail gk-rail--left" id="rail-left" aria-label="漸層組成控制">
 
     <section class="gk-panel" data-mgroup="stops">
-      <h2 class="gk-panel-title">Geometry</h2>
-      <div class="gk-seg gk-seg--full" role="radiogroup" aria-label="Gradient type" id="type-group">
-        <button type="button" role="radio" class="gk-seg-cell" data-value="linear" aria-checked="true" tabindex="0">Linear</button>
-        <button type="button" role="radio" class="gk-seg-cell" data-value="radial" aria-checked="false" tabindex="-1">Radial</button>
-        <button type="button" role="radio" class="gk-seg-cell" data-value="conic" aria-checked="false" tabindex="-1">Conic</button>
+      <h2 class="gk-panel-title">形狀</h2>
+      <div class="gk-seg gk-seg--full" role="radiogroup" aria-label="漸層種類" id="type-group">
+        <button type="button" role="radio" class="gk-seg-cell" data-value="linear" aria-checked="true" tabindex="0">線性</button>
+        <button type="button" role="radio" class="gk-seg-cell" data-value="radial" aria-checked="false" tabindex="-1">放射</button>
+        <button type="button" role="radio" class="gk-seg-cell" data-value="conic" aria-checked="false" tabindex="-1">圓錐</button>
       </div>
 
       <div class="gk-num" id="field-angle">
-        <label class="gk-num-label" for="in-angle">Angle</label>
+        <label class="gk-num-label" for="in-angle">角度</label>
         <input class="gk-num-input" id="in-angle" type="text" inputmode="decimal" value="200"
                autocomplete="off" spellcheck="false" aria-describedby="msg-angle">
-        <span class="gk-num-unit">deg</span>
+        <span class="gk-num-unit">度</span>
         <p class="gk-num-msg" id="msg-angle" role="status"></p>
       </div>
 
       <div class="gk-radial-fields" id="radial-fields" hidden>
         <div class="gk-num" id="field-cx">
-          <label class="gk-num-label" for="in-cx">Center x</label>
+          <label class="gk-num-label" for="in-cx">中心 x</label>
           <input class="gk-num-input" id="in-cx" type="text" inputmode="decimal" value="50" autocomplete="off" spellcheck="false">
           <span class="gk-num-unit">%</span>
           <p class="gk-num-msg" role="status"></p>
         </div>
         <div class="gk-num" id="field-cy">
-          <label class="gk-num-label" for="in-cy">Center y</label>
+          <label class="gk-num-label" for="in-cy">中心 y</label>
           <input class="gk-num-input" id="in-cy" type="text" inputmode="decimal" value="50" autocomplete="off" spellcheck="false">
           <span class="gk-num-unit">%</span>
           <p class="gk-num-msg" role="status"></p>
         </div>
         <div class="gk-num" id="field-radius">
-          <label class="gk-num-label" for="in-radius">Radius</label>
+          <label class="gk-num-label" for="in-radius">半徑</label>
           <input class="gk-num-input" id="in-radius" type="text" inputmode="decimal" value="75" autocomplete="off" spellcheck="false">
           <span class="gk-num-unit">%</span>
           <p class="gk-num-msg" role="status"></p>
@@ -150,50 +153,50 @@
     </section>
 
     <section class="gk-panel gk-panel--primary" data-mgroup="space">
-      <h2 class="gk-panel-title">Interpolation space</h2>
-      <div class="gk-spaces" role="radiogroup" aria-label="Interpolation space" id="space-group">
+      <h2 class="gk-panel-title">插值色彩空間</h2>
+      <div class="gk-spaces" role="radiogroup" aria-label="插值色彩空間" id="space-group">
         <button type="button" role="radio" class="gk-space-cell" data-value="srgb" aria-checked="false" tabindex="-1">sRGB</button>
         <button type="button" role="radio" class="gk-space-cell" data-value="hsl" aria-checked="false" tabindex="-1">HSL</button>
         <button type="button" role="radio" class="gk-space-cell" data-value="oklab" aria-checked="false" tabindex="-1">OKLab</button>
         <button type="button" role="radio" class="gk-space-cell" data-value="oklch" aria-checked="true" tabindex="0">OKLCH</button>
       </div>
       <p class="gk-group-reason" id="space-reason" role="status"></p>
-      <p class="gk-help">Two colors. Four ways to get from one to the other.</p>
+      <p class="gk-help">兩個顏色，四條路可以從這頭走到那頭。</p>
       <button type="button" class="gk-btn gk-btn--wide" id="btn-compare">
-        <span class="gk-btn-label">Compare against sRGB</span>
+        <span class="gk-btn-label">跟 sRGB 比一次</span>
       </button>
-      <p class="gk-help gk-help--tight">Press Space to run it. The seam is draggable once it lands.</p>
+      <p class="gk-help gk-help--tight">按空白鍵讓它跑一次。掃描線會停在最糟的那一點，接縫留在原地給你拖著左右比。</p>
     </section>
 
     <section class="gk-panel" data-mgroup="stops" id="panel-stops">
-      <h2 class="gk-panel-title">Stops</h2>
+      <h2 class="gk-panel-title">色標</h2>
       <ul class="gk-stoplist" id="stop-list"></ul>
       <div class="gk-panel-actions">
         <button type="button" class="gk-btn gk-btn--sm" id="btn-add-stop">
-          <span class="gk-btn-icon"></span><span class="gk-btn-label">Add stop</span>
+          <span class="gk-btn-icon"></span><span class="gk-btn-label">加色標</span>
         </button>
         <div class="gk-select">
-          <label class="gk-select-label" for="in-easing">Distribution</label>
+          <label class="gk-select-label" for="in-easing">疏密</label>
           <select class="gk-select-input" id="in-easing">
-            <option value="linear">Even</option>
-            <option value="in">Slow start</option>
-            <option value="out">Slow end</option>
-            <option value="inout">Slow both ends</option>
+            <option value="linear">平均</option>
+            <option value="in">前段慢</option>
+            <option value="out">後段慢</option>
+            <option value="inout">兩頭慢</option>
           </select>
         </div>
       </div>
-      <p class="gk-help">Or drop an image on the Stage to pull four stops out of it.</p>
+      <p class="gk-help">也可以丟一張圖到載物台上，直接從圖裡抓四個色標出來。</p>
     </section>
 
     <section class="gk-panel" data-mgroup="stops" id="panel-mesh" hidden>
-      <h2 class="gk-panel-title">Mesh points</h2>
+      <h2 class="gk-panel-title">網格點</h2>
       <ul class="gk-stoplist" id="mesh-list"></ul>
       <div class="gk-panel-actions">
         <button type="button" class="gk-btn gk-btn--sm" id="btn-add-point">
-          <span class="gk-btn-icon"></span><span class="gk-btn-label">Add point</span>
+          <span class="gk-btn-icon"></span><span class="gk-btn-label">加一點</span>
         </button>
       </div>
-      <p class="gk-help">A mesh field blends every point at once in OKLab, which is why the seams between lobes stay saturated.</p>
+      <p class="gk-help">網格是把所有的點一次在 OKLab 裡混完，所以色團交界處不會掉色變灰。</p>
     </section>
   </aside>
 
@@ -202,7 +205,7 @@
     <div class="gk-stage" id="stage-wrap">
       <canvas class="gk-stage-canvas" id="stage" width="16" height="16"
               role="img" tabindex="0"
-              aria-label="Linear gradient at 200 degrees, interpolated in OKLCH, three stops."></canvas>
+              aria-label="線性漸層，200 度，在 OKLCH 裡插值，三個色標。"></canvas>
 
       <div class="gk-stage-overlay" id="stage-overlay">
         <div class="gk-crosshair" id="crosshair" hidden></div>
@@ -212,7 +215,7 @@
         <span class="gk-probe-sample" id="probe-sample" hidden></span>
         <p class="gk-stage-readout" id="stage-readout" hidden></p>
         <div class="gk-drop" id="stage-drop" hidden>
-          <p class="gk-drop-text" id="drop-text">Drop an image to pull four stops from it.</p>
+          <p class="gk-drop-text" id="drop-text">丟一張圖進來，從裡面抓四個色標。</p>
           <span class="gk-drop-bar" id="drop-bar"></span>
         </div>
       </div>
@@ -220,7 +223,7 @@
 
     <div class="gk-notice-slot" id="notice-slot"></div>
 
-    <div class="gk-track" id="track" role="group" aria-label="Color stops on a 0 to 100 percent rule">
+    <div class="gk-track" id="track" role="group" aria-label="色標位置，尺規從 0 到 100 百分比">
       <div class="gk-track-rule" aria-hidden="true"></div>
       <div class="gk-track-nums" aria-hidden="true">
         <span style="--at:0%">0</span>
@@ -236,11 +239,11 @@
   </div>
 
   <!-- ==================== RIGHT RAIL: measurement and output ==================== -->
-  <aside class="gk-rail gk-rail--right" id="rail-right" aria-label="Measurement and output">
+  <aside class="gk-rail gk-rail--right" id="rail-right" aria-label="量測與輸出">
 
     <section class="gk-panel" data-mgroup="output">
-      <h2 class="gk-panel-title">Output</h2>
-      <div class="gk-tablist" role="tablist" aria-label="Export format" id="out-tabs">
+      <h2 class="gk-panel-title">輸出</h2>
+      <div class="gk-tablist" role="tablist" aria-label="輸出格式" id="out-tabs">
         <button type="button" role="tab" class="gk-tab" data-tab="css" id="tab-css" aria-controls="out-panel" aria-selected="true" tabindex="0">CSS</button>
         <button type="button" role="tab" class="gk-tab" data-tab="svg" id="tab-svg" aria-controls="out-panel" aria-selected="false" tabindex="-1">SVG</button>
         <button type="button" role="tab" class="gk-tab" data-tab="tailwind" id="tab-tailwind" aria-controls="out-panel" aria-selected="false" tabindex="-1">Tailwind</button>
@@ -253,23 +256,23 @@
         <div class="gk-codebar">
           <p class="gk-code-meta" id="code-meta" aria-hidden="true"></p>
           <button type="button" class="gk-btn gk-btn--copy" id="btn-copy">
-            <span class="gk-btn-icon"></span><span class="gk-btn-label">Copy</span>
+            <span class="gk-btn-icon"></span><span class="gk-btn-label">複製</span>
           </button>
         </div>
         <div class="gk-codewrap">
-          <pre class="gk-code" id="code-block" tabindex="0" aria-label="Generated output"><code id="code-text"></code></pre>
+          <pre class="gk-code" id="code-block" tabindex="0" aria-label="產生出來的程式碼"><code id="code-text"></code></pre>
           <div class="gk-code-wipe" id="code-wipe" aria-hidden="true"></div>
         </div>
         <p class="gk-note" id="out-note" role="status"></p>
 
         <div class="gk-png" id="png-panel" hidden>
-          <div class="gk-stepper" id="png-sizes" role="group" aria-label="Export size">
+          <div class="gk-stepper" id="png-sizes" role="group" aria-label="PNG 邊長，單位像素">
             <button type="button" data-size="1024" aria-pressed="false">1024</button>
             <button type="button" data-size="2048" aria-pressed="true">2048</button>
             <button type="button" data-size="4096" aria-pressed="false">4096</button>
           </div>
           <button type="button" class="gk-btn gk-btn--wide" id="btn-png">
-            <span class="gk-btn-icon"></span><span class="gk-btn-label">Export PNG</span>
+            <span class="gk-btn-icon"></span><span class="gk-btn-label">輸出 PNG</span>
           </button>
           <p class="gk-note" id="png-note" role="status"></p>
         </div>
@@ -278,26 +281,26 @@
     </section>
 
     <section class="gk-panel" data-mgroup="measure">
-      <h2 class="gk-panel-title">Contrast on the gradient</h2>
-      <label class="gk-field-label" for="in-probe">Sample text</label>
-      <input class="gk-text-input" id="in-probe" type="text" placeholder="Type text to measure"
+      <h2 class="gk-panel-title">文字壓在漸層上</h2>
+      <label class="gk-field-label" for="in-probe">試打幾個字</label>
+      <input class="gk-text-input" id="in-probe" type="text" placeholder="打字進來量對比"
              autocomplete="off" spellcheck="false">
-      <p class="gk-help" id="probe-empty">Type sample text to measure it against the gradient.</p>
+      <p class="gk-help" id="probe-empty">打幾個字進來，量它壓在漸層上夠不夠看得清楚。</p>
 
       <div class="gk-probe-controls">
-        <div class="gk-stepper" id="probe-sizes" role="group" aria-label="Text size">
+        <div class="gk-stepper" id="probe-sizes" role="group" aria-label="字級">
           <button type="button" data-size="12" aria-pressed="false">12</button>
           <button type="button" data-size="16" aria-pressed="false">16</button>
           <button type="button" data-size="20" aria-pressed="false">20</button>
           <button type="button" data-size="32" aria-pressed="true">32</button>
           <button type="button" data-size="48" aria-pressed="false">48</button>
         </div>
-        <button type="button" class="gk-weight" id="probe-weight" aria-pressed="true" aria-label="Text weight">
+        <button type="button" class="gk-weight" id="probe-weight" aria-pressed="true" aria-label="字重">
           <span class="gk-weight-value">600</span>
         </button>
-        <div class="gk-stepper gk-stepper--swatch" id="probe-fg" role="group" aria-label="Text color">
-          <button type="button" data-fg="#FFFFFF" aria-pressed="true"><span class="gk-sr">White text</span></button>
-          <button type="button" data-fg="#000000" aria-pressed="false"><span class="gk-sr">Black text</span></button>
+        <div class="gk-stepper gk-stepper--swatch" id="probe-fg" role="group" aria-label="文字顏色">
+          <button type="button" data-fg="#FFFFFF" aria-pressed="true"><span class="gk-sr">白字</span></button>
+          <button type="button" data-fg="#000000" aria-pressed="false"><span class="gk-sr">黑字</span></button>
         </div>
       </div>
 
@@ -305,27 +308,27 @@
         <p class="gk-readout-num" id="probe-ratio">--.--</p>
         <p class="gk-readout-verdict" id="probe-verdict"></p>
         <p class="gk-readout-where" id="probe-where"></p>
-        <p class="gk-help gk-readout-hint">Drag the sample across the Stage. The ratio is the worst point under it, and that point is marked.</p>
+        <p class="gk-help gk-readout-hint">把那幾個字拖到載物台上到處走走。比值算的是字底下最糟的那一點，而且會標給你看。</p>
       </div>
     </section>
 
     <section class="gk-panel" data-mgroup="measure">
-      <h2 class="gk-panel-title">Vision simulation</h2>
-      <div class="gk-vision" id="vision-strip" role="group" aria-label="Color vision simulation"></div>
-      <p class="gk-help" id="vision-note">Exports are unaffected by this preview.</p>
+      <h2 class="gk-panel-title">色覺模擬</h2>
+      <div class="gk-vision" id="vision-strip" role="group" aria-label="色覺模擬"></div>
+      <p class="gk-help" id="vision-note">這只是預覽，輸出的檔案不受影響。</p>
     </section>
 
     <section class="gk-panel" data-mgroup="measure">
-      <h2 class="gk-panel-title">Grain and dither</h2>
+      <h2 class="gk-panel-title">顆粒與抖色</h2>
 
       <div class="gk-slider" id="slider-grain">
-        <label class="gk-slider-label" for="in-grain">Grain amplitude</label>
+        <label class="gk-slider-label" for="in-grain">顆粒強度</label>
         <input type="range" id="in-grain" min="0" max="100" step="1" value="0">
         <output class="gk-slider-value" for="in-grain" id="out-grain">0</output>
       </div>
 
       <div class="gk-row">
-        <span class="gk-field-label" id="lbl-grain-size">Grain size</span>
+        <span class="gk-field-label" id="lbl-grain-size">顆粒大小</span>
         <div class="gk-stepper" id="grain-sizes" role="group" aria-labelledby="lbl-grain-size">
           <button type="button" data-gsize="1" aria-pressed="false">1</button>
           <button type="button" data-gsize="2" aria-pressed="true">2</button>
@@ -336,7 +339,7 @@
       </div>
 
       <div class="gk-row">
-        <span class="gk-field-label" id="lbl-dither">Ordered dither</span>
+        <span class="gk-field-label" id="lbl-dither">有序抖色</span>
         <button type="button" class="gk-toggle" id="toggle-dither" aria-pressed="true" aria-labelledby="lbl-dither">
           <span class="gk-toggle-knob"></span>
         </button>
@@ -346,23 +349,23 @@
         <canvas class="gk-loupe" id="loupe" width="88" height="88" aria-hidden="true"></canvas>
         <div class="gk-loupe-side">
           <p class="gk-loupe-hex" id="loupe-hex">#000000</p>
-          <p class="gk-help gk-help--tight">8x magnification of the actual device pixels under the crosshair.</p>
+          <p class="gk-help gk-help--tight">十字線底下的實際裝置像素，放大八倍。</p>
         </div>
       </div>
       <p class="gk-help" id="banding-note"></p>
     </section>
 
     <section class="gk-panel" data-mgroup="output">
-      <h2 class="gk-panel-title">Saved on this device</h2>
+      <h2 class="gk-panel-title">存在這台裝置上</h2>
       <ul class="gk-lib" id="lib-list" hidden></ul>
       <div class="gk-lib-empty" id="lib-empty">
         <span class="gk-spectral" aria-hidden="true"></span>
-        <p class="gk-help">Nothing saved on this device yet.</p>
+        <p class="gk-help">這台裝置上還沒存過任何漸層。</p>
       </div>
-      <p class="gk-help" id="lib-blocked" hidden>This browser is blocking local storage, so saving is off. Share links still work.</p>
+      <p class="gk-help" id="lib-blocked" hidden>這個瀏覽器擋掉了本機儲存，所以存不進去。分享連結還是照常可以用。</p>
       <div class="gk-panel-actions">
         <button type="button" class="gk-btn gk-btn--sm" id="btn-save" aria-describedby="save-reason">
-          <span class="gk-btn-icon"></span><span class="gk-btn-label">Save current gradient</span>
+          <span class="gk-btn-icon"></span><span class="gk-btn-label">存下這個漸層</span>
         </button>
       </div>
       <p class="gk-note" id="save-reason" role="status"></p>
@@ -372,75 +375,75 @@
 
 <!-- ==================== B. Four spaces ==================== -->
 <section class="gk-section gk-section--bands" id="spaces" aria-labelledby="h-spaces">
-  <h2 class="gk-display" id="h-spaces">Four ways to cross the same two colors</h2>
-  <p class="gk-lede">Your first and last stop, interpolated four ways. The number on the right is how much chroma each route loses against OKLCH at its worst point.</p>
+  <h2 class="gk-display" id="h-spaces">同樣兩個顏色，四種走法</h2>
+  <p class="gk-lede">拿你自己的第一個和最後一個色標，用四種方式插值。右邊那個數字，是這條路線在最糟的那一點比 OKLCH 少掉多少彩度。</p>
   <div class="gk-bands" id="bands"></div>
 </section>
 
 <!-- ==================== C. Reference set ==================== -->
 <section class="gk-section gk-section--shelf" id="reference" aria-labelledby="h-reference">
-  <h2 class="gk-h1" id="h-reference">Reference set</h2>
-  <p class="gk-lede">Twelve gradient specimens and three mesh fields, each one authored to demonstrate a specific behaviour. Load one and it becomes yours to edit.</p>
-  <div class="gk-shelf" id="shelf" role="group" aria-label="Reference set specimens"></div>
+  <h2 class="gk-h1" id="h-reference">範例櫃</h2>
+  <p class="gk-lede">十二組漸層標本加三組網格，每一組都是為了示範一件特定的事而做的。載入之後就是你的，隨便改。</p>
+  <div class="gk-shelf" id="shelf" role="group" aria-label="範例櫃裡的標本"></div>
 </section>
 
 <!-- ==================== D. Output reference ==================== -->
 <section class="gk-section gk-section--docs" id="output-reference" aria-labelledby="h-docs">
-  <h2 class="gk-h1" id="h-docs">What each export produces</h2>
+  <h2 class="gk-h1" id="h-docs">每種輸出到底給你什麼</h2>
 
   <div class="gk-docs-grid">
     <div class="gk-prose">
       <h3 class="gk-h2">CSS</h3>
-      <p>Two blocks. The first is a plain sRGB gradient whose stops are resampled from the OKLCH curve at nine positions, so a browser without modern interpolation still gets a visually close result rather than a muddy two-stop guess. The second sits inside an <code>@supports</code> query and carries the real <code>oklch()</code> values. Both are validated with <code>CSS.supports()</code> in your browser before they are offered for copy, and the panel tells you which of the two it was able to check.</p>
+      <p>兩段。第一段是純 sRGB 漸層，色標是從 OKLCH 曲線上重新取九個位置抓下來的，所以不支援新式插值的瀏覽器拿到的還是接近的結果，而不是兩個色標硬猜出來的濁色。第二段包在 <code>@supports</code> 裡面，帶的是真正的 <code>oklch()</code> 值。兩段在給你複製之前，都先在你的瀏覽器裡用 <code>CSS.supports()</code> 驗過一次，面板會告訴你它驗到了哪一段。</p>
 
       <h3 class="gk-h2">SVG</h3>
-      <p>A real <code>linearGradient</code> or <code>radialGradient</code> in <code>objectBoundingBox</code> units, with the angle carried by <code>gradientTransform</code>. SVG gradients are sRGB only, so the stops are resampled to seventeen positions. A conic gradient has no SVG primitive at all, so that tab embeds a 512px raster of exactly what the Stage shows and says so, rather than silently emitting something that renders differently.</p>
+      <p>真的 <code>linearGradient</code> 或 <code>radialGradient</code>，用 <code>objectBoundingBox</code> 單位，角度交給 <code>gradientTransform</code> 帶。SVG 漸層只有 sRGB，所以色標會重新取十七個位置。圓錐漸層在 SVG 裡根本沒有對應的原生元素，所以那個分頁改成嵌一張 512px 的點陣圖，內容就是載物台上看到的樣子，而且會明講——不會默默丟一段畫出來不一樣的東西給你。</p>
 
       <h3 class="gk-h2">Tailwind</h3>
-      <p>A v4 <code>@theme</code> block with the gradient plus three derived color tokens, and the utility usage line as a comment. No v3 config object is emitted: v3 config files are the thing v4 replaces, and shipping one would age the output on day one.</p>
+      <p>一段 v4 的 <code>@theme</code>，裡面有漸層本身加三個衍生的顏色 token，utility 怎麼用寫在註解裡。不產 v3 的 config 物件：v3 config 正是 v4 要取代掉的東西，現在還吐一份出來，等於第一天就過時。</p>
 
       <h3 class="gk-h2">PNG</h3>
-      <p>Rendered by the same shader at the target size, so dither and grain land at full resolution instead of being upscaled from the preview. If the device cannot allocate a 4096px surface, the export retries at 2048px and tells you it did. Vision simulation is never baked into a file.</p>
+      <p>用同一支 shader 直接在目標尺寸算一次，所以抖色和顆粒是在全解析度上長出來的，不是從預覽放大的。如果裝置配不出 4096px 的畫布，會退回 2048px 重試，並且告訴你它退了。色覺模擬永遠不會被烤進檔案裡。</p>
     </div>
 
     <div class="gk-support">
-      <h3 class="gk-h2">Where the fallback matters</h3>
+      <h3 class="gk-h2">什麼時候真的需要備援</h3>
       <table class="gk-table">
-        <caption class="gk-sr">Browser support for gradient interpolation in OKLCH</caption>
+        <caption class="gk-sr">各家瀏覽器引擎對 OKLCH 漸層插值的支援度</caption>
         <thead>
-          <tr><th scope="col">Engine</th><th scope="col">First shipped</th><th scope="col">Needs fallback</th></tr>
+          <tr><th scope="col">引擎</th><th scope="col">從哪版開始</th><th scope="col">需要備援</th></tr>
         </thead>
         <tbody>
-          <tr><td>Chrome and Edge</td><td>111</td><td>110 and earlier</td></tr>
-          <tr><td>Safari</td><td>16.2</td><td>16.1 and earlier</td></tr>
-          <tr><td>Firefox</td><td>128</td><td>127 and earlier</td></tr>
+          <tr><td>Chrome 與 Edge</td><td>111</td><td>110 以前</td></tr>
+          <tr><td>Safari</td><td>16.2</td><td>16.1 以前</td></tr>
+          <tr><td>Firefox</td><td>128</td><td>127 以前</td></tr>
         </tbody>
       </table>
-      <p class="gk-note">Versions are for gradient interpolation, written <code>in oklch</code>. The <code>oklch()</code> color function itself landed earlier in every engine. Check the current state at caniuse.com before shipping to a locked-down audience.</p>
+      <p class="gk-note">這裡的版本指的是漸層插值，也就是寫成 <code>in oklch</code> 的那個。<code>oklch()</code> 這個顏色函式本身在每家引擎都更早就有了。如果你的使用者環境比較封閉，上線前先去 caniuse.com 確認一下現況。</p>
 
-      <h3 class="gk-h2">Privacy</h3>
-      <p>Everything runs in this tab. No account, no upload, no analytics. Gradients you save go to this browser's local storage and nowhere else, dropped images are decoded in memory and never leave the page, and a share link carries the whole gradient inside the URL instead of on a server.</p>
+      <h3 class="gk-h2">隱私</h3>
+      <p>全部都在這個分頁裡跑。不用帳號、不上傳、沒有追蹤。你存的漸層只會進這個瀏覽器的本機儲存，不會去別的地方；丟進來的圖在記憶體裡解碼，從頭到尾沒離開過這一頁；分享連結是把整個漸層塞在網址裡，不是放在某台伺服器上。</p>
 
-      <h3 class="gk-h2">Credits</h3>
-      <p>OKLab and the sRGB gamut mapping follow Bjorn Ottosson's derivation and the CSS Color 4 specification. Color vision matrices are from Machado, Oliveira and Fernandes, 2009. Icons are Lucide, ISC licence. Type is Sora and Fragment Mono.</p>
+      <h3 class="gk-h2">出處</h3>
+      <p>OKLab 與 sRGB 色域對應依照 Bjorn Ottosson 的推導和 CSS Color 4 規格。色覺矩陣出自 Machado、Oliveira 與 Fernandes，2009 年。圖示是 Lucide，ISC 授權。字型是 Sora、Fragment Mono 與 Noto Sans TC。</p>
     </div>
   </div>
 </section>
 
 <footer class="gk-foot">
-  <a class="gk-foot-link" href="../index.html">Back to the hub</a>
+  <a class="gk-foot-link" href="../index.html">返回 hyperkit</a>
   <button type="button" class="gk-foot-link gk-foot-btn" id="btn-shortcuts" aria-expanded="false">
-    <span class="gk-btn-label">Keyboard shortcuts</span>
+    <span class="gk-btn-label">鍵盤快速鍵</span>
   </button>
-  <a class="gk-foot-link" href="./assets/reference-set.json" download>The reference set as JSON</a>
-  <p class="gk-foot-note">Built as a static page. View source, read the color math, take what is useful.</p>
+  <a class="gk-foot-link" href="./assets/reference-set.json" download>下載範例櫃的 JSON</a>
+  <p class="gk-foot-note">一頁純靜態網頁。原始碼打開就看得到，色彩運算都寫在裡面，有用的就拿去。</p>
 </footer>
 
 <div class="gk-sr" id="live-polite" aria-live="polite" aria-atomic="true"></div>
 <div class="gk-sr" id="live-assertive" role="alert" aria-live="assertive" aria-atomic="true"></div>
 
 <noscript>
-  <p class="gk-noscript">GradientKit is a live instrument: the gradient is rendered, measured and exported in your browser, so it needs JavaScript. The color math is in <code>js/color.js</code> if you would rather read it than run it.</p>
+  <p class="gk-noscript">漸層工坊是一台會動的儀器：漸層要即時算、要量、要輸出，全都在你的瀏覽器裡做，所以需要 JavaScript。如果你想用讀的而不是用跑的，色彩運算都在 <code>js/color.js</code>。</p>
 </noscript>
 
 <!-- Core only. Nothing on this page is driven by scroll position, so

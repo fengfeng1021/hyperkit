@@ -43,10 +43,10 @@ export class MappingWizard {
     clear(this.host);
     const wrap = el("div", { class: "wizard" });
     wrap.append(
-      el("h3", { class: "wizard__title", text: "Map the fields yourself" }),
+      el("h3", { class: "wizard__title", text: "自己指認欄位" }),
       el("p", {
         class: "wizard__lead",
-        text: "Every option below is a key that exists in the first record of this file. ChatVault will remember this shape.",
+        text: "下面每個選項都是這個檔案第一筆紀錄裡真的存在的 key。指認一次，對話金庫就會記住這個結構。",
       })
     );
 
@@ -55,11 +55,11 @@ export class MappingWizard {
       wrap.append(
         el("p", {
           class: "wizard__error",
-          text: "No message list found in this file. ChatVault needs an array of messages inside each record.",
+          text: "這個檔案裡找不到訊息清單。對話金庫需要每一筆紀錄裡有一個訊息陣列。",
         })
       );
       const details = el("details", { class: "disclosure" });
-      details.append(el("summary", { text: "Show the raw structure" }));
+      details.append(el("summary", { text: "看原始結構" }));
       const list = el("ul", { class: "wizard__paths" });
       for (const p of this.paths.slice(0, 120)) {
         list.append(el("li", {}, el("code", { text: p.path }), el("span", { text: ` ${p.type}` })));
@@ -85,7 +85,7 @@ export class MappingWizard {
           if (again) again.focus();
         },
       });
-      select.append(el("option", { value: "", text: "Not mapped" }));
+      select.append(el("option", { value: "", text: "未指定" }));
       const options =
         field.wants === "array"
           ? arrayPaths
@@ -104,12 +104,12 @@ export class MappingWizard {
     let rows = [];
     if (ready && this.record) rows = previewMapping(this.record, this.mapping, 3);
     if (!ready) {
-      right.append(el("p", { class: "wizard__hint", text: "Pick the fields on the left to see a preview." }));
+      right.append(el("p", { class: "wizard__hint", text: "在左邊選好欄位，這裡會出現預覽。" }));
     } else if (!rows.length) {
       right.append(
         el("p", {
           class: "wizard__error",
-          text: "That field is empty in the first three records. Try another field.",
+          text: "前三筆紀錄裡這個欄位都是空的，換一個欄位試試。",
         })
       );
     } else {
@@ -118,7 +118,7 @@ export class MappingWizard {
           el(
             "div",
             { class: `wizard__msg wizard__msg--${row.role}` },
-            el("span", { class: "wizard__role", text: row.role === "human" ? "You" : "Assistant" }),
+            el("span", { class: "wizard__role", text: row.role === "human" ? "你" : "AI" }),
             el("p", { text: row.text })
           )
         );
@@ -137,7 +137,7 @@ export class MappingWizard {
       const apply = el("button", {
         type: "button",
         class: "btn btn--solid",
-        text: "Use this mapping",
+        text: "就用這組對應",
         disabled: !enabled,
         onclick: () => {
           if (this.record) rememberMapping(this.record, this.mapping);
@@ -145,10 +145,10 @@ export class MappingWizard {
         },
       });
       row.append(apply);
-      if (missing.length) row.append(el("p", { class: "wizard__missing", text: `Still needed: ${missing.join(", ")}` }));
+      if (missing.length) row.append(el("p", { class: "wizard__missing", text: `還缺：${missing.join("、")}` }));
     }
     row.append(
-      el("button", { type: "button", class: "btn btn--line", text: "Cancel", onclick: () => this.onCancel() })
+      el("button", { type: "button", class: "btn btn--line", text: "取消", onclick: () => this.onCancel() })
     );
     return row;
   }

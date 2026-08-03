@@ -116,10 +116,10 @@ export function topSubjects(index, limit = 24) {
 }
 
 export function formatSpan(from, to) {
-  if (!from || !to) return "no dated messages";
+  if (!from || !to) return "沒有帶日期的訊息";
   const months = Math.max(1, Math.round((to - from) / (1000 * 60 * 60 * 24 * 30.44)));
-  if (months < 24) return `${months} months`;
+  if (months < 24) return `${months} 個月`;
   const years = Math.floor(months / 12);
   const rest = months % 12;
-  return rest ? `${years} years ${rest} months` : `${years} years`;
+  return rest ? `${years} 年 ${rest} 個月` : `${years} 年`;
 }

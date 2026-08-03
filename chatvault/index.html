@@ -1,16 +1,19 @@
 <!doctype html>
-<html lang="en" data-vault="empty">
+<html lang="zh-Hant" data-vault="empty">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ChatVault - search your ChatGPT, Claude and Gemini exports in this tab</title>
-<meta name="description" content="Drop a ChatGPT, Claude or Gemini export into the page. ChatVault parses it in a Web Worker, builds a BM25 index in the browser, and searches every conversation. Nothing uploads.">
+<title>對話金庫 - 在這個分頁裡搜尋你的 ChatGPT、Claude、Gemini 匯出檔</title>
+<meta name="description" content="把 ChatGPT、Claude 或 Gemini 的匯出檔丟進頁面。對話金庫用 Web Worker 解析它，在瀏覽器裡建一份 BM25 索引，然後搜尋每一段對話。沒有東西上傳。">
+<meta property="og:title" content="對話金庫 - 在這個分頁裡搜尋你的 AI 對話紀錄">
+<meta property="og:description" content="匯出檔丟進來就好。解析、建 BM25 索引、閱讀全在瀏覽器裡完成，沒有伺服器，沒有東西上傳。">
+<meta property="og:type" content="website">
 <meta name="color-scheme" content="light">
 <!-- Card-catalogue drawer: paper grey card, amber index tab, ink rules. -->
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23F2F2EF'/%3E%3Crect x='8' y='4' width='10' height='5' fill='%23C8901A'/%3E%3Crect x='4.5' y='8.5' width='23' height='19' fill='none' stroke='%231C1C1A' stroke-width='2.5'/%3E%3Cpath d='M9 15h14M9 20h9' stroke='%231C1C1A' stroke-width='2.5'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400..700;1,7..72,400..600&family=Public+Sans:wght@500;600&family=Spline+Sans+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400..700;1,7..72,400..600&family=Noto+Serif+TC:wght@400;600;700&family=Public+Sans:wght@500;600&family=Spline+Sans+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="./css/tokens.css">
 <link rel="stylesheet" href="./css/style.css">
 </head>
@@ -79,29 +82,29 @@
   </defs>
 </svg>
 
-<a class="skiplink" href="#dropzone" data-when="empty">Skip to import</a>
-<a class="skiplink" href="#q" data-when="loaded">Skip to search</a>
+<a class="skiplink" href="#dropzone" data-when="empty">跳到匯入</a>
+<a class="skiplink" href="#q" data-when="loaded">跳到搜尋</a>
 
 <header class="rail" id="rail">
-  <a class="rail__mark" href="./index.html">ChatVault</a>
+  <a class="rail__mark" href="./index.html">對話金庫</a>
 
   <div class="rail__search" data-when="loaded">
     <div class="qfield">
-      <label class="visually-hidden" for="q">Search every conversation</label>
+      <label class="visually-hidden" for="q">搜尋所有對話</label>
       <input id="q" class="qfield__input" type="search" autocomplete="off" spellcheck="false"
-             placeholder="Search every conversation" aria-describedby="q-hint">
-      <span class="qfield__hint" id="q-hint">Esc to clear</span>
-      <button type="button" id="syntax-toggle" class="linkbtn qfield__syntax" aria-expanded="false" aria-controls="syntax-panel">Syntax</button>
+             placeholder="搜尋所有對話" aria-describedby="q-hint">
+      <span class="qfield__hint" id="q-hint">Esc 清空</span>
+      <button type="button" id="syntax-toggle" class="linkbtn qfield__syntax" aria-expanded="false" aria-controls="syntax-panel">語法</button>
     </div>
     <p class="qfield__error" id="q-error" role="alert" hidden></p>
   </div>
 
-  <nav class="rail__actions" aria-label="Vault">
-    <span class="rail__badge" id="sample-badge" hidden>Sample vault</span>
-    <button type="button" class="btn btn--line btn--sm" id="filters-toggle" data-when="loaded" aria-expanded="false" aria-controls="filters">Filters</button>
-    <button type="button" class="btn btn--line btn--sm" id="stats-btn" data-when="loaded" aria-pressed="false">Stats</button>
-    <button type="button" class="btn btn--line btn--sm" id="vault-toggle" data-when="loaded" aria-expanded="false" aria-controls="vault-panel">Import</button>
-    <a class="btn btn--line btn--sm" href="../index.html">Hyperkit</a>
+  <nav class="rail__actions" aria-label="金庫">
+    <span class="rail__badge" id="sample-badge" hidden>範例資料</span>
+    <button type="button" class="btn btn--line btn--sm" id="filters-toggle" data-when="loaded" aria-expanded="false" aria-controls="filters">篩選</button>
+    <button type="button" class="btn btn--line btn--sm" id="stats-btn" data-when="loaded" aria-pressed="false">統計</button>
+    <button type="button" class="btn btn--line btn--sm" id="vault-toggle" data-when="loaded" aria-expanded="false" aria-controls="vault-panel">匯入</button>
+    <a class="btn btn--line btn--sm" href="../index.html">返回 hyperkit</a>
   </nav>
 </header>
 
@@ -109,50 +112,50 @@
   <p class="statusline__text"></p>
 </div>
 
-<section class="syntax" id="syntax-panel" data-when="loaded" hidden aria-label="Query syntax">
+<section class="syntax" id="syntax-panel" data-when="loaded" hidden aria-label="查詢語法">
   <dl class="syntax__list">
-    <div><dt>"exact phrase"</dt><dd>words must appear next to each other</dd></div>
-    <div><dt>-word</dt><dd>exclude conversations containing this word</dd></div>
-    <div><dt>+word</dt><dd>this word is required</dd></div>
-    <div><dt>role:human</dt><dd>only your messages. role:assistant for the other side</dd></div>
-    <div><dt>source:chatgpt</dt><dd>also claude, gemini</dd></div>
+    <div><dt>"整句"</dt><dd>這幾個字必須連在一起出現</dd></div>
+    <div><dt>-字詞</dt><dd>排除含有這個詞的對話</dd></div>
+    <div><dt>+字詞</dt><dd>這個詞一定要出現</dd></div>
+    <div><dt>role:human</dt><dd>只找你說的話。對方的用 role:assistant</dd></div>
+    <div><dt>source:chatgpt</dt><dd>也可以填 claude、gemini</dd></div>
     <div><dt>after:2025-03</dt><dd>before:2025-06-01</dd></div>
-    <div><dt>has:code</dt><dd>only conversations containing a code block</dd></div>
+    <div><dt>has:code</dt><dd>只找有程式碼區塊的對話</dd></div>
   </dl>
 </section>
 
 <div class="controls" data-when="loaded">
-  <div class="mode" id="mode-toggle" role="group" aria-label="Search mode">
+  <div class="mode" id="mode-toggle" role="group" aria-label="搜尋模式">
     <span class="mode__indicator" aria-hidden="true"></span>
-    <button type="button" class="mode__btn" data-mode="exact" aria-pressed="true" tabindex="0">Exact</button>
-    <button type="button" class="mode__btn" data-mode="expanded" aria-pressed="false" tabindex="-1">Expanded</button>
-    <button type="button" class="mode__btn" data-mode="meaning" aria-pressed="false" tabindex="-1" hidden disabled>Meaning</button>
+    <button type="button" class="mode__btn" data-mode="exact" aria-pressed="true" tabindex="0">精確</button>
+    <button type="button" class="mode__btn" data-mode="expanded" aria-pressed="false" tabindex="-1">擴充</button>
+    <button type="button" class="mode__btn" data-mode="meaning" aria-pressed="false" tabindex="-1" hidden disabled>語意</button>
   </div>
-  <button type="button" class="linkbtn linkbtn--dotted" id="semantic-enable" aria-expanded="false" aria-controls="semantic-panel" hidden>Enable meaning search</button>
+  <button type="button" class="linkbtn linkbtn--dotted" id="semantic-enable" aria-expanded="false" aria-controls="semantic-panel" hidden>開啟語意搜尋</button>
   <div class="chips" id="expansion-chips" hidden></div>
 </div>
 
 <div class="semantic" id="semantic-panel" data-when="loaded" hidden>
-  <p class="semantic__body">This downloads a 23 MB sentence model from huggingface.co, once. It runs in this tab. Your conversations are never sent anywhere.</p>
+  <p class="semantic__body">這會從 huggingface.co 下載一個 23 MB 的句子模型，只下載一次。模型跑在這個分頁裡，你的對話不會被送到任何地方。</p>
   <p class="semantic__state" id="semantic-state"></p>
   <div class="semantic__actions">
-    <button type="button" class="btn btn--solid btn--sm" id="semantic-go">Download the model</button>
-    <button type="button" class="btn btn--line btn--sm" id="semantic-not-now">Not now</button>
+    <button type="button" class="btn btn--solid btn--sm" id="semantic-go">下載模型</button>
+    <button type="button" class="btn btn--line btn--sm" id="semantic-not-now">先不要</button>
   </div>
 </div>
 
-<section class="kbhelp" id="keyboard-help" hidden aria-label="Keyboard shortcuts">
+<section class="kbhelp" id="keyboard-help" hidden aria-label="鍵盤快速鍵">
   <dl class="kbhelp__list">
-    <div><dt><kbd>/</kbd> <kbd>Ctrl</kbd>+<kbd>K</kbd></dt><dd>Focus the search field and select what is in it</dd></div>
-    <div><dt><kbd>Esc</kbd></dt><dd>Clear the query, then close whatever is open, one layer at a time</dd></div>
-    <div><dt><kbd>Up</kbd> <kbd>Down</kbd></dt><dd>Move through the index, even while typing</dd></div>
-    <div><dt><kbd>Enter</kbd></dt><dd>Open the selected conversation. <kbd>Shift</kbd>+<kbd>Enter</kbd> keeps focus in the index</dd></div>
-    <div><dt><kbd>j</kbd> <kbd>k</kbd></dt><dd>Next and previous message in the reading pane</dd></div>
-    <div><dt><kbd>[</kbd> <kbd>]</kbd></dt><dd>Previous and next branch at the first branch point</dd></div>
-    <div><dt><kbd>n</kbd> <kbd>Shift</kbd>+<kbd>n</kbd></dt><dd>Next and previous search hit</dd></div>
-    <div><dt><kbd>Ctrl</kbd>+<kbd>Enter</kbd></dt><dd>Search including messages on branches you did not keep</dd></div>
-    <div><dt><kbd>g</kbd> then <kbd>s</kbd></dt><dd>Statistics. <kbd>g</kbd> then <kbd>i</kbd> returns to the index</dd></div>
-    <div><dt><kbd>?</kbd></dt><dd>Open and close this list</dd></div>
+    <div><dt><kbd>/</kbd> <kbd>Ctrl</kbd>+<kbd>K</kbd></dt><dd>跳到搜尋框，並把裡面的字選起來</dd></div>
+    <div><dt><kbd>Esc</kbd></dt><dd>先清空查詢，再一層一層關掉開著的面板</dd></div>
+    <div><dt><kbd>↑</kbd> <kbd>↓</kbd></dt><dd>在索引裡上下移動，打字時也能用</dd></div>
+    <div><dt><kbd>Enter</kbd></dt><dd>打開選到的對話。<kbd>Shift</kbd>+<kbd>Enter</kbd> 會把焦點留在索引</dd></div>
+    <div><dt><kbd>j</kbd> <kbd>k</kbd></dt><dd>閱讀區的下一則、上一則訊息</dd></div>
+    <div><dt><kbd>[</kbd> <kbd>]</kbd></dt><dd>在第一個分歧點切換上一條、下一條分支</dd></div>
+    <div><dt><kbd>n</kbd> <kbd>Shift</kbd>+<kbd>n</kbd></dt><dd>下一個、上一個命中的字</dd></div>
+    <div><dt><kbd>Ctrl</kbd>+<kbd>Enter</kbd></dt><dd>連你沒有留下的分支訊息一起搜</dd></div>
+    <div><dt><kbd>g</kbd> 再按 <kbd>s</kbd></dt><dd>看統計。<kbd>g</kbd> 再按 <kbd>i</kbd> 回到索引</dd></div>
+    <div><dt><kbd>?</kbd></dt><dd>開關這張表</dd></div>
   </dl>
 </section>
 
@@ -164,24 +167,24 @@
 <main class="entry" data-when="empty">
   <section class="hero">
     <div class="hero__text">
-      <h1 class="hero__title">Two years of conversations.<br>One search box.</h1>
-      <p class="hero__sub">Drop a ChatGPT, Claude, or Gemini export. Parsed, indexed, and read in this tab. Nothing uploads.</p>
+      <h1 class="hero__title">兩年份的對話。<br>一個搜尋框。</h1>
+      <p class="hero__sub">把 ChatGPT、Claude 或 Gemini 的匯出檔丟進來。解析、建索引、閱讀都在這個分頁裡完成，沒有東西上傳。</p>
       <div class="hero__actions">
-        <button type="button" class="btn btn--solid" id="choose-file">Choose export file</button>
-        <button type="button" class="btn btn--line" id="load-sample">Load sample vault</button>
+        <button type="button" class="btn btn--solid" id="choose-file">選擇匯出檔</button>
+        <button type="button" class="btn btn--line" id="load-sample">載入範例資料</button>
       </div>
     </div>
 
     <div class="hero__drawer">
       <div class="dropzone" id="dropzone" role="button" tabindex="0" data-state="idle"
-           aria-label="Choose export file. You can also drop a file here.">
+           aria-label="選擇匯出檔。也可以把檔案拖進這裡。">
         <div class="dropzone__plate" aria-hidden="true"><span class="dropzone__pull"></span></div>
         <div class="dropzone__cavity">
-          <canvas class="drawer-canvas" id="drawer-canvas" role="img" aria-label="The drawer fills with one card sliver per conversation as the file is read."></canvas>
+          <canvas class="drawer-canvas" id="drawer-canvas" role="img" aria-label="檔案讀取的過程中，每讀到一段對話，抽屜裡就多一張卡片。"></canvas>
           <div class="tabstrip" id="tabstrip" aria-hidden="true"></div>
           <div class="dropzone__copy">
-            <p class="dropzone__label">Drop your export here</p>
-            <p class="dropzone__sub">or click to choose a file</p>
+            <p class="dropzone__label">把匯出檔拖到這裡</p>
+            <p class="dropzone__sub">或點一下選檔案</p>
           </div>
           <div class="dropzone__progress" id="dropzone-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" hidden>
             <span class="dropzone__bar"></span>
@@ -199,73 +202,73 @@
   </section>
 
   <section class="formats">
-    <h2 class="section__title">How your export gets read</h2>
+    <h2 class="section__title">你的匯出檔是怎麼被讀進來的</h2>
     <ol class="formats__list">
       <li class="formats__row">
         <span class="formats__name">ChatGPT</span>
-        <p class="formats__what">A record carrying <code>mapping</code>, an object of nodes with <code>parent</code> and <code>children</code>, plus a <code>current_node</code> leaf. ChatVault walks the parent chain from that leaf to get the conversation you actually had, then indexes the other branches too and marks them.</p>
+        <p class="formats__what">每筆紀錄帶著一個 <code>mapping</code>，裡面是一堆有 <code>parent</code> 和 <code>children</code> 的節點，外加一個 <code>current_node</code> 葉節點。對話金庫從那個葉節點沿著 parent 往回走，還原你當時真正看到的那條對話，其他分支也一起建索引並標記出來。</p>
       </li>
       <li class="formats__row">
         <span class="formats__name">Claude</span>
-        <p class="formats__what">A record carrying <code>chat_messages</code>, whose entries have a <code>sender</code> of human or assistant and text either in <code>text</code> or in a <code>content</code> array of typed blocks. Both shapes are read.</p>
+        <p class="formats__what">每筆紀錄帶著 <code>chat_messages</code>，每一則的 <code>sender</code> 是 human 或 assistant，內文可能放在 <code>text</code>，也可能放在 <code>content</code> 這個分型別的區塊陣列裡。兩種寫法都讀得懂。</p>
       </li>
       <li class="formats__row">
         <span class="formats__name">Gemini</span>
-        <p class="formats__what">Google Takeout activity, as JSON records with a Gemini <code>header</code> and a <code>time</code>, or as the MyActivity HTML page. Takeout does not group turns into conversations, so ChatVault groups them by a 30 minute gap and says so in the reading pane.</p>
+        <p class="formats__what">Google Takeout 的活動紀錄，可以是帶 Gemini <code>header</code> 和 <code>time</code> 的 JSON，也可以是 MyActivity 的 HTML 頁面。Takeout 不會把來回的訊息歸成一段對話，所以對話金庫用間隔 30 分鐘來分組，並在閱讀區直接寫明這件事。</p>
       </li>
       <li class="formats__row">
-        <span class="formats__name">Anything else</span>
-        <p class="formats__what">If none of the three structures match, you point at the fields yourself. The mapping is stored under a hash of the file's key shape, so the next export of the same format is read without asking.</p>
+        <span class="formats__name">其他格式</span>
+        <p class="formats__what">三種結構都對不上時，由你自己指認欄位。這份對應會用檔案 key 結構的雜湊存起來，下次同格式的匯出檔就不會再問你一次。</p>
       </li>
     </ol>
   </section>
 
   <section class="guides">
-    <h2 class="section__title">Getting your export</h2>
-    <div class="guides__tabs" id="guide-tabs" role="tablist" aria-label="Export instructions by provider">
+    <h2 class="section__title">怎麼拿到匯出檔</h2>
+    <div class="guides__tabs" id="guide-tabs" role="tablist" aria-label="各服務的匯出步驟">
       <button type="button" role="tab" id="guide-tab-chatgpt" aria-selected="true" aria-controls="guide-chatgpt" tabindex="0">ChatGPT</button>
       <button type="button" role="tab" id="guide-tab-claude" aria-selected="false" aria-controls="guide-claude" tabindex="-1">Claude</button>
       <button type="button" role="tab" id="guide-tab-gemini" aria-selected="false" aria-controls="guide-gemini" tabindex="-1">Gemini</button>
     </div>
     <div class="guides__panel" id="guide-chatgpt" role="tabpanel" aria-labelledby="guide-tab-chatgpt">
       <ol class="guides__steps">
-        <li>Open Settings, then Data controls, then Export data.</li>
-        <li>Confirm. The link arrives by email, usually within a few minutes, occasionally after some hours on large accounts.</li>
-        <li>The download link expires after 24 hours. Save the zip somewhere before it does.</li>
-        <li>Drop the whole zip here. ChatVault reads <code>conversations.json</code> out of it without unpacking the rest.</li>
+        <li><span>打開 Settings，進 Data controls，點 Export data。</span></li>
+        <li><span>按確認。連結會寄到信箱，通常幾分鐘內就到，資料量大的帳號有時要等幾小時。</span></li>
+        <li><span>下載連結 24 小時後失效，先把 zip 存到本機再說。</span></li>
+        <li><span>整包 zip 直接丟進來。對話金庫只從裡面讀 <code>conversations.json</code>，其餘不會解開。</span></li>
       </ol>
     </div>
     <div class="guides__panel" id="guide-claude" role="tabpanel" aria-labelledby="guide-tab-claude" hidden>
       <ol class="guides__steps">
-        <li>Open Settings, then Privacy, then Export data.</li>
-        <li>Confirm. The link arrives by email, usually within minutes.</li>
-        <li>The zip contains <code>conversations.json</code> along with account files that ChatVault ignores.</li>
-        <li>Drop the zip here. If your browser cannot unzip in the page, unzip it and drop <code>conversations.json</code> instead.</li>
+        <li><span>打開 Settings，進 Privacy，點 Export data。</span></li>
+        <li><span>按確認。連結會寄到信箱，通常幾分鐘內就到。</span></li>
+        <li><span>zip 裡除了 <code>conversations.json</code>，還有一些帳號檔案，那些會被略過。</span></li>
+        <li><span>把 zip 丟進來。如果你的瀏覽器沒辦法在頁面裡解壓縮，就自己解開，改丟 <code>conversations.json</code>。</span></li>
       </ol>
     </div>
     <div class="guides__panel" id="guide-gemini" role="tabpanel" aria-labelledby="guide-tab-gemini" hidden>
       <ol class="guides__steps">
-        <li>Go to Google Takeout and deselect everything.</li>
-        <li>Select My Activity, then use the format button to choose JSON, then restrict it to the Gemini Apps product.</li>
-        <li>Export. Takeout is slower than the other two: expect anything from minutes to a day depending on account size.</li>
-        <li>Drop the archive here, or drop <code>MyActivity.json</code> or <code>MyActivity.html</code> on its own.</li>
+        <li><span>到 Google Takeout，先把全部項目取消勾選。</span></li>
+        <li><span>只勾 My Activity，用格式按鈕改成 JSON，再把範圍縮到 Gemini Apps。</span></li>
+        <li><span>送出匯出。Takeout 比另外兩家慢，看帳號大小，可能幾分鐘也可能一整天。</span></li>
+        <li><span>整包壓縮檔丟進來，或單獨丟 <code>MyActivity.json</code>、<code>MyActivity.html</code> 也行。</span></li>
       </ol>
     </div>
   </section>
 
   <section class="privacy">
-    <h2 class="section__title">What this page requests from the network</h2>
+    <h2 class="section__title">這個頁面會向網路要什麼</h2>
     <div class="privacy__grid">
       <div class="privacy__prose">
-        <p>Four hosts, and you can check every one of them in the Network panel while you use the tool. Your conversations are not on this list because there is no endpoint in this page that could send them. Once the page and its fonts are cached, you can go offline and keep searching.</p>
-        <p>The vault lives in IndexedDB in this browser profile. Removing it removes it: there is no copy anywhere else, which is the trade this design makes on purpose.</p>
+        <p>總共四個網域，你用工具的同時就能在 Network 面板一個一個核對。你的對話不在這張清單上，因為這個頁面裡根本沒有一個能把它送出去的端點。頁面和字型進了快取之後，你可以斷網繼續搜。</p>
+        <p>資料存在這個瀏覽器設定檔的 IndexedDB 裡。刪掉就是真的刪掉，別的地方沒有副本——這是這個設計刻意做的取捨。</p>
       </div>
       <dl class="privacy__manifest">
-        <div><dt>fonts.googleapis.com</dt><dd>the stylesheet for Literata, Public Sans and Spline Sans Mono</dd></div>
-        <div><dt>fonts.gstatic.com</dt><dd>the font files themselves</dd></div>
-        <div><dt>cdn.jsdelivr.net</dt><dd>GSAP, used for the drawer animation. Also the sentence-model runtime, but only if you turn meaning search on</dd></div>
-        <div><dt>huggingface.co</dt><dd>the model weights, only after you press Download the model, and never before</dd></div>
-        <div><dt>your conversations</dt><dd>never requested, never posted, never sent</dd></div>
+        <div><dt>fonts.googleapis.com</dt><dd>Literata、Noto Serif TC、Public Sans、Spline Sans Mono 的樣式表</dd></div>
+        <div><dt>fonts.gstatic.com</dt><dd>字型檔本身</dd></div>
+        <div><dt>cdn.jsdelivr.net</dt><dd>GSAP，用來做抽屜動畫。你開了語意搜尋才會再抓句子模型的執行環境</dd></div>
+        <div><dt>huggingface.co</dt><dd>模型權重，只有在你按下「下載模型」之後才抓，在那之前不會</dd></div>
+        <div><dt>你的對話</dt><dd>不請求、不上傳、不外送</dd></div>
       </dl>
     </div>
   </section>
@@ -276,88 +279,88 @@
 <!-- ==================================================================== -->
 <div class="spine" id="spine" data-when="loaded">
   <canvas class="spine__canvas" id="spine-canvas" tabindex="0" role="img"
-          aria-label="One sliver per conversation, oldest at the left. Use the left and right arrow keys to move, Enter to open."></canvas>
+          aria-label="一段對話一張卡片，最舊的在左邊。用左右方向鍵移動，Enter 打開。"></canvas>
   <p class="spine__label" id="spine-label" aria-live="off"></p>
 </div>
 
 <main class="workspace" id="workspace" data-when="loaded" data-view="index" data-pane="both">
-  <aside class="filters" id="filters" data-open="false" aria-label="Filters">
+  <aside class="filters" id="filters" data-open="false" aria-label="篩選">
     <div class="filtergroup">
-      <h2 class="filters__head">Source</h2>
+      <h2 class="filters__head">來源</h2>
       <div class="chips" id="source-chips"></div>
     </div>
 
     <div class="filtergroup">
-      <h2 class="filters__head">Who is speaking</h2>
+      <h2 class="filters__head">誰說的</h2>
       <div class="radios">
-        <label><input type="radio" name="role" value="any" checked><span>Anyone</span></label>
-        <label><input type="radio" name="role" value="human"><span>You asked</span></label>
-        <label><input type="radio" name="role" value="assistant"><span>Assistant said</span></label>
+        <label><input type="radio" name="role" value="any" checked><span>都可以</span></label>
+        <label><input type="radio" name="role" value="human"><span>你問的</span></label>
+        <label><input type="radio" name="role" value="assistant"><span>AI 答的</span></label>
       </div>
     </div>
 
     <div class="filtergroup">
-      <h2 class="filters__head">Dates</h2>
+      <h2 class="filters__head">日期</h2>
       <div class="daterange">
-        <label class="daterange__field"><span>From</span><input type="month" id="date-from" class="field"></label>
-        <label class="daterange__field"><span>To</span><input type="month" id="date-to" class="field"></label>
+        <label class="daterange__field"><span>從</span><input type="month" id="date-from" class="field"></label>
+        <label class="daterange__field"><span>到</span><input type="month" id="date-to" class="field"></label>
       </div>
       <p class="daterange__error" id="date-error" hidden>
-        The start month is after the end month.
-        <button type="button" class="linkbtn" id="date-swap">Swap</button>
+        起始月份比結束月份還晚。
+        <button type="button" class="linkbtn" id="date-swap">對調</button>
       </p>
       <div class="daterange__quick">
-        <button type="button" class="linkbtn" data-range="30">Last 30 days</button>
-        <button type="button" class="linkbtn" data-range="year">This year</button>
-        <button type="button" class="linkbtn" data-range="all">All time</button>
+        <button type="button" class="linkbtn" data-range="30">近 30 天</button>
+        <button type="button" class="linkbtn" data-range="year">今年</button>
+        <button type="button" class="linkbtn" data-range="all">全部</button>
       </div>
     </div>
 
     <div class="filtergroup">
-      <h2 class="filters__head">Contents</h2>
-      <label class="checkline"><input type="checkbox" id="has-code"><span>Only conversations with code</span></label>
+      <h2 class="filters__head">內容</h2>
+      <label class="checkline"><input type="checkbox" id="has-code"><span>只看有程式碼的對話</span></label>
     </div>
 
-    <button type="button" class="filters__clear" id="clear-filters" hidden>Clear all filters (0)</button>
+    <button type="button" class="filters__clear" id="clear-filters" hidden>清掉所有篩選（0）</button>
   </aside>
 
-  <section class="index" id="index" aria-label="Conversation index">
+  <section class="index" id="index" aria-label="對話索引">
     <header class="index__bar">
-      <p class="index__count" aria-hidden="true">0 conversations</p>
+      <p class="index__count" aria-hidden="true">0 段對話</p>
     </header>
     <div class="index__skeleton" hidden></div>
     <div class="index__scroll">
       <div class="index__spacer"></div>
-      <div class="index__track" role="listbox" tabindex="0" aria-label="Conversations"></div>
+      <div class="index__track" role="listbox" tabindex="0" aria-label="對話列表"></div>
       <div class="index__empty" hidden></div>
     </div>
   </section>
 
-  <section class="reader" id="reader" data-empty="true" aria-label="Conversation">
+  <section class="reader" id="reader" data-empty="true" aria-label="對話內容">
     <header class="reader__header">
-      <button type="button" class="btn btn--line btn--sm reader__back" id="back-to-index">Back to index</button>
-      <h2 class="reader__title">Nothing selected</h2>
+      <button type="button" class="btn btn--line btn--sm reader__back" id="back-to-index">回索引</button>
+      <h2 class="reader__title">還沒選對話</h2>
       <p class="reader__meta"></p>
       <div class="reader__tools">
         <div class="matchbar" hidden>
-          <span class="matchbar__count">0 matches</span>
-          <button type="button" class="matchbar__prev" aria-label="Previous match"><svg width="10" height="10" viewBox="0 0 16 16" aria-hidden="true" class="ic"><use href="#ic-chev-left"></use></svg></button>
-          <button type="button" class="matchbar__next" aria-label="Next match"><svg width="10" height="10" viewBox="0 0 16 16" aria-hidden="true" class="ic"><use href="#ic-chev-right"></use></svg></button>
+          <span class="matchbar__count">0 處命中</span>
+          <button type="button" class="matchbar__prev" aria-label="上一處命中"><svg width="10" height="10" viewBox="0 0 16 16" aria-hidden="true" class="ic"><use href="#ic-chev-left"></use></svg></button>
+          <button type="button" class="matchbar__next" aria-label="下一處命中"><svg width="10" height="10" viewBox="0 0 16 16" aria-hidden="true" class="ic"><use href="#ic-chev-right"></use></svg></button>
         </div>
         <div class="export">
-          <button type="button" class="btn btn--line btn--sm" id="export-btn" aria-expanded="false" aria-controls="export-popover">Export</button>
+          <button type="button" class="btn btn--line btn--sm" id="export-btn" aria-expanded="false" aria-controls="export-popover">匯出</button>
           <div class="popover" id="export-popover" hidden>
-            <button type="button" data-export="one-markdown">This conversation as Markdown</button>
-            <button type="button" data-export="one-json">This conversation as JSON</button>
+            <button type="button" data-export="one-markdown">這段對話存成 Markdown</button>
+            <button type="button" data-export="one-json">這段對話存成 JSON</button>
             <hr>
-            <button type="button" data-export="all-markdown">All results as Markdown (.zip)</button>
-            <button type="button" data-export="all-json">All results as JSON</button>
+            <button type="button" data-export="all-markdown">全部結果存成 Markdown（.zip）</button>
+            <button type="button" data-export="all-json">全部結果存成 JSON</button>
           </div>
         </div>
       </div>
     </header>
     <div class="notice-host reader__notice" hidden></div>
-    <p class="reader__empty">Pick a conversation on the left, or type in the search field. Every message on every branch is already indexed.</p>
+    <p class="reader__empty">從左邊挑一段對話，或直接在搜尋框打字。每一條分支上的每一則訊息都已經建好索引了。</p>
     <div class="reader__paging" hidden></div>
     <div class="reader__scroll">
       <div class="reader__spacer"></div>
@@ -365,41 +368,41 @@
     </div>
   </section>
 
-  <section class="stats" id="stats-view" aria-label="Statistics"></section>
+  <section class="stats" id="stats-view" aria-label="統計"></section>
 </main>
 
-<div class="vault" id="vault-panel" data-when="loaded" hidden aria-label="Vault">
+<div class="vault" id="vault-panel" data-when="loaded" hidden aria-label="金庫">
   <div class="vault__inner">
-    <h2 class="vault__title">Your vault</h2>
+    <h2 class="vault__title">你的金庫</h2>
     <ul class="vault__sources" id="vault-sources"></ul>
     <p class="vault__usage" id="vault-usage"></p>
     <div class="vault__row">
-      <button type="button" class="btn btn--line btn--sm" id="persist-btn">Keep this vault when storage runs low</button>
+      <button type="button" class="btn btn--line btn--sm" id="persist-btn">空間不足時保留這份資料</button>
       <p class="vault__state" id="persist-state"></p>
     </div>
     <div class="vault__row">
-      <button type="button" class="btn btn--solid btn--sm" id="import-more">Import another export</button>
+      <button type="button" class="btn btn--solid btn--sm" id="import-more">再匯入一個檔案</button>
     </div>
     <div class="vault__danger">
-      <h3 class="vault__danger-title">Clear the whole vault</h3>
-      <p class="vault__danger-body">This cannot be undone. Your original export files are not touched.</p>
+      <h3 class="vault__danger-title">清空整個金庫</h3>
+      <p class="vault__danger-body">這個動作沒辦法復原。你原本的匯出檔不會被動到。</p>
       <label class="vault__confirm">
-        <span>Type <code>delete</code> to confirm</span>
+        <span>輸入 <code>delete</code> 以確認</span>
         <input type="text" id="delete-confirm" class="field" autocomplete="off" spellcheck="false">
       </label>
-      <button type="button" class="btn btn--alert btn--sm" id="delete-btn" disabled>Clear the whole vault</button>
+      <button type="button" class="btn btn--alert btn--sm" id="delete-btn" disabled>清空整個金庫</button>
     </div>
-    <button type="button" class="btn btn--line btn--sm vault__close" id="vault-close">Close</button>
+    <button type="button" class="btn btn--line btn--sm vault__close" id="vault-close">關閉</button>
   </div>
 </div>
 
 <p class="visually-hidden" id="live" aria-live="polite" aria-atomic="true"></p>
 
 <footer class="foot">
-  <p class="foot__what">ChatVault reads AI conversation exports in the browser, indexes them with BM25, and searches them. It has no server.</p>
-  <nav class="foot__links" aria-label="Elsewhere">
-    <a href="../index.html">Back to Hyperkit</a>
-    <button type="button" class="linkbtn" id="kb-toggle" aria-expanded="false" aria-controls="keyboard-help">Keyboard shortcuts</button>
+  <p class="foot__what">對話金庫在瀏覽器裡讀 AI 對話的匯出檔，用 BM25 建索引，然後搜尋。它沒有伺服器。</p>
+  <nav class="foot__links" aria-label="其他連結">
+    <a href="../index.html">返回 hyperkit</a>
+    <button type="button" class="linkbtn" id="kb-toggle" aria-expanded="false" aria-controls="keyboard-help">鍵盤快速鍵</button>
   </nav>
 </footer>
 

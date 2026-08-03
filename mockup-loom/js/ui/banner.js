@@ -12,7 +12,7 @@ export class BannerHost {
     this.current = null;
   }
 
-  show({ id, text, tone = 'info', detail = null, detailLabel = 'What changed', action = null }) {
+  show({ id, text, tone = 'info', detail = null, detailLabel = '差在哪裡', action = null }) {
     this.clear();
     const node = el('div', { class: `banner${tone === 'error' ? ' is-error' : ''}`, 'data-id': id || '' });
     node.appendChild(el('p', { text }));

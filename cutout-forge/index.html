@@ -1,17 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-Hant-TW">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Cutout Forge - batch background removal that never uploads a photo</title>
-<meta name="description" content="Remove backgrounds from hundreds of product photos inside your own browser. No account, no credits, no upload limit. Exports Shopify, Amazon, Etsy and Shopee sizes as a structured ZIP.">
+<title>去背熔爐 - 幾百張商品照批次去背，一張都不上傳</title>
+<meta name="description" content="在你自己的瀏覽器裡把幾百張商品照去背。不用帳號、不算點數、沒有張數上限。輸出 Shopify、Amazon、Etsy、Shopee 各自的尺寸，打包成分好資料夾的 ZIP。">
+<meta property="og:title" content="去背熔爐 - 幾百張商品照批次去背，一張都不上傳">
+<meta property="og:description" content="在你自己的瀏覽器裡把幾百張商品照去背。不用帳號、不算點數、沒有張數上限。輸出 Shopify、Amazon、Etsy、Shopee 各自的尺寸，打包成分好資料夾的 ZIP。">
+<meta property="og:type" content="website">
 <meta name="color-scheme" content="dark">
 <!-- The mark is the page in miniature: the dark bed, one cyan scan beam
      crossing it, and the corner marks that bound the drop area. -->
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230E0E10'/%3E%3Cpath d='M6 6h4M6 6v4M26 6h-4M26 6v4M6 26h4M6 26v-4M26 26h-4M26 26v-4' stroke='%2322E5C8' stroke-width='2'/%3E%3Crect x='6' y='15' width='20' height='2' fill='%2322E5C8'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./css/tokens.css">
 <link rel="stylesheet" href="./css/style.css">
 </head>
@@ -51,44 +54,44 @@ unreviewed and undocumented is unfinished; this build ends with the finish revie
   </defs>
 </svg>
 
-<a class="skip-link" href="#floor">Skip to the forge bed</a>
+<a class="skip-link" href="#floor">跳到熔爐台</a>
 
 <header class="masthead">
-  <a class="masthead__back" href="../index.html">&lsaquo;&nbsp;hyperkit</a>
-  <h1 class="masthead__title">Cutout Forge</h1>
+  <a class="masthead__back" href="../index.html">&lsaquo;&nbsp;返回 hyperkit</a>
+  <h1 class="masthead__title">去背熔爐</h1>
 
   <div class="masthead__tools">
     <details class="engine" id="engine">
-      <summary class="chip chip--probing" id="engineChip" aria-label="Engine status">
+      <summary class="chip chip--probing" id="engineChip" aria-label="引擎狀態">
         <span class="chip__lamp" aria-hidden="true"></span>
-        <span class="chip__text" id="engineChipText">Checking hardware</span>
+        <span class="chip__text" id="engineChipText">正在確認硬體</span>
       </summary>
-      <div class="popover" role="group" aria-label="Engine details">
+      <div class="popover" role="group" aria-label="引擎細節">
         <!-- Which of the two cutout paths is running, what it is good at, and
              what the other one would do better. Written out in full because a
              fallback that is not explained reads as a broken product. -->
         <div class="modes" id="engineModes">
           <div class="mode" id="modeModel">
-            <h3 class="mode__name">AI model &mdash; RMBG-1.4</h3>
-            <p class="mode__body">Segments the product from any backdrop: fur, hair, glass, shadows, a cluttered desk. Downloads 44&nbsp;MB once, then runs offline on your GPU.</p>
+            <h3 class="mode__name">AI 模型 &mdash; RMBG-1.4</h3>
+            <p class="mode__body">背景再亂都能把商品切出來：毛料、頭髮、玻璃、陰影、堆滿東西的桌面。44&nbsp;MB 只下載一次，之後就在你的 GPU 上離線跑。</p>
           </div>
           <div class="mode" id="modeChroma">
-            <h3 class="mode__name">Chroma-key &mdash; no download</h3>
-            <p class="mode__body">Our own flood fill from the four corners. Starts instantly and is clean on solid studio backgrounds &mdash; white, grey, seamless paper. It cannot follow fur, hair or glass, and it will leave those edges hard.</p>
+            <h3 class="mode__name">Chroma-key &mdash; 不用下載</h3>
+            <p class="mode__body">我們自己寫的四角泛洪填色。按下去馬上跑，在純色棚拍背景上很乾淨 &mdash; 白色、灰色、無縫背景紙都可以。它跟不了毛料、頭髮和玻璃，那些邊緣會留得很硬。</p>
           </div>
         </div>
         <p class="popover__note" id="engineModeWhy"></p>
         <dl class="kv" id="enginePopoverBody">
-          <div class="kv__row"><dt>Engine</dt><dd class="mono" id="engEngine">probing</dd></div>
-          <div class="kv__row"><dt>Model</dt><dd class="mono">briaai/RMBG-1.4</dd></div>
-          <div class="kv__row"><dt>Cached</dt><dd class="mono" id="engCached">checking</dd></div>
-          <div class="kv__row"><dt>Concurrency</dt><dd class="mono" id="engConcurrency">measuring</dd></div>
-          <div class="kv__row"><dt>Your photos</dt><dd>never leave this tab</dd></div>
-          <div class="kv__row"><dt>Model weights</dt><dd>downloaded once from huggingface.co</dd></div>
+          <div class="kv__row"><dt>引擎</dt><dd class="mono" id="engEngine">確認中</dd></div>
+          <div class="kv__row"><dt>模型</dt><dd class="mono">briaai/RMBG-1.4</dd></div>
+          <div class="kv__row"><dt>已快取</dt><dd class="mono" id="engCached">確認中</dd></div>
+          <div class="kv__row"><dt>並行數</dt><dd class="mono" id="engConcurrency">量測中</dd></div>
+          <div class="kv__row"><dt>你的照片</dt><dd>不會離開這個分頁</dd></div>
+          <div class="kv__row"><dt>模型權重</dt><dd>只從 huggingface.co 下載一次</dd></div>
         </dl>
         <div class="popover__actions">
-          <button type="button" class="btn btn--ghost btn--sm" id="btnModeToggle">Switch to chroma-key mode</button>
-          <button type="button" class="btn btn--ghost btn--sm" id="btnClearCache">Clear cached model</button>
+          <button type="button" class="btn btn--ghost btn--sm" id="btnModeToggle">改用 chroma-key 模式</button>
+          <button type="button" class="btn btn--ghost btn--sm" id="btnClearCache">清掉快取的模型</button>
         </div>
       </div>
     </details>
@@ -97,7 +100,7 @@ unreviewed and undocumented is unfinished; this build ends with the finish revie
          menu holding the same single item only cost the masthead the room
          the engine chip needs on a phone. -->
     <button type="button" class="chip chip--quiet chip--keys" id="btnShortcuts" aria-haspopup="dialog">
-      <span aria-hidden="true">?</span><span class="u-visually-hidden">Keyboard shortcuts</span>
+      <span aria-hidden="true">?</span><span class="u-visually-hidden">鍵盤快速鍵</span>
     </button>
   </div>
 </header>

@@ -22,7 +22,7 @@ export class LightDial {
       class: 'dial',
       role: 'slider',
       tabindex: '0',
-      'aria-label': 'Azimuth',
+      'aria-label': '光從哪個方向來',
       'aria-valuemin': '0',
       'aria-valuemax': '359'
     });

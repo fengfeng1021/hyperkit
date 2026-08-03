@@ -58,9 +58,51 @@ export function tokenize(text) {
   return out;
 }
 
-/** Terms worth showing a human: no stopwords, at least 3 characters, not a bare number. */
+/** True when a term is written in a script that does not space its words. */
+export function isCjk(term) {
+  return CJK.test(term);
+}
+
+/**
+ * Character bigrams of a CJK term.
+ *
+ * The index stores a run of CJK both whole and as bigrams, so a run of text
+ * such as 連線池的上限 becomes one long term plus 連線 線池 池的 的上 上限. A
+ * query for 連線池 is a shorter run than the one it lives inside and would
+ * never meet that long term, so it has to be matched through the bigrams. The
+ * query side asks for them explicitly rather than the index side dropping the
+ * whole run, because the whole run is what makes a readable index tab.
+ */
+export function cjkBigrams(term) {
+  if (term.length < 2 || !CJK.test(term)) return [];
+  const out = [];
+  for (let i = 0; i + 1 < term.length; i++) out.push(term.slice(i, i + 2));
+  return out;
+}
+
+/* Chinese function words. A run of Chinese with no space in it can be a whole
+   clause, so the display side needs both a stopword list and a length ceiling,
+   otherwise an index tab reads "沒有它的話" instead of "連線池". */
+export const CJK_STOPWORDS = new Set(
+  ("的 了 是 在 我 你 他 們 我們 你們 他們 我的 你的 這個 那個 這些 那些 什麼 是什麼 為什麼 怎麼 " +
+    "要怎麼 可以 不能 不要 沒有 就是 不是 而不是 那就是 也是 還是 或者 或者把 因為 所以 如果 但是 " +
+    "然後 而且 已經 一個 每一個 兩個 三個 現在 之後 之前 時候 東西 事情 問題 地方 情況 有沒有 " +
+    "我們的 我們有 沒問題 不需要 預設是 的清單 的性質 可以往 跟得上 一下 一樣 一直 一定 比較 " +
+    "非常 真的 其實 通常 常常 大概 大約 至少 甚至 直接 只是 只有 而已 這樣 那樣 怎樣 " +
+    "在同一個 對於 關於 以及 這件事 那件事 這裡 那裡 哪裡 上面 下面 裡面 外面 開始 結束")
+    .split(/\s+/)
+    .filter(Boolean)
+);
+
+/** Terms worth showing a human: no stopwords, long enough to mean something,
+    and for Chinese short enough to still be a term rather than a sentence. */
 export function isContentTerm(t) {
-  return t.length >= 3 && !STOPWORDS.has(t) && !/^\d+$/.test(t);
+  if (/^\d+$/.test(t)) return false;
+  // 2 is a bigram cut out of a longer run, which reads as half a word; longer
+  // than 6 is a whole clause, which reads as a sentence. Between the two is a
+  // term.
+  if (CJK.test(t)) return t.length >= 3 && t.length <= 6 && !CJK_STOPWORDS.has(t);
+  return t.length >= 3 && !STOPWORDS.has(t);
 }
 
 /** Character trigrams of a term, used for "closest terms in your vault". */

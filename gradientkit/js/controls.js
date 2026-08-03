@@ -70,11 +70,11 @@ export class NumericField {
     const raw = this.input.value.trim().replace(/[^0-9.+-]/g, '');
     const n = Number.parseFloat(raw);
     if (!Number.isFinite(n)) {
-      this.showError(this.o.rangeMessage || `Enter a number between ${this.o.min} and ${this.o.max}.`);
+      this.showError(this.o.rangeMessage || `請輸入 ${this.o.min} 到 ${this.o.max} 之間的數字。`);
       return false;
     }
     if (n < this.o.min || n > this.o.max) {
-      this.showError(this.o.rangeMessage || `Value is ${this.o.min} to ${this.o.max}.`);
+      this.showError(this.o.rangeMessage || `這個欄位只吃 ${this.o.min} 到 ${this.o.max}。`);
       return false;
     }
     this.committed = n;

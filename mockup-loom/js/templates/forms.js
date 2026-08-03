@@ -48,7 +48,7 @@ function verticalShade(ctx, x, y, w, h, topLevel, bottomLevel) {
 
 const tee = {
   id: 'tee',
-  label: 'Tee',
+  label: 'T 恤',
   seed: 4417,
   aspect: 1,
   family: 'fabric',
@@ -110,7 +110,7 @@ const tee = {
 
 const hoodie = {
   id: 'hoodie',
-  label: 'Hoodie',
+  label: '帽 T',
   seed: 7331,
   aspect: 1,
   family: 'fabric',
@@ -187,7 +187,7 @@ const hoodie = {
 
 const tote = {
   id: 'tote',
-  label: 'Tote',
+  label: '帆布袋',
   seed: 2860,
   aspect: 0.8333,
   family: 'fabric',
@@ -242,7 +242,7 @@ const tote = {
 
 const mug = {
   id: 'mug',
-  label: 'Mug',
+  label: '馬克杯',
   seed: 1094,
   aspect: 1.25,
   family: 'rigid',
@@ -313,7 +313,7 @@ const mug = {
 
 const poster = {
   id: 'poster',
-  label: 'Poster',
+  label: '海報',
   seed: 6205,
   aspect: 0.8,
   family: 'rigid',
@@ -353,7 +353,7 @@ const poster = {
 
 const sticker = {
   id: 'sticker',
-  label: 'Sticker',
+  label: '貼紙',
   seed: 3548,
   aspect: 1,
   family: 'rigid',

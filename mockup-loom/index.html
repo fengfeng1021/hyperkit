@@ -1,15 +1,19 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-Hant-TW">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Mockup Loom - the print bends with the cloth</title>
-<meta name="description" content="Put a design on a procedurally generated garment and watch it bend with the cloth instead of sitting on top of it. Batch N designs across M templates and export a structured ZIP. Nothing is uploaded.">
+<title>情境織機 / 印花跟著布料起伏，不是浮在上面</title>
+<meta name="description" content="把設計放到程式生成的衣服上，看它順著皺褶一起彎，而不是像貼紙浮在照片上。N 個設計乘 M 個版型一次算完，輸出成已經分好資料夾的 ZIP。不會上傳任何東西。">
 <meta name="color-scheme" content="light">
+<meta property="og:title" content="情境織機 / 印花跟著布料起伏，不是浮在上面">
+<meta property="og:description" content="撥一下開關，看印花沉進每一道皺褶。N 個設計乘 M 個版型一次算完，輸出成已經分好資料夾的 ZIP。全部在你的瀏覽器裡跑，不會上傳。">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="zh_TW">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23E6E4E1'/%3E%3Cpath d='M2 4h12M2 8h12M2 12h12' stroke='%234A5233' stroke-width='1.5'/%3E%3Cpath d='M6 2v12M10 2v12' stroke='%23B5462F' stroke-width='1.5'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Fragment+Mono&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Fragment+Mono&family=Noto+Sans+TC:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="./css/tokens.css">
 <link rel="stylesheet" href="./css/style.css">
 </head>
@@ -65,18 +69,18 @@ unreviewed and undocumented is unfinished; this build ends with the finish revie
 verdict, and DESIGN.md
 -->
 
-<a class="skip-link" href="#stage">Skip to stage</a>
+<a class="skip-link" href="#stage">跳到預覽台</a>
 
 <header class="topbar">
-  <h1 class="wordmark">Mockup Loom</h1>
+  <h1 class="wordmark">情境織機</h1>
   <div class="topbar-mode" id="mode-host"></div>
   <div class="topbar-actions">
-    <button type="button" class="btn btn-primary" id="export-zip" aria-describedby="export-why">Export ZIP</button>
-    <a class="link-back" href="../index.html">Hyperkit</a>
+    <button type="button" class="btn btn-primary" id="export-zip" aria-describedby="export-why">輸出 ZIP</button>
+    <a class="link-back" href="../index.html">返回 hyperkit</a>
   </div>
 </header>
 
-<p class="topbar-why" id="export-why" hidden>Render something first.</p>
+<p class="topbar-why" id="export-why" hidden>先算一張出來再輸出。</p>
 
 <div class="banner-host" id="banner-host" role="status" aria-live="polite"></div>
 
@@ -86,101 +90,101 @@ verdict, and DESIGN.md
     <div class="stage" id="stage" tabindex="-1">
       <div class="stage-inner" id="stage-inner">
         <canvas id="gl-stage" class="stage-canvas" width="900" height="900" role="img"
-                aria-label="Rendered mockup preview"></canvas>
-        <div class="printbox" id="printbox" aria-hidden="true"><span class="printbox-label">Print area</span></div>
+                aria-label="情境圖預覽"></canvas>
+        <div class="printbox" id="printbox" aria-hidden="true"><span class="printbox-label">可印範圍</span></div>
         <div class="guides" id="guides" aria-hidden="true" hidden>
           <span class="guide guide-v1"></span><span class="guide guide-v2"></span>
           <span class="guide guide-h1"></span><span class="guide guide-h2"></span>
         </div>
         <div class="pframe" id="pframe" tabindex="0" role="application"
-             aria-label="Design placement. Enter to edit, arrow keys to move, Escape to leave."
+             aria-label="設計的擺放位置。Enter 進入編輯，方向鍵移動，Esc 離開。"
              hidden>
           <span class="pframe-h pframe-nw" data-grip="nw"></span>
           <span class="pframe-h pframe-ne" data-grip="ne"></span>
           <span class="pframe-h pframe-sw" data-grip="sw"></span>
           <span class="pframe-h pframe-se" data-grip="se"></span>
           <span class="pframe-stem"></span>
-          <span class="pframe-rot" data-grip="rot" title="Rotate"></span>
+          <span class="pframe-rot" data-grip="rot" title="旋轉"></span>
         </div>
       </div>
-      <p class="stage-seed" id="stage-seed">Procedural template - generated, not photographed. Seed 4417</p>
+      <p class="stage-seed" id="stage-seed">程式算出來的，不是拍的。種子 4417</p>
       <p class="stage-readout num" id="stage-readout" hidden></p>
     </div>
 
     <div class="stage-notice" id="stage-notice" hidden>
-      <span id="stage-notice-text">Part of the design falls outside the print area.</span>
-      <button type="button" class="btn btn-text" id="fit-to-area">Fit to area</button>
+      <span id="stage-notice-text">設計有一部分超出可印範圍。</span>
+      <button type="button" class="btn btn-text" id="fit-to-area">縮進範圍</button>
     </div>
 
     <div class="weave">
       <div class="weave-row">
-        <button type="button" class="weave-label weave-flat is-on" id="weave-flat" tabindex="-1">FLAT</button>
+        <button type="button" class="weave-label weave-flat is-on" id="weave-flat" tabindex="-1">平貼</button>
         <button type="button" class="weave-switch" id="weave-switch" role="switch" aria-checked="false"
-                aria-label="Displacement" aria-describedby="weave-note">
+                aria-label="讓印花吃進布料" aria-describedby="weave-note">
           <span class="weave-fill" id="weave-fill"></span>
           <span class="weave-knob" id="weave-knob"></span>
         </button>
-        <button type="button" class="weave-label weave-woven" id="weave-woven" tabindex="-1">WOVEN</button>
+        <button type="button" class="weave-label weave-woven" id="weave-woven" tabindex="-1">服貼</button>
       </div>
-      <p class="weave-note" id="weave-note">Load a design to compare.</p>
-      <p class="weave-verdict" id="weave-verdict" hidden>Nobody asks if this one is a composite.</p>
+      <p class="weave-note" id="weave-note">先放一張設計上去，才看得出差別。</p>
+      <p class="weave-verdict" id="weave-verdict" hidden>這張拿出去，沒人會問你是不是合成的。</p>
     </div>
   </div>
 
   <div class="panels" id="panels">
 
-    <div class="tabstrip" id="tabstrip" role="tablist" aria-label="Control panels">
-      <button type="button" role="tab" id="tab-designs" aria-controls="panel-designs" aria-selected="true">Designs</button>
-      <button type="button" role="tab" id="tab-templates" aria-controls="panel-templates" aria-selected="false" tabindex="-1">Templates</button>
-      <button type="button" role="tab" id="tab-adjust" aria-controls="panel-adjust" aria-selected="false" tabindex="-1">Adjust</button>
-      <button type="button" role="tab" id="tab-output" aria-controls="panel-output" aria-selected="false" tabindex="-1">Output</button>
+    <div class="tabstrip" id="tabstrip" role="tablist" aria-label="控制面板">
+      <button type="button" role="tab" id="tab-designs" aria-controls="panel-designs" aria-selected="true">設計</button>
+      <button type="button" role="tab" id="tab-templates" aria-controls="panel-templates" aria-selected="false" tabindex="-1">版型</button>
+      <button type="button" role="tab" id="tab-adjust" aria-controls="panel-adjust" aria-selected="false" tabindex="-1">調整</button>
+      <button type="button" role="tab" id="tab-output" aria-controls="panel-output" aria-selected="false" tabindex="-1">輸出</button>
     </div>
 
     <section class="panel panel-designs" id="panel-designs" aria-labelledby="h-designs">
-      <h2 class="panel-h" id="h-designs">Designs</h2>
+      <h2 class="panel-h" id="h-designs">設計</h2>
 
-      <button type="button" class="btn btn-primary btn-block" id="load-samples">Load the sample set</button>
-      <p class="panel-sub">4 designs, ready to render</p>
+      <button type="button" class="btn btn-primary btn-block" id="load-samples">載入範例設計</button>
+      <p class="panel-sub">4 張圖，放上去就能算</p>
 
       <div class="dropzone" id="dropzone" tabindex="0" role="button"
-           aria-label="Add designs. Drop image files anywhere on the page, or press Enter to browse.">
-        <span class="dz-title" id="dz-title">Drop designs here</span>
-        <span class="dz-hint" id="dz-hint">PNG, JPG or WEBP. Transparent PNG works best.</span>
+           aria-label="加入設計。圖檔拖到頁面任何地方都收得到，或按 Enter 選檔。">
+        <span class="dz-title" id="dz-title">設計拖到這裡</span>
+        <span class="dz-hint" id="dz-hint">收 PNG、JPG、WEBP。去背的 PNG 最好看。</span>
       </div>
       <input type="file" id="file-input" accept="image/png,image/jpeg,image/webp,image/gif,image/avif,image/svg+xml" multiple class="vh">
 
-      <p class="privacy">Your designs stay in this tab. Nothing is uploaded.</p>
+      <p class="privacy">設計只留在這個分頁，不會上傳。</p>
 
       <p class="skip-summary" id="skip-summary" hidden></p>
       <ul class="file-rows" id="file-rows"></ul>
 
       <div class="design-wrap" id="design-wrap" hidden>
-        <ul class="design-list" id="design-list" role="listbox" aria-label="Loaded designs" tabindex="0"></ul>
+        <ul class="design-list" id="design-list" role="listbox" aria-label="已載入的設計" tabindex="0"></ul>
       </div>
     </section>
 
     <section class="panel panel-templates" id="panel-templates" aria-labelledby="h-templates">
-      <h2 class="panel-h" id="h-templates">Templates</h2>
-      <p class="panel-note">Procedural templates. Generated in your browser, not photographed.</p>
-      <div class="tpl-grid" id="tpl-grid" role="listbox" aria-label="Template forms" tabindex="0"></div>
+      <h2 class="panel-h" id="h-templates">版型</h2>
+      <p class="panel-note">版型是程式在你瀏覽器裡算出來的，沒有一張是拍的。</p>
+      <div class="tpl-grid" id="tpl-grid" role="listbox" aria-label="版型種類" tabindex="0"></div>
       <div class="tray" id="colorway-tray">
-        <h3 class="ctl-label" id="h-colorway">Colourway</h3>
+        <h3 class="ctl-label" id="h-colorway">顏色</h3>
         <div class="swatches" id="swatches" role="listbox" aria-labelledby="h-colorway" tabindex="0"></div>
       </div>
     </section>
 
     <section class="panel panel-adjust" id="panel-adjust" aria-labelledby="h-adjust">
-      <h2 class="panel-h" id="h-adjust">Placement</h2>
+      <h2 class="panel-h" id="h-adjust">擺放</h2>
       <div class="grid-2" id="placement-fields"></div>
       <div class="row-end">
-        <button type="button" class="btn btn-text" id="fit-to-area-2">Fit to area</button>
+        <button type="button" class="btn btn-text" id="fit-to-area-2">縮進範圍</button>
       </div>
 
-      <h2 class="panel-h" id="h-blend">Blend</h2>
+      <h2 class="panel-h" id="h-blend">疊色</h2>
       <div id="blend-host"></div>
-      <p class="hint" id="blend-hint" hidden>Screen has little effect on dark fabric.</p>
+      <p class="hint" id="blend-hint" hidden>深色布料上用濾色，幾乎看不出來。</p>
 
-      <h2 class="panel-h" id="h-light">Light</h2>
+      <h2 class="panel-h" id="h-light">打光</h2>
       <div class="light-block">
         <div id="dial-host"></div>
         <div class="light-sliders">
@@ -188,36 +192,36 @@ verdict, and DESIGN.md
           <div id="intensity-host"></div>
         </div>
       </div>
-      <p class="hint" id="light-hint" hidden>Lighting needs WebGL2.</p>
+      <p class="hint" id="light-hint" hidden>打光需要 WebGL2。</p>
     </section>
 
     <section class="panel panel-output" id="panel-output" aria-labelledby="h-output">
-      <h2 class="panel-h" id="h-output">Output</h2>
+      <h2 class="panel-h" id="h-output">輸出</h2>
 
-      <label class="ctl-label" for="out-size">Output size</label>
+      <label class="ctl-label" for="out-size">圖要存多大</label>
       <select class="select num" id="out-size">
-        <option value="1200">1200 px long edge</option>
-        <option value="2000" selected>2000 px long edge</option>
-        <option value="3000">3000 px long edge</option>
-        <option value="4000">4000 px long edge</option>
+        <option value="1200">長邊 1200 px</option>
+        <option value="2000" selected>長邊 2000 px</option>
+        <option value="3000">長邊 3000 px</option>
+        <option value="4000">長邊 4000 px</option>
       </select>
 
-      <label class="ctl-label" for="name-pattern">File names</label>
+      <label class="ctl-label" for="name-pattern">檔名怎麼取</label>
       <input class="input num" id="name-pattern" type="text" spellcheck="false"
              value="{design}__{template}__{w}x{h}" aria-describedby="name-preview name-tokens">
       <p class="name-preview num" id="name-preview">loom-monogram__tee-studio-grey__2000x2000.png</p>
-      <p class="hint" id="name-tokens">Tokens: {design} {template} {form} {colorway} {w} {h} {blend} {index}</p>
+      <p class="hint" id="name-tokens">可以用的代號：{design} {template} {form} {colorway} {w} {h} {blend} {index}</p>
       <p class="inline-error" id="name-error" hidden></p>
 
-      <span class="ctl-label" id="h-folders">Folders</span>
+      <span class="ctl-label" id="h-folders">資料夾怎麼分</span>
       <div id="folders-host"></div>
 
       <div class="tree-block">
-        <button type="button" class="btn btn-secondary btn-block" id="preview-tree">Preview the ZIP</button>
-        <pre class="tree num" id="export-tree" hidden aria-label="ZIP folder preview"></pre>
+        <button type="button" class="btn btn-secondary btn-block" id="preview-tree">先看 ZIP 長怎樣</button>
+        <pre class="tree num" id="export-tree" hidden aria-label="ZIP 資料夾預覽"></pre>
       </div>
       <p class="inline-error" id="export-error" hidden></p>
-      <p class="hint" id="settings-note" hidden>Settings could not be saved. Your work on screen is not affected.</p>
+      <p class="hint" id="settings-note" hidden>設定存不進瀏覽器，但畫面上的東西一樣照做。</p>
     </section>
 
   </div>
@@ -225,19 +229,19 @@ verdict, and DESIGN.md
 
 <section class="wall" id="wall" aria-labelledby="h-wall" hidden>
   <div class="wall-head">
-    <h2 class="panel-h" id="h-wall">Batch</h2>
+    <h2 class="panel-h" id="h-wall">批次</h2>
     <div class="wall-figures">
-      <p class="figure num" id="wall-count">0 renders</p>
-      <p class="wall-sub num" id="wall-sub">0 designs x 0 templates</p>
+      <p class="figure num" id="wall-count">0 張</p>
+      <p class="wall-sub num" id="wall-sub">0 個設計 × 0 個版型</p>
     </div>
     <div class="wall-actions">
-      <button type="button" class="btn btn-secondary" id="select-all">Select all</button>
-      <button type="button" class="btn btn-primary" id="render-batch">Render 0</button>
-      <button type="button" class="btn btn-secondary" id="cancel-batch" hidden>Cancel</button>
+      <button type="button" class="btn btn-secondary" id="select-all">全選</button>
+      <button type="button" class="btn btn-primary" id="render-batch">開始算 0 張</button>
+      <button type="button" class="btn btn-secondary" id="cancel-batch" hidden>停下來</button>
     </div>
   </div>
   <p class="hint" id="wall-hint" hidden></p>
-  <p class="wall-empty" id="wall-empty">Pick designs on the left and templates below them.</p>
+  <p class="wall-empty" id="wall-empty">左邊挑設計，下面挑版型。</p>
   <div class="wall-grid" id="wall-grid"></div>
 </section>
 
@@ -245,9 +249,9 @@ verdict, and DESIGN.md
 
 <div class="overlay" id="keys-overlay" role="dialog" aria-modal="true" aria-labelledby="h-keys" hidden>
   <div class="overlay-panel">
-    <h2 class="panel-h" id="h-keys">Keyboard</h2>
+    <h2 class="panel-h" id="h-keys">鍵盤快捷鍵</h2>
     <dl class="keys" id="keys-list"></dl>
-    <button type="button" class="btn btn-secondary" id="keys-close">Close</button>
+    <button type="button" class="btn btn-secondary" id="keys-close">關掉</button>
   </div>
 </div>
 

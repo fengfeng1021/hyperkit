@@ -8,7 +8,7 @@ export const SOURCES = {
   chatgpt: { id: "chatgpt", label: "ChatGPT" },
   claude: { id: "claude", label: "Claude" },
   gemini: { id: "gemini", label: "Gemini" },
-  custom: { id: "custom", label: "Custom" },
+  custom: { id: "custom", label: "自訂" },
 };
 
 /**
@@ -27,7 +27,7 @@ export function detectRecord(record) {
       return {
         source: "chatgpt",
         confidence: "current_node" in record ? 1 : 0.8,
-        reason: "mapping of parent and children nodes with a current_node leaf",
+        reason: "mapping 裡有 parent／children 節點，還有一個 current_node 葉節點",
       };
     }
   }
@@ -39,7 +39,7 @@ export function detectRecord(record) {
       return {
         source: "claude",
         confidence: 1,
-        reason: "chat_messages array whose entries carry a sender field",
+        reason: "chat_messages 陣列，每一則都帶 sender 欄位",
       };
     }
   }
@@ -50,12 +50,12 @@ export function detectRecord(record) {
       return {
         source: "gemini",
         confidence: 1,
-        reason: "Takeout activity record with a Gemini header and a time stamp",
+        reason: "Takeout 活動紀錄，帶 Gemini header 和時間戳",
       };
     }
   }
   if (Array.isArray(record.turns) || Array.isArray(record.conversation_turns)) {
-    return { source: "gemini", confidence: 0.7, reason: "turn list in a Gemini conversation export" };
+    return { source: "gemini", confidence: 0.7, reason: "Gemini 對話匯出檔裡的 turn 清單" };
   }
 
   return null;
@@ -66,9 +66,9 @@ export function detectHtml(text) {
   const head = text.slice(0, 4000);
   if (!/<html|<!doctype html/i.test(head)) return null;
   if (/mdl-grid|content-cell|outer-cell/i.test(text.slice(0, 200000))) {
-    return { source: "gemini", confidence: 0.9, reason: "Takeout activity page built from content-cell blocks" };
+    return { source: "gemini", confidence: 0.9, reason: "由 content-cell 區塊組成的 Takeout 活動頁面" };
   }
-  return { source: "custom", confidence: 0.3, reason: "HTML document with no recognised activity markup" };
+  return { source: "custom", confidence: 0.3, reason: "HTML 文件，沒有認得出來的活動標記" };
 }
 
 /** Candidate files inside a zip, most likely first. Structure is checked later. */

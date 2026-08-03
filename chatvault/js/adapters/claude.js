@@ -64,7 +64,7 @@ export function adaptClaude(record) {
     id: dedupeKey("claude", convId, record.name, createdAt, nodes[0].text),
     source: "claude",
     convId,
-    title: (record.name || record.title || "").trim() || "Untitled conversation",
+    title: (record.name || record.title || "").trim() || "未命名對話",
     createdAt,
     updatedAt: stamp(record.updated_at, 0),
     nodes,

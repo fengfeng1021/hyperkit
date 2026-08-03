@@ -8,7 +8,7 @@
 
 import { el } from '../util/dom.js';
 
-export function toast(host, { text, undoLabel = 'Undo', onUndo, ms = 8000 }) {
+export function toast(host, { text, undoLabel = '復原', onUndo, ms = 8000 }) {
   const node = el('div', { class: 'toast', role: 'status' }, [el('span', { text })]);
   let timer = null;
   const close = () => {
