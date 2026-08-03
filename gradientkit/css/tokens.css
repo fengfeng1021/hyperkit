@@ -1,0 +1,320 @@
+/* ==========================================================================
+   GradientKit - design tokens
+   Visual world: VISUAL-WORLDS.md #5 (pinned). Spectrophotometer bench, pure
+   black, white hairline, zero hue in the chrome.
+
+   THIS FILE IS THE ONLY PLACE IN THE PROJECT WHERE A LITERAL COLOR MAY APPEAR.
+   style.css and every JS module must reference var(--token). A bare hex, rgb(),
+   hsl(), or oklch() literal outside this file is a build error.
+
+   The two exceptions are documented in section 2.5: --user-mid and --user-edge
+   are written onto :root at runtime by js/render.js and hold the USER's colors,
+   never ours.
+   ========================================================================== */
+
+:root {
+  color-scheme: dark;
+
+  /* ======================================================================
+     1. TYPE
+     ====================================================================== */
+
+  /* 1.1 Families ------------------------------------------------------- */
+  /* Sora: display + UI. Fragment Mono: every numeral, color value and code
+     line. Monospace is used only for measurement, data and code, never as a
+     "technical" costume. */
+  --font-ui: 'Sora', 'Segoe UI Variable Display', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Fragment Mono', ui-monospace, 'SFMono-Regular', 'Cascadia Mono', Consolas, 'Liberation Mono', monospace;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+
+  /* 1.2 Scale ---------------------------------------------------------- */
+  /* size / line-height / tracking triplets. Display is capped at 3rem: this
+     is a workbench, not a poster. There is deliberately NO eyebrow token. */
+
+  --t-display-size: clamp(2rem, 4.2vw, 3rem);
+  --t-display-lh: 1.02;
+  --t-display-ls: -0.035em;
+
+  --t-h1-size: 1.5rem;
+  --t-h1-lh: 1.08;
+  --t-h1-ls: -0.03em;
+
+  --t-h2-size: 1.125rem;
+  --t-h2-lh: 1.2;
+  --t-h2-ls: -0.02em;
+
+  /* Panel titles. Sentence case only, and never tracked out. See
+     DESIGN-DIRECTION.md section 8.1 for why no micro-label token exists. */
+  --t-panel-size: 0.8125rem;   /* 13px */
+  --t-panel-lh: 1.25;
+  --t-panel-ls: -0.005em;
+
+  --t-body-size: 0.9375rem;    /* 15px */
+  --t-body-lh: 1.6;
+  --t-body-ls: 0em;
+
+  --t-ui-size: 0.8125rem;      /* 13px */
+  --t-ui-lh: 1.35;
+  --t-ui-ls: 0em;
+
+  --t-caption-size: 0.75rem;   /* 12px */
+  --t-caption-lh: 1.4;
+  --t-caption-ls: 0em;
+
+  /* Fragment Mono readouts */
+  --t-num-size: 0.8125rem;     /* 13px */
+  --t-num-lh: 1.2;
+  --t-num-ls: 0.01em;
+
+  --t-num-lg-size: 1.375rem;   /* 22px - contrast ratio and chroma deficit only */
+  --t-num-lg-lh: 1.1;
+  --t-num-lg-ls: 0em;
+
+  --t-code-size: 0.78125rem;   /* 12.5px */
+  --t-code-lh: 1.55;
+  --t-code-ls: 0em;
+
+  --t-tick-size: 0.6875rem;    /* 11px - ruler numerals only */
+  --t-tick-lh: 1.1;
+  --t-tick-ls: 0.02em;
+
+  /* 1.3 Measure -------------------------------------------------------- */
+  --measure-prose: 68ch;
+  --measure-caption: 46ch;
+
+  /* ======================================================================
+     2. COLOR
+     The chrome carries NO hue. Every value below is achromatic or a white
+     alpha. There is no --accent token and adding one is a regression.
+     Contrast ratios are measured against --surface-0 (#0A0A0A), the binding
+     case; every ratio against --surface-void (#000000) is higher.
+     ====================================================================== */
+
+  /* 2.1 Surfaces ------------------------------------------------------- */
+  --surface-void: #000000;      /* Stage backdrop + page ground. True black so
+                                   nothing contaminates color judgement. */
+  --surface-0: #0A0A0A;         /* Instrument body: bar, rails, panels, track */
+  --surface-1: #121212;         /* Genuinely floating only: popover, sheet */
+  --surface-inverse: #FFFFFF;   /* Selected interpolation-space cell only */
+
+  /* Transparency checkerboard, drawn in-shader; these feed the uniform. */
+  --checker-a: #000000;
+  --checker-b: #141414;
+
+  /* 2.2 Foreground ----------------------------------------------------- */
+  --fg-primary: #FFFFFF;        /* 19.80:1 - headings, values, active labels, code */
+  --fg-secondary: #B4B4B4;      /*  9.55:1 - body copy, inactive labels, tables */
+  --fg-muted: #8A8A8A;          /*  5.74:1 - captions, units, ruler numerals.
+                                             Floor for any text a user must read. */
+  --fg-disabled: #6E6E6E;       /*  3.88:1 - disabled labels only (AA large). The
+                                             reason is always exposed separately
+                                             via aria-describedby. */
+  --fg-tick: #4A4A4A;           /*  2.23:1 - NON-TEXT graphics only: ruler ticks,
+                                             code gutter numbers. Never the sole
+                                             carrier of information. */
+  --fg-on-inverse: #0A0A0A;     /* 19.80:1 on white - label in the selected cell */
+
+  /* 2.3 Hairlines ------------------------------------------------------ */
+  /* White alphas so they composite correctly over both --surface-0 and over a
+     live user gradient. */
+  --line-faint: rgba(255, 255, 255, 0.08);   /* disabled borders, intra-panel rules */
+  --line: rgba(255, 255, 255, 0.14);         /* default separator */
+  --line-strong: rgba(255, 255, 255, 0.42);  /* hover, stop-handle ring at rest */
+  --line-full: rgba(255, 255, 255, 1);       /* primary control at rest, sweep
+                                                line, dead-zone bracket */
+
+  /* Fills for hover / press on otherwise transparent controls. */
+  --fill-hover: rgba(255, 255, 255, 0.06);
+  --fill-active: rgba(255, 255, 255, 0.12);
+
+  /* The one darkening scrim in the product: the drop-an-image state, where the
+     Stage must stay recognisable underneath the instruction line. Achromatic,
+     like everything else in the chrome. */
+  --scrim: rgba(0, 0, 0, 0.42);
+
+  /* 2.4 Focus ---------------------------------------------------------- */
+  /* A white/black PAIR, never a single stroke: no background can be close to
+     both, so the ring survives on top of any user gradient. */
+  --focus-color: #FFFFFF;
+  --focus-width: 2px;
+  --focus-offset: 2px;
+  --focus-inner: inset 0 0 0 1px #000000;
+
+  /* 2.5 Runtime-only, written by js/render.js -------------------------- */
+  /* The ONLY hue-bearing custom properties in the product. Both are sampled
+     from the user's own gradient. Fallbacks are achromatic so a JS failure
+     never introduces a brand color. */
+  --user-mid: #FFFFFF;          /* gradient at t=0.5, used at 22% alpha */
+  --user-edge: #FFFFFF;         /* gradient at t=0.0, used at 10% alpha */
+  --user-mid-wash: rgba(255, 255, 255, 0.22);
+  --user-edge-wash: rgba(255, 255, 255, 0.10);
+
+  /* ======================================================================
+     3. SPACE
+     2px base grid. The product's subject is sub-pixel precision; the layout
+     must not contradict it.
+     ====================================================================== */
+  --space-1: 2px;
+  --space-2: 4px;
+  --space-3: 8px;
+  --space-4: 12px;
+  --space-5: 16px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 48px;
+  --space-9: 72px;
+  --space-10: 112px;
+
+  /* Rhythm rule: within a group use --space-3/4, between groups --space-6/7,
+     and always one step MORE above a heading than below it. */
+  --space-heading-above: var(--space-9);
+  --space-heading-below: var(--space-6);
+
+  /* ======================================================================
+     4. LAYOUT DIMENSIONS
+     ====================================================================== */
+  --bar-h: 48px;
+  --bar-h-sm: 44px;
+  --rail-left-w: 280px;
+  --rail-right-w: 320px;
+  --track-h: 56px;
+  --track-h-sm: 48px;
+  --stage-min-h: 240px;
+  --drawer-h: 220px;
+  --drawer-h-min: 140px;
+  --sheet-w: 320px;
+
+  --control-h: 32px;
+  --field-h: 28px;
+  --stop-w: 12px;
+  --stop-h: 22px;
+  --loupe-size: 88px;
+  --thumb-vision-w: 68px;
+  --thumb-vision-h: 44px;
+  --tile-preset-w: 168px;
+  --tile-preset-h: 112px;
+  --band-compare-h: 88px;
+  --notice-h: 36px;
+  --code-max-h: 300px;
+  --code-gutter-w: 32px;
+  --copy-btn-w: 84px;
+
+  --hairline: 1px;
+
+  /* ======================================================================
+     5. SHAPE
+     Two radii. That is the entire system. Nothing above 2px, ever.
+     ====================================================================== */
+  --radius-0: 0px;   /* rails, panels, stage, track, code, tiles, notice */
+  --radius-1: 2px;   /* buttons, fields, stop handles, popover, loupe */
+
+  /* ======================================================================
+     6. DEPTH
+     No elevation ladder. Depth is hairlines and negative space. Exactly one
+     shadow token, applied to exactly two things: a stop handle mid-drag, and
+     the color popover. Real offset, real blur, no zero-offset halo.
+     ====================================================================== */
+  --shadow-lift:
+    0 12px 32px -10px rgba(0, 0, 0, 0.92),
+    0 2px 6px -2px rgba(0, 0, 0, 0.7);
+
+  /* ======================================================================
+     7. MOTION
+     Everything animates FROM a visible default. Nothing in the stylesheet
+     sets opacity:0 waiting for JS.
+     ====================================================================== */
+  --dur-1: 90ms;      /* :active press */
+  --dur-2: 160ms;     /* hover, hairline change, crosshair fade */
+  --dur-3: 260ms;     /* notice enter, sheet slide, counter tween, settle */
+  --dur-4: 420ms;     /* code wipe highlight, cross-dissolve */
+  --dur-sweep: 2400ms;/* signature moment travel */
+  --dur-hold: 150ms;  /* the dead-zone pause inside the sweep */
+  --dur-breathe: 520ms;
+  --dur-confirm: 1600ms; /* how long a success label persists */
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);        /* default. GSAP: expo.out   */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);  /* GSAP: power3.out          */
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);    /* GSAP: power2.inOut        */
+  --ease-measure: linear;                            /* ONLY the sweep travel and
+                                                        the reset countdown, both
+                                                        of which literally measure
+                                                        a quantity. Never default. */
+
+  /* ======================================================================
+     8. Z-INDEX
+     A documented scale. No arbitrary values anywhere else.
+     ====================================================================== */
+  --z-base: 0;
+  --z-stage-overlay: 10;   /* crosshair, probe marker, mesh points, sweep line */
+  --z-track: 20;
+  --z-bar: 30;
+  --z-notice: 40;
+  --z-popover: 50;
+  --z-sheet: 60;
+  --z-skiplink: 70;
+}
+
+/* ==========================================================================
+   9. Reduced motion
+   Content is complete without animation. Durations collapse; nothing is
+   hidden, nothing depends on a transition finishing.
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-1: 0ms;
+    --dur-2: 0ms;
+    --dur-3: 0ms;
+    --dur-4: 0ms;
+    --dur-sweep: 0ms;
+    --dur-hold: 0ms;
+    --dur-breathe: 0ms;
+    /* --dur-confirm is NOT zeroed: a success label still needs to be readable. */
+  }
+}
+
+/* ==========================================================================
+   10. Hairlines on high-DPR displays
+   A true 1px rule looks heavy next to Fragment Mono at 2dppx.
+   ========================================================================== */
+@media (min-resolution: 2dppx) {
+  :root {
+    --hairline: 0.5px;
+  }
+}
+
+/* ==========================================================================
+   11. Compact viewport overrides
+   Declared here so every consumer of the token gets the responsive value for
+   free and no component has to restate a breakpoint.
+   ========================================================================== */
+@media (max-width: 767px) {
+  :root {
+    --bar-h: var(--bar-h-sm);
+    --track-h: var(--track-h-sm);
+    --space-9: 56px;
+    --space-10: 80px;
+  }
+}
+
+/* ==========================================================================
+   12. Forced colors (Windows high contrast)
+   The product is already achromatic, so the only real work is making sure the
+   hairlines and the focus ring survive when the UA takes over color.
+   ========================================================================== */
+@media (forced-colors: active) {
+  :root {
+    --line-faint: CanvasText;
+    --line: CanvasText;
+    --line-strong: CanvasText;
+    --line-full: CanvasText;
+    --focus-color: Highlight;
+    --fg-primary: CanvasText;
+    --fg-secondary: CanvasText;
+    --fg-muted: CanvasText;
+    --fg-tick: GrayText;
+    --fg-disabled: GrayText;
+  }
+}

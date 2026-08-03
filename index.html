@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HYPERKIT — 六個在你裝置上運算的瀏覽器工具</title>
+<meta name="description" content="六個純瀏覽器工具：發票回顧、房貸沙盤、去背熔爐、情境織機、漸層工坊、對話金庫。全部在本機運算，沒有上傳、沒有帳號、沒有額度。">
+<meta name="color-scheme" content="dark light">
+<meta property="og:title" content="HYPERKIT">
+<meta property="og:description" content="六個純瀏覽器工具，全部在你的裝置上運算。">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230A0A0B'/%3E%3Cpath d='M8 7v18M8 16h16M24 7v18' stroke='%23E8E8E6' stroke-width='2.5' fill='none'/%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- 索引每一行用該工具自己的顯示字型。用 &text= 只取該行需要的字元，六個字型合計不到 20KB。 -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@700&text=InvoiceWrapd%20&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@700&text=MortgaeSndbx%20&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@600&text=CutoFrge%20&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700&text=MockupLm%20&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600&text=GradientK&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:wght@700&text=ChatVul&display=swap">
+<!-- 櫃體本身與所有中文：一個中性 grotesk + Noto Sans TC -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+
+<link rel="stylesheet" href="./css/hub.css">
+</head>
+<body>
+<!--
+  THESIS: 這不是作品集列表頁，是一個索引櫃：六個工具各自帶著自己完整的視覺世界，
+  游標停在哪一行，整個頁面就變成那個世界的顏色與那個世界的字。拒絕的類別預設是
+  六張等大卡片組成的網格，以及它可預期的反面——滿版影片背景加一句大標語的 agency 首頁。
+  OWN-WORLD: 櫃體是中性近黑 #0A0A0B，整個結構由 1px hairline 構成。頁面本身沒有品牌色；
+  畫面上每一個顏色都是某個工具借給它的。六行工具名各自用該工具的顯示字型渲染
+  （Archivo / Schibsted Grotesk / Geist / Bricolage Grotesque / Sora / Literata），
+  所以在索引上就已經讀到六種排印個性。
+  STORY: 訪客理解這裡有六個能立刻用的瀏覽器工具，全部本機運算；相信它們不是 demo；
+  掃過索引，停在跟自己有關的那一個，點進去。
+  FIRST VIEWPORT: 全螢幕不需捲動。左上 HYPERKIT 與一行說明；主體左側是六行工具名的垂直索引，
+  行與行之間只有 1px hairline；右側是預覽視窗，顯示當前工具的真實截圖；
+  底部 hairline 狀態列給出當前工具的定位與進入提示。主要動作就是索引行本身。
+  FORM: 垂直索引 + 單一預覽視窗（候選排序第 2；第 1 名「六個全螢幕橫向章節」被否決，
+  因為它逼使用者依序看完六個才知道有什麼，違反 hub 的工作）。seed key: brief-pinned。
+  FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
+-->
+<a class="skip" href="#index">跳至工具索引</a>
+
+<div class="shell">
+
+  <header class="masthead">
+    <div class="brand">
+      <span class="wordmark">HYPERKIT</span>
+      <span class="count" aria-hidden="true">06</span>
+    </div>
+    <p class="proposition">
+      六個瀏覽器工具。全部在你的裝置上運算——<em>沒有上傳、沒有帳號、沒有額度</em>。
+    </p>
+    <a class="source" href="https://github.com/fengfeng1021/hyperkit" rel="noopener">
+      原始碼
+      <svg viewBox="0 0 16 16" aria-hidden="true" width="13" height="13"><path d="M5.5 3.5h7v7M12.5 3.5 3.5 12.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="square"/></svg>
+    </a>
+  </header>
+
+  <main class="bench">
+
+    <ol class="index" id="index" aria-label="工具索引">
+
+      <li class="row" data-slug="invoice-wrapped-tw">
+        <a class="row-link" href="./invoice-wrapped-tw/">
+          <span class="row-rule" aria-hidden="true"></span>
+          <span class="row-en" style="font-family:'Archivo',system-ui,sans-serif;font-weight:700">Invoice Wrapped</span>
+          <span class="row-meta">
+            <span class="row-zh">發票回顧</span>
+            <span class="row-line">載具消費明細 CSV → 年度消費回顧與分享圖卡</span>
+          </span>
+        </a>
+      </li>
+
+      <li class="row" data-slug="mortgage-sandbox-tw">
+        <a class="row-link" href="./mortgage-sandbox-tw/">
+          <span class="row-rule" aria-hidden="true"></span>
+          <span class="row-en" style="font-family:'Schibsted Grotesk',system-ui,sans-serif;font-weight:700">Mortgage Sandbox</span>
+          <span class="row-meta">
+            <span class="row-zh">房貸沙盤</span>
+            <span class="row-line">提前還款、投資、寬限期——三條淨資產曲線對撞</span>
+          </span>
+        </a>
+      </li>
+
+      <li class="row" data-slug="cutout-forge">
+        <a class="row-link" href="./cutout-forge/">
+          <span class="row-rule" aria-hidden="true"></span>
+          <span class="row-en" style="font-family:'Geist',system-ui,sans-serif;font-weight:600">Cutout Forge</span>
+          <span class="row-meta">
+            <span class="row-zh">去背熔爐</span>
+            <span class="row-line">整批商品圖去背，不上傳、不算 credit、不限張數</span>
+          </span>
+        </a>
+      </li>
+
+      <li class="row" data-slug="mockup-loom">
+        <a class="row-link" href="./mockup-loom/">
+          <span class="row-rule" aria-hidden="true"></span>
+          <span class="row-en" style="font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:700">Mockup Loom</span>
+          <span class="row-meta">
+            <span class="row-zh">情境織機</span>
+            <span class="row-line">設計稿套上商品情境，圖案跟著布料皺褶彎折</span>
+          </span>
+        </a>
+      </li>
+
+      <li class="row" data-slug="gradientkit">
+        <a class="row-link" href="./gradientkit/">
+          <span class="row-rule" aria-hidden="true"></span>
+          <span class="row-en" style="font-family:'Sora',system-ui,sans-serif;font-weight:600">GradientKit</span>
+          <span class="row-meta">
+            <span class="row-zh">漸層工坊</span>
+            <span class="row-line">OKLCH 感知均勻插值、mesh 漸層、顆粒噪點消色帶</span>
+          </span>
+        </a>
+      </li>
+
+      <li class="row" data-slug="chatvault">
+        <a class="row-link" href="./chatvault/">
+          <span class="row-rule" aria-hidden="true"></span>
+          <span class="row-en" style="font-family:'Literata',Georgia,serif;font-weight:700">ChatVault</span>
+          <span class="row-meta">
+            <span class="row-zh">對話金庫</span>
+            <span class="row-line">AI 對話匯出檔秒開，全文搜尋不離開本機</span>
+          </span>
+        </a>
+      </li>
+
+    </ol>
+
+    <aside class="viewport" aria-hidden="true">
+      <div class="frame">
+        <div class="shots">
+          <img class="shot" data-slug="invoice-wrapped-tw" src="./assets/preview-invoice-wrapped-tw.png" alt="" loading="eager" decoding="async">
+          <img class="shot" data-slug="mortgage-sandbox-tw" src="./assets/preview-mortgage-sandbox-tw.png" alt="" loading="lazy" decoding="async">
+          <img class="shot" data-slug="cutout-forge" src="./assets/preview-cutout-forge.png" alt="" loading="lazy" decoding="async">
+          <img class="shot" data-slug="mockup-loom" src="./assets/preview-mockup-loom.png" alt="" loading="lazy" decoding="async">
+          <img class="shot" data-slug="gradientkit" src="./assets/preview-gradientkit.png" alt="" loading="lazy" decoding="async">
+          <img class="shot" data-slug="chatvault" src="./assets/preview-chatvault.png" alt="" loading="lazy" decoding="async">
+        </div>
+        <span class="frame-edge" aria-hidden="true"></span>
+      </div>
+      <p class="frame-note">真實畫面截圖，非示意圖</p>
+    </aside>
+
+  </main>
+
+  <footer class="statusbar">
+    <span class="status-zh" id="status-zh">六個工具</span>
+    <span class="status-line" id="status-line">把游標移到任一行，整個頁面會變成那個工具的世界</span>
+    <span class="status-hint"><kbd>↑</kbd><kbd>↓</kbd> 瀏覽<span class="sep"></span><kbd>Enter</kbd> 進入</span>
+  </footer>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+<script type="module" src="./js/hub.js"></script>
+</body>
+</html>

@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cutout Forge - batch background removal that never uploads a photo</title>
+<meta name="description" content="Remove backgrounds from hundreds of product photos inside your own browser. No account, no credits, no upload limit. Exports Shopify, Amazon, Etsy and Shopee sizes as a structured ZIP.">
+<meta name="color-scheme" content="dark">
+<!-- The mark is the page in miniature: the dark bed, one cyan scan beam
+     crossing it, and the corner marks that bound the drop area. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230E0E10'/%3E%3Cpath d='M6 6h4M6 6v4M26 6h-4M26 6v4M6 26h4M6 26v-4M26 26h-4M26 26v-4' stroke='%2322E5C8' stroke-width='2'/%3E%3Crect x='6' y='15' width='20' height='2' fill='%2322E5C8'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./css/tokens.css">
+<link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+<!--
+THESIS
+This interface argues one thing: the cost of the two-hundred-and-first photo is zero, and you can watch that be true. Every surface decision serves that proof. The wall of thumbnails exists so the batch is countable at a glance; the scan bands exist so progress is measured, not implied; the ledger exists so the money you did not spend is a number you can screenshot. Nothing on this page decorates. If an element cannot be traced back to "this proves the batch is real," it is removed.
+
+OWN-WORLD
+An industrial process monitor. Not cyberpunk, not a dark-mode dashboard template, not a neon terminal. The reference is the screen bolted to the side of a machine that is currently running: a measurement grid underneath everything, hairline rules instead of card edges, status lamps that differ by shape as well as colour, monospace only where a real quantity is being read (file names, pixel dimensions, elapsed seconds, dollars). Electric cyan is the instrument colour: it is the beam, the fill line, the lamp. It is never a mood. Forge orange is the fault colour and appears nowhere else, so that when it appears the eye goes straight to it. The transparency checkerboard is the one true texture on the page, and it belongs to the product photo, not to the chrome.
+
+STORY
+The page opens as a bare measurement bed: a grid, four corner marks, one sentence, two buttons, and an honest line of hardware status. It is empty on purpose, because emptiness is what a machine looks like before you load it. The moment files land, the bed fills from the centre outward with a wave of thumbnails, and the page changes character from a claim to a workload. For the next few minutes the surface is a monitor: beams sweep, lamps change shape, one number climbs in the left rail. When the last photo resolves, the wall reorganises itself into what the operator must do next, the ledger swells once, and the room goes quiet. The final state is a receipt.
+
+FIRST VIEWPORT
+Full height, no scroll. A masthead 56 px tall carrying a back link, the product name, and a live engine chip. Below it, the floor: a 32 px measurement grid on #0E0E10, inset by 24 px with a 1 px rule and four 12 px cyan corner marks that also mark the drop boundary. Centred and lifted 6 vh above middle, four text elements and nothing else: the headline `Cut out 200 product photos without uploading one.` at up to 68 px; one line of 13 words underneath; a filled cyan primary button beside a hairline secondary button; and a single line of real hardware status reading `WebGPU ready - model not downloaded yet (44 MB, one time)`. The left rail is present but quiet, showing only the output preset that will be used, so the visitor already knows what they are about to get. There is no eyebrow, no scroll cue, no logo wall, no statistic block.
+
+FORM
+One accent, locked: cyan #22E5C8. One fault colour, locked: orange #FF7A18. Everything else is a nine-step neutral ramp from #08090A to #F4F6F6. Depth is built from surface luminance steps and black shadows with real offset and blur; there is no coloured halo anywhere. Radius is a three-value system with a stated rule: 0 for anything that is an image edge, 2 for chips and checkboxes, 4 for every control, panel, and popover. Nothing is a pill. Type is Geist for everything the interface says and Geist Mono for everything the machine measures, and the split is enforced, not aesthetic. Spacing runs on a 4 px base with tight groups and generous separation between them, and every heading carries more space above it than below. Motion is exponential ease-out from an already-visible state, except for the scan beam, which is linear because a scan is a constant-rate measurement and easing it would turn an instrument into an ornament.
+
+FINISH
+unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
+-->
+
+<svg class="sprite" aria-hidden="true" focusable="false" width="0" height="0" overflow="hidden">
+  <defs>
+    <!-- 9 icons. stroke-width 1.5, square linecaps, 24x24 box, one hand. -->
+    <symbol id="i-arrows" viewBox="0 0 24 24"><path d="M9.5 8.5 6 12l3.5 3.5M14.5 8.5 18 12l-3.5 3.5M6 12h12"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><path d="M9 5v14M15 5v14"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5 19 12 7 19.5Z"/></symbol>
+    <symbol id="i-retry" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.5-5.8M20 4v4h-4"/></symbol>
+    <symbol id="i-more" viewBox="0 0 24 24"><path d="M12 6.4v.2M12 11.9v.2M12 17.4v.2"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M4.5 19.5h15"/></symbol>
+    <symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 4.5 21 20H3Z"/><path d="M12 10.5v4M12 16.9v.2"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m4.5 12.5 5 5 10-11"/></symbol>
+  </defs>
+</svg>
+
+<a class="skip-link" href="#floor">Skip to the forge bed</a>
+
+<header class="masthead">
+  <a class="masthead__back" href="../index.html">&lsaquo;&nbsp;hyperkit</a>
+  <h1 class="masthead__title">Cutout Forge</h1>
+
+  <div class="masthead__tools">
+    <details class="engine" id="engine">
+      <summary class="chip chip--probing" id="engineChip" aria-label="Engine status">
+        <span class="chip__lamp" aria-hidden="true"></span>
+        <span class="chip__text" id="engineChipText">Checking hardware</span>
+      </summary>
+      <div class="popover" role="group" aria-label="Engine details">
+        <!-- Which of the two cutout paths is running, what it is good at, and
+             what the other one would do better. Written out in full because a
+             fallback that is not explained reads as a broken product. -->
+        <div class="modes" id="engineModes">
+          <div class="mode" id="modeModel">
+            <h3 class="mode__name">AI model &mdash; RMBG-1.4</h3>
+            <p class="mode__body">Segments the product from any backdrop: fur, hair, glass, shadows, a cluttered desk. Downloads 44&nbsp;MB once, then runs offline on your GPU.</p>
+          </div>
+          <div class="mode" id="modeChroma">
+            <h3 class="mode__name">Chroma-key &mdash; no download</h3>
+            <p class="mode__body">Our own flood fill from the four corners. Starts instantly and is clean on solid studio backgrounds &mdash; white, grey, seamless paper. It cannot follow fur, hair or glass, and it will leave those edges hard.</p>
+          </div>
+        </div>
+        <p class="popover__note" id="engineModeWhy"></p>
+        <dl class="kv" id="enginePopoverBody">
+          <div class="kv__row"><dt>Engine</dt><dd class="mono" id="engEngine">probing</dd></div>
+          <div class="kv__row"><dt>Model</dt><dd class="mono">briaai/RMBG-1.4</dd></div>
+          <div class="kv__row"><dt>Cached</dt><dd class="mono" id="engCached">checking</dd></div>
+          <div class="kv__row"><dt>Concurrency</dt><dd class="mono" id="engConcurrency">measuring</dd></div>
+          <div class="kv__row"><dt>Your photos</dt><dd>never leave this tab</dd></div>
+          <div class="kv__row"><dt>Model weights</dt><dd>downloaded once from huggingface.co</dd></div>
+        </dl>
+        <div class="popover__actions">
+          <button type="button" class="btn btn--ghost btn--sm" id="btnModeToggle">Switch to chroma-key mode</button>
+          <button type="button" class="btn btn--ghost btn--sm" id="btnClearCache">Clear cached model</button>
+        </div>
+      </div>
+    </details>
+
+    <!-- The keyboard chip is 26px and stays at every width; a wider "More"
+         menu holding the same single item only cost the masthead the room
+         the engine chip needs on a phone. -->
+    <button type="button" class="chip chip--quiet chip--keys" id="btnShortcuts" aria-haspopup="dialog">
+      <span aria-hidden="true">?</span><span class="u-visually-hidden">Keyboard shortcuts</span>
+    </button>
+  </div>
+</header>
+
+<main class="workbench">
+
+  <!-- ============================ FLOOR ============================ -->
+  <div class="floor" id="floor" tabindex="-1">
+
+    <!-- warm-up bar: pushes the grid down, never covers it -->
+    <section class="warmup" id="warmup" hidden aria-labelledby="warmupTitle">
+      <div class="warmup__text">
+        <h2 class="warmup__title" id="warmupTitle">Warming the forge</h2>
+        <p class="warmup__sub" id="warmupSub">Downloading the cutout model, 44 MB. This happens once.</p>
+      </div>
+      <div class="warmup__meter">
+        <div class="bar" role="progressbar" aria-labelledby="warmupTitle" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="warmupBar">
+          <span class="bar__fill" id="warmupFill"></span>
+        </div>
+        <p class="warmup__readout mono" id="warmupReadout">0% &middot; 0.0 / 44.0 MB</p>
+      </div>
+      <div class="warmup__actions" id="warmupActions">
+        <button type="button" class="btn btn--ghost btn--sm" id="btnSkipWarmup">Skip and use chroma-key</button>
+      </div>
+    </section>
+
+    <!-- zero-data floor: the forge bed -->
+    <section class="bed" id="bed" aria-labelledby="bedHeadline">
+      <span class="bed__mark bed__mark--tl" aria-hidden="true"></span>
+      <span class="bed__mark bed__mark--tr" aria-hidden="true"></span>
+      <span class="bed__mark bed__mark--bl" aria-hidden="true"></span>
+      <span class="bed__mark bed__mark--br" aria-hidden="true"></span>
+
+      <div class="bed__stack">
+        <h2 class="bed__headline" id="bedHeadline">Cut out 200 product photos without uploading one.</h2>
+        <p class="bed__lead" id="bedLead">Everything runs in this browser tab. No account, no credits, no upload limit.</p>
+        <div class="bed__actions">
+          <button type="button" class="btn btn--primary btn--lg" id="btnChoose">Choose photos</button>
+          <button type="button" class="btn btn--ghost btn--lg" id="btnSamples">Load 6 sample products</button>
+        </div>
+        <p class="bed__engine mono" id="bedEngine">Checking hardware</p>
+      </div>
+    </section>
+
+    <!-- queue matrix -->
+    <section class="matrix-wrap" id="matrixWrap" hidden aria-labelledby="matrixHeading">
+      <h2 class="u-visually-hidden" id="matrixHeading">Photo queue</h2>
+      <ul class="matrix" id="matrix" role="listbox" aria-labelledby="matrixHeading" aria-multiselectable="true"></ul>
+      <!-- Reads under the wall whenever the wall is small enough to leave room.
+           It is the caption on an instrument, not an empty state: it names what
+           the beam is doing now and what the checkerboard means when it stops. -->
+      <p class="wallnote" id="wallNote" hidden></p>
+    </section>
+
+    <!-- inspector: in-place takeover of the floor, not a modal -->
+    <section class="inspector" id="inspector" hidden aria-labelledby="inspectorName">
+      <div class="inspector__plate" id="inspectorPlate">
+        <div class="inspector__stage" id="inspectorStage">
+          <canvas class="inspector__canvas inspector__canvas--result" id="inspResult" role="img" aria-label="Cutout result"></canvas>
+          <canvas class="inspector__canvas inspector__canvas--original" id="inspOriginal" role="img" aria-label="Original photo"></canvas>
+          <div class="inspector__divider" id="inspDivider" aria-hidden="true"></div>
+          <button type="button" class="split-handle" id="inspHandle"
+                  role="slider" aria-label="Before and after divider"
+                  aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" aria-valuetext="50 percent">
+            <svg class="icon" aria-hidden="true"><use href="#i-arrows"></use></svg>
+          </button>
+          <p class="inspector__zoomtag mono" id="inspZoomTag" hidden>1:1</p>
+        </div>
+      </div>
+
+      <div class="inspector__column">
+        <div class="inspector__head">
+          <h2 class="inspector__name mono" id="inspectorName">file</h2>
+          <p class="inspector__dims mono" id="inspectorDims">measuring</p>
+        </div>
+
+        <dl class="kv kv--measure" id="inspectorMeasure"></dl>
+
+        <div class="field-group">
+          <h3 class="field-group__title">Edge</h3>
+          <div class="field">
+            <label class="field__label" for="inspFeather">Feather</label>
+            <input class="range" type="range" id="inspFeather" min="0" max="6" step="0.5" value="1.5"
+                   aria-valuetext="1.5 pixels">
+            <output class="field__out mono" id="inspFeatherOut">1.5 px</output>
+          </div>
+          <div class="field">
+            <label class="field__label" for="inspDespill">Despill</label>
+            <input class="range" type="range" id="inspDespill" min="0" max="100" step="5" value="40"
+                   aria-valuetext="40 percent">
+            <output class="field__out mono" id="inspDespillOut">40%</output>
+          </div>
+          <fieldset class="field field--radios">
+            <legend class="field__label">Matte</legend>
+            <label class="radio"><input type="radio" name="matte" value="checker" checked><span>Checker</span></label>
+            <label class="radio"><input type="radio" name="matte" value="white"><span>White</span></label>
+            <label class="radio"><input type="radio" name="matte" value="black"><span>Black</span></label>
+          </fieldset>
+        </div>
+
+        <div class="inspector__actions">
+          <button type="button" class="btn btn--ghost" id="inspRetry">Retry with chroma-key</button>
+          <button type="button" class="btn btn--ghost" id="inspRemove">Remove from queue</button>
+          <button type="button" class="btn btn--ghost" id="inspClose">Back to the wall</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ========================= INTAKE RAIL ========================= -->
+  <aside class="rail" id="rail" aria-label="Intake and output">
+
+    <section class="rail__section" id="railSources" hidden aria-labelledby="railSourcesTitle">
+      <h2 class="rail__title" id="railSourcesTitle">Sources</h2>
+      <button type="button" class="btn btn--ghost btn--wide" id="btnAddMore">
+        <svg class="icon" aria-hidden="true"><use href="#i-plus"></use></svg>Add more photos
+      </button>
+      <p class="rail__note mono" id="sourcesCount">0 photos loaded</p>
+      <details class="skipped" id="skippedBox" hidden>
+        <summary class="skipped__summary" id="skippedSummary">0 files skipped</summary>
+        <ul class="skipped__list mono" id="skippedList"></ul>
+      </details>
+      <button type="button" class="btn btn--ghost btn--wide" id="btnClearAll">Clear the queue</button>
+    </section>
+
+    <section class="rail__section" id="railTransport" hidden aria-labelledby="railTransportTitle">
+      <h2 class="rail__title" id="railTransportTitle">Run</h2>
+      <div class="transport" id="transport">
+        <button type="button" class="btn btn--primary btn--wide" id="btnRun">
+          <svg class="icon" aria-hidden="true"><use href="#i-play"></use></svg><span id="btnRunLabel">Start</span>
+        </button>
+        <button type="button" class="btn btn--fault btn--wide" id="btnRetryFailed" hidden>
+          <svg class="icon" aria-hidden="true"><use href="#i-retry"></use></svg><span id="btnRetryLabel">Retry failed</span>
+        </button>
+      </div>
+      <div class="bar bar--queue" role="progressbar" aria-label="Queue progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="queueBar">
+        <span class="bar__fill" id="queueFill"></span>
+      </div>
+      <p class="rail__note mono" id="queueCounts">0 / 0</p>
+      <p class="rail__note mono" id="queueEta">Measuring</p>
+    </section>
+
+    <!-- Ledger is injected here by js/ledger.js after the first photo is done.
+         It sits above Output because the presets are the tallest block in the
+         rail and would push the one number worth screenshotting below the
+         fold. Everything live rides the top; configuration rides underneath. -->
+    <div id="ledgerSlot"></div>
+
+    <section class="rail__section" aria-labelledby="railOutputTitle">
+      <h2 class="rail__title" id="railOutputTitle">Output</h2>
+      <ul class="presets" id="presets"></ul>
+      <p class="rail__note" id="presetGuard" role="status"></p>
+    </section>
+
+    <section class="rail__section rail__section--export" aria-labelledby="railExportTitle">
+      <h2 class="u-visually-hidden" id="railExportTitle">Export</h2>
+      <ul class="tree mono" id="exportTree" hidden aria-label="Export folder tree"></ul>
+      <button type="button" class="btn btn--primary btn--export" id="btnExport" disabled aria-describedby="exportHint">
+        <svg class="icon" aria-hidden="true"><use href="#i-download"></use></svg><span id="btnExportLabel">Export</span>
+        <span class="btn__meter" id="exportMeter" aria-hidden="true"></span>
+      </button>
+      <p class="rail__note" id="exportHint">Nothing is done yet.</p>
+      <p class="rail__note rail__next" id="nextStep" hidden>
+        Next: drop these cutouts into a scene.
+        <a href="../mockup-loom/">Mockup Loom</a>
+      </p>
+    </section>
+  </aside>
+</main>
+
+<footer class="statusrail">
+  <p class="statusrail__readouts mono" id="statusReadouts">
+    <span id="stEngine">engine probing</span>
+    <span id="stConcurrency">concurrency 2</span>
+    <span id="stMemory">memory nominal</span>
+    <span id="stQueue">queue empty</span>
+  </p>
+  <p class="statusrail__alert" id="alertSlot" role="status" aria-live="polite"></p>
+  <p class="u-visually-hidden" id="alertAssertive" role="alert" aria-live="assertive"></p>
+</footer>
+
+<dialog class="shortcuts" id="shortcutsDialog" aria-labelledby="shortcutsTitle">
+  <div class="shortcuts__head">
+    <h2 class="shortcuts__title" id="shortcutsTitle">Keyboard</h2>
+    <button type="button" class="btn btn--ghost btn--sm" id="btnShortcutsClose">Close</button>
+  </div>
+  <div class="shortcuts__cols">
+    <dl class="kv kv--keys">
+      <div class="kv__row"><dt>Open files</dt><dd class="mono">O</dd></div>
+      <div class="kv__row"><dt>Load samples</dt><dd class="mono">S</dd></div>
+      <div class="kv__row"><dt>Start, pause, resume</dt><dd class="mono">P</dd></div>
+      <div class="kv__row"><dt>Export</dt><dd class="mono">E</dd></div>
+      <div class="kv__row"><dt>This panel</dt><dd class="mono">?</dd></div>
+      <div class="kv__row"><dt>Step back one layer</dt><dd class="mono">Esc</dd></div>
+    </dl>
+    <dl class="kv kv--keys">
+      <div class="kv__row"><dt>Move in the wall</dt><dd class="mono">Arrows</dd></div>
+      <div class="kv__row"><dt>Row start, row end</dt><dd class="mono">Home, End</dd></div>
+      <div class="kv__row"><dt>Open a photo</dt><dd class="mono">Enter</dd></div>
+      <div class="kv__row"><dt>Select</dt><dd class="mono">Space</dd></div>
+      <div class="kv__row"><dt>Select all</dt><dd class="mono">Ctrl A</dd></div>
+      <div class="kv__row"><dt>Remove selected</dt><dd class="mono">Delete</dd></div>
+      <div class="kv__row"><dt>Retry selected</dt><dd class="mono">R</dd></div>
+      <div class="kv__row"><dt>Previous, next photo</dt><dd class="mono">[ ]</dd></div>
+      <div class="kv__row"><dt>1:1 pixels</dt><dd class="mono">Z</dd></div>
+    </dl>
+  </div>
+</dialog>
+
+<input type="file" id="fileInput" accept="image/*" multiple hidden>
+
+<!-- GSAP core plus Flip, which is the only plugin this page uses: there is no
+     page scroll here (the floor and the rail scroll independently), so there
+     is nothing for ScrollTrigger to trigger on. Classic scripts run before
+     the deferred modules below, so gsap is on window by the time motion.js
+     evaluates; if either file is blocked, motion.js exits and the interface
+     is unchanged. -->
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/Flip.min.js"></script>
+<script type="module" src="./js/main.js"></script>
+<script type="module" src="./js/motion.js"></script>
+</body>
+</html>

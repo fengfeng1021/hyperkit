@@ -1,0 +1,1230 @@
+/* ==========================================================================
+   Cutout Forge - layout and components
+   Every colour in this file comes from css/tokens.css. There are no bare
+   hex values here. Depth is surface luminance plus offset black shadow;
+   there is no zero-offset coloured shadow anywhere in this project.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Reset and base
+   -------------------------------------------------------------------------- */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  display: grid;
+  grid-template-rows: var(--masthead-h) minmax(0, 1fr) var(--statusbar-h);
+  background: var(--forge-void);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  letter-spacing: var(--tr-body);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+/* Several panels below set display: grid or flex, which outranks the user
+   agent's [hidden] { display: none }. Without this they keep their box while
+   invisible and push the floor around. */
+[hidden] { display: none !important; }
+
+h1, h2, h3, p, dl, dd, figure, ul, ol { margin: 0; }
+ul, ol { padding: 0; list-style: none; }
+button, input, select, textarea { font: inherit; color: inherit; }
+canvas { display: block; }
+
+.sprite { position: absolute; }
+.sprite symbol path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+}
+#i-play path, #i-warn path:first-child { fill: currentColor; stroke-linejoin: miter; }
+
+.icon {
+  width: 16px; height: 16px;
+  flex: none;
+  color: currentColor;
+}
+.icon use { pointer-events: none; }
+
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+.u-visually-hidden {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+
+/* One focus writing for the whole site. Never removed. */
+:focus-visible {
+  outline: var(--focus-width) solid var(--focus-color);
+  outline-offset: var(--focus-offset);
+}
+
+.skip-link {
+  position: absolute; top: var(--sp-3); left: var(--sp-3);
+  z-index: var(--z-dialog);
+  padding: var(--sp-3) var(--sp-5);
+  background: var(--cyan); color: var(--cyan-ink);
+  font-size: var(--fs-ui); font-weight: var(--fw-semibold);
+  border-radius: var(--r-2); text-decoration: none;
+  transform: translateY(-200%);
+}
+.skip-link:focus-visible { transform: none; }
+
+/* --------------------------------------------------------------------------
+   2. Buttons
+   -------------------------------------------------------------------------- */
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: var(--sp-3);
+  position: relative;
+  min-height: 36px;
+  padding: var(--sp-3) var(--sp-5);
+  border: 1px solid transparent;
+  border-radius: var(--r-2);
+  background: transparent;
+  font-size: var(--fs-ui);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-ui);
+  letter-spacing: 0;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--dur-tap) var(--ease-out),
+              border-color var(--dur-tap) var(--ease-out),
+              color var(--dur-tap) var(--ease-out),
+              transform var(--dur-tap) var(--ease-out);
+}
+.btn--lg { min-height: 44px; padding-inline: var(--sp-6); }
+.btn--sm { min-height: 28px; padding: var(--sp-2) var(--sp-4); font-size: var(--fs-meta); }
+.btn--wide { width: 100%; }
+
+.btn--primary { background: var(--cyan); color: var(--cyan-ink); }
+.btn--primary:hover { background: var(--cyan-bright); }
+.btn--primary:active { background: var(--cyan-deep); transform: translateY(1px); }
+
+.btn--ghost { border-color: var(--forge-line-strong); color: var(--ink); }
+.btn--ghost:hover { border-color: var(--cyan-deep); color: var(--ink-hi); }
+.btn--ghost:active { transform: translateY(1px); background: var(--forge-rail); }
+
+.btn--fault { border-color: var(--forge-orange); color: var(--forge-orange); }
+.btn--fault:hover { background: var(--forge-orange-wash); }
+.btn--fault:active { transform: translateY(1px); }
+
+.btn[disabled],
+.btn[aria-disabled="true"] {
+  cursor: not-allowed;
+  color: var(--ink-off);
+  border-color: var(--forge-line);
+  background-color: var(--forge-slot);
+  background-image: var(--hatch-disabled);
+  transform: none;
+}
+.btn[disabled] .icon { opacity: 0.6; }
+
+.btn[aria-busy="true"] { pointer-events: none; }
+
+/* linear progress inside a loading button, never a spinner */
+.btn__meter {
+  position: absolute; left: 0; bottom: 0;
+  height: 2px; width: 0;
+  background: var(--cyan-ink);
+  transition: width var(--dur-ui) linear;
+}
+.btn--ghost .btn__meter { background: var(--cyan); }
+
+.btn--loading .btn__meter { width: var(--meter, 0%); }
+
+/* the secondary button draws a 1px line left to right while it works */
+.btn--scanning {
+  background-image: linear-gradient(90deg, var(--cyan) 0 var(--meter, 0%), transparent var(--meter, 0%) 100%);
+  background-repeat: no-repeat;
+  background-size: 100% 1px;
+  background-position: 0 100%;
+}
+
+/* --------------------------------------------------------------------------
+   3. Masthead
+   -------------------------------------------------------------------------- */
+
+.masthead {
+  display: flex; align-items: center; gap: var(--sp-5);
+  height: var(--masthead-h);
+  padding-inline: var(--sp-5);
+  background: var(--forge-void);
+  border-bottom: 1px solid var(--forge-line);
+  z-index: var(--z-masthead);
+}
+
+.masthead__back {
+  color: var(--ink-mid);
+  font-size: var(--fs-ui);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  padding-bottom: 1px;
+}
+.masthead__back:hover { color: var(--ink-hi); border-bottom-color: var(--ink-hi); }
+
+.masthead__title {
+  font-size: var(--fs-ui);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tr-body);
+  color: var(--ink-hi);
+  padding-left: var(--sp-5);
+  border-left: 1px solid var(--forge-line);
+}
+
+.masthead__tools {
+  margin-left: auto;
+  display: flex; align-items: center; gap: var(--sp-3);
+}
+
+.chip {
+  display: inline-flex; align-items: center; gap: var(--sp-2);
+  height: 26px; padding-inline: 10px;
+  border: 1px solid var(--forge-line-strong);
+  border-radius: var(--r-1);
+  background: transparent;
+  color: var(--ink-mid);
+  font-size: var(--fs-ui);
+  font-weight: var(--fw-medium);
+  white-space: nowrap;
+  flex: none;
+  cursor: pointer;
+  list-style: none;
+  position: relative;
+  transition: color var(--dur-ui) var(--ease-out), border-color var(--dur-ui) var(--ease-out);
+}
+.chip::-webkit-details-marker { display: none; }
+.chip:hover { color: var(--ink-hi); }
+.chip--keys { width: 26px; padding: 0; justify-content: center; }
+
+.chip__lamp {
+  width: 6px; height: 6px;
+  border-radius: var(--r-1);
+  background: var(--ink-mid);
+}
+.chip--webgpu, .chip--offline-ready { color: var(--cyan); border-color: var(--cyan-deep); }
+.chip--webgpu .chip__lamp, .chip--offline-ready .chip__lamp { background: var(--cyan); }
+.chip--wasm { color: var(--ink-hi); }
+.chip--wasm .chip__lamp { background: var(--ink-hi); }
+/* Chroma-key is a working mode, not a fault, so it does not get the fault
+   colour: orange on this page means something went wrong, and spending it
+   here would teach a first-time visitor that the tool is broken. It reads as
+   a neutral lamp with a hollow centre, which is the shape difference the
+   status-lamp system already uses for "running on the reduced path". */
+.chip--chroma { color: var(--ink-hi); border-color: var(--forge-line-strong); }
+.chip--chroma .chip__lamp {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--ink-hi);
+}
+.chip--warming { color: var(--ink-hi); }
+.chip--warming::after {
+  content: ""; position: absolute; left: -1px; bottom: -1px;
+  height: 2px; width: var(--warm, 0%);
+  background: var(--cyan);
+}
+
+.engine { position: relative; }
+
+.popover {
+  position: absolute; top: calc(100% + var(--sp-3)); right: 0;
+  z-index: var(--z-popover);
+  width: 340px; max-width: calc(100vw - var(--sp-6));
+  padding: var(--sp-5);
+  background: var(--forge-rail);
+  border: 1px solid var(--forge-line-strong);
+  border-radius: var(--r-2);
+  box-shadow: var(--shadow-2);
+}
+.popover__actions { display: grid; gap: var(--sp-3); margin-top: var(--sp-5); }
+.popover__note { font-size: var(--fs-meta); color: var(--ink-mid); margin-bottom: var(--sp-3); }
+
+/* The two cutout paths, side by side, with the live one marked. Both are
+   always described: a visitor who lands in the fallback has to be able to
+   read what it is good at without first discovering the other one exists. */
+.modes { display: grid; gap: var(--sp-4); margin-bottom: var(--sp-5); }
+.mode {
+  padding-left: var(--sp-4);
+  border-left: 2px solid var(--forge-line-strong);
+}
+.mode__name {
+  font-size: var(--fs-ui);
+  font-weight: var(--fw-semibold);
+  color: var(--ink-mid);
+}
+.mode__body {
+  font-size: var(--fs-meta);
+  line-height: var(--lh-body);
+  color: var(--ink-mid);
+  margin-top: var(--sp-2);
+}
+.mode.is-active { border-left-color: var(--cyan); }
+.mode.is-active .mode__name { color: var(--cyan); }
+.mode.is-active .mode__body { color: var(--ink); }
+
+.kv { display: grid; gap: var(--sp-1); }
+.kv__row {
+  display: grid; grid-template-columns: 122px minmax(0, 1fr);
+  gap: var(--sp-4);
+  padding-block: var(--sp-2);
+  border-bottom: 1px solid var(--forge-line);
+  font-size: var(--fs-meta);
+}
+.kv__row:last-child { border-bottom: 0; }
+.kv dt { color: var(--ink-mid); }
+.kv dd { color: var(--ink-hi); margin: 0; overflow-wrap: anywhere; }
+.kv--keys .kv__row { grid-template-columns: minmax(0, 1fr) auto; }
+.kv--keys dd { color: var(--cyan); }
+
+/* --------------------------------------------------------------------------
+   4. Workbench shell
+   -------------------------------------------------------------------------- */
+
+.workbench {
+  display: grid;
+  grid-template-columns: var(--rail-w) minmax(0, 1fr);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.floor {
+  grid-column: 2;
+  grid-row: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background-color: var(--forge-bed);
+  overflow: hidden;
+}
+.floor::before {
+  content: "";
+  position: absolute; inset: 0;
+  background-image: var(--grid-bed);
+  opacity: var(--grid-opacity);
+  pointer-events: none;
+}
+.floor:focus { outline: none; }
+
+.floor.is-dragover { background-color: var(--forge-plate); }
+.floor.is-reject .bed__mark { background: var(--forge-orange); }
+
+.rail {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex; flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* No bottom padding: the sticky Export block below sits against the
+     content-box edge, and a bottom padding on the scroller would leave a
+     strip underneath it where the scrolled-past presets peek through.
+     Export carries that padding instead. */
+  padding: 0 var(--sp-6);
+  background: var(--forge-plate);
+  border-right: 1px solid var(--forge-line);
+  z-index: var(--z-rail);
+}
+
+.rail__section { border-top: 1px solid var(--forge-line); }
+.rail__section:first-of-type { border-top: 0; }
+/* The rail scrolls once a batch is loaded, and Export is the one control
+   that must never be below the fold. It rides the bottom of the rail. */
+.rail__section--export {
+  margin-top: auto;
+  position: sticky;
+  bottom: 0;
+  background: var(--forge-plate);
+  padding-bottom: var(--sp-6);
+}
+/* Whatever is still scrolling underneath fades out instead of being sliced
+   in half by the sticky edge, so a heading caught mid-cut reads as depth
+   rather than as a clipping bug. */
+.rail__section--export::before {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: calc(var(--sp-6) * -1);
+  right: calc(var(--sp-6) * -1);
+  height: 28px;
+  background: linear-gradient(to top, var(--forge-plate), transparent);
+  pointer-events: none;
+}
+
+.rail__title {
+  font-size: var(--fs-h3);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tr-body);
+  color: var(--ink-hi);
+  margin-top: var(--sp-7);      /* space above a heading beats space below */
+  margin-bottom: var(--sp-5);
+}
+.rail__note {
+  font-size: var(--fs-meta);
+  color: var(--ink-mid);
+  margin-top: var(--sp-3);
+  letter-spacing: var(--tr-meta);
+}
+.rail__note a { color: var(--cyan); text-decoration: none; border-bottom: 1px solid var(--cyan-deep); }
+.rail__note a:hover { border-bottom-color: var(--cyan); }
+.rail__next { border-top: 1px solid var(--forge-line); padding-top: var(--sp-5); margin-top: var(--sp-5); }
+
+.rail__section > .btn + .btn { margin-top: var(--sp-3); }
+
+/* --------------------------------------------------------------------------
+   5. Forge bed (zero-data floor)
+   -------------------------------------------------------------------------- */
+
+.bed {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  /* `safe` so a short viewport top-aligns and stays scrollable instead of
+     centring the stack and cutting the hardware line off its bottom edge. */
+  align-content: safe center;
+  justify-items: start;
+  padding: var(--sp-10) var(--sp-8) 0;
+  margin: var(--floor-inset);
+  border: 1px solid var(--forge-line);
+  overflow-y: auto;
+}
+.floor.is-dragover .bed { border: 2px solid var(--cyan); }
+
+/* Not a ch measure: ch is relative to the element's own font size, and the
+   stack holds 68px display type next to 17px body type. A fixed cap keeps
+   the headline at two lines and the lead inside its own 46ch band. */
+.bed__stack { max-width: min(54rem, 100%); padding-bottom: 6vh; }
+
+.bed__mark {
+  position: absolute;
+  width: 12px; height: 12px;
+  background: var(--cyan-deep);
+  transition: width 180ms var(--ease-out), height 180ms var(--ease-out), background-color 180ms var(--ease-out);
+  clip-path: polygon(0 0, 100% 0, 100% 2px, 2px 2px, 2px 100%, 0 100%);
+}
+.bed__mark--tl { top: -1px; left: -1px; }
+.bed__mark--tr { top: -1px; right: -1px; transform: scaleX(-1); }
+.bed__mark--bl { bottom: -1px; left: -1px; transform: scaleY(-1); }
+.bed__mark--br { bottom: -1px; right: -1px; transform: scale(-1); }
+.floor.is-dragover .bed__mark { width: 24px; height: 24px; background: var(--cyan); }
+
+.bed__headline {
+  font-size: var(--fs-display);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-display);
+  letter-spacing: var(--tr-display);
+  color: var(--ink-hi);
+  text-wrap: balance;
+}
+.bed__lead {
+  margin-top: var(--sp-6);
+  max-width: 46ch;
+  font-size: var(--fs-lead);
+  line-height: 1.5;
+  color: var(--ink);
+}
+.bed__actions { display: flex; flex-wrap: wrap; gap: var(--sp-4); margin-top: var(--sp-8); }
+.bed__engine {
+  margin-top: var(--sp-6);
+  font-size: var(--fs-meta);
+  color: var(--ink-mid);
+  letter-spacing: var(--tr-meta);
+}
+.bed__engine.is-fault { color: var(--forge-orange); }
+
+/* --------------------------------------------------------------------------
+   6. Warm-up bar
+   -------------------------------------------------------------------------- */
+
+.warmup {
+  flex: none;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 320px) auto;
+  align-items: center;
+  gap: var(--sp-6);
+  min-height: 72px;
+  padding: var(--sp-4) var(--sp-6);
+  background: var(--forge-plate);
+  border-bottom: 1px solid var(--forge-line);
+  z-index: var(--z-warmup);
+}
+.warmup.is-failed { background: var(--forge-orange-wash); }
+.warmup.is-failed .warmup__sub { color: var(--forge-orange); }
+
+.warmup__title {
+  font-size: var(--fs-h2);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tr-tight);
+  color: var(--ink-hi);
+}
+.warmup__sub { font-size: var(--fs-meta); color: var(--ink-mid); margin-top: var(--sp-1); }
+.warmup__readout { font-size: var(--fs-meta); color: var(--ink); margin-top: var(--sp-3); }
+.warmup__actions { display: flex; gap: var(--sp-3); }
+
+.bar {
+  height: 4px;
+  background: var(--forge-slot);
+  border-radius: var(--r-0);
+  overflow: hidden;
+}
+.bar__fill {
+  display: block; height: 100%; width: 0;
+  background: var(--cyan);
+  transition: width var(--dur-ui) var(--ease-out);
+}
+.bar--indeterminate .bar__fill { width: 100%; background: var(--forge-line-strong); }
+.bar--queue { height: 3px; margin-top: var(--sp-5); }
+
+/* --------------------------------------------------------------------------
+   7. Queue matrix and tiles
+   -------------------------------------------------------------------------- */
+
+.matrix-wrap {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--floor-inset);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+/* Six photos and two hundred photos are the same wall at two sizes. When the
+   batch is small enough to fit the bed with room to spare, js/main.js writes
+   an explicit column count and tile edge into --wall-cols / --wall-edge and
+   the wall centres itself vertically, so a first run reads as a composed
+   plate instead of one thin strip above an empty floor. */
+/* `safe` so that a wall which turns out to be taller than the bed falls back
+   to top alignment instead of having its first row clipped out of reach. */
+.matrix-wrap.is-sparse { justify-content: safe center; }
+
+.matrix {
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--tile-min), 1fr));
+  gap: var(--tile-gap);
+  justify-content: center;
+}
+.matrix-wrap.is-sparse .matrix {
+  grid-template-columns: repeat(var(--wall-cols, 3), var(--wall-edge, var(--tile-min)));
+}
+
+/* The caption under the wall. It is an instrument label, not an empty state:
+   it only appears when the wall leaves room for it, and it always says what
+   the machine is doing right now rather than what is missing. */
+.wallnote {
+  flex: 0 0 auto;
+  max-width: 72ch;
+  margin: var(--sp-7) auto 0;
+  text-align: center;
+  font-size: var(--fs-meta);
+  line-height: var(--lh-body);
+  letter-spacing: var(--tr-meta);
+  color: var(--ink-mid);
+}
+.wallnote .mono { color: var(--ink-hi); }
+.wallnote strong { font-weight: var(--fw-medium); color: var(--ink-hi); }
+
+.matrix.is-banded { gap: var(--tile-gap); }
+
+.band-label {
+  grid-column: 1 / -1;
+  display: flex; align-items: baseline; gap: var(--sp-3);
+  margin-top: var(--sp-7);
+  margin-bottom: var(--sp-2);
+  padding-bottom: var(--sp-3);
+  border-bottom: 1px solid var(--forge-line);
+  font-size: var(--fs-ui);
+  font-weight: var(--fw-semibold);
+  color: var(--ink-hi);
+}
+.band-label:first-child { margin-top: 0; }
+.band-label .mono { font-size: var(--fs-meta); color: var(--ink-mid); font-weight: var(--fw-regular); }
+.band-label--flagged, .band-label--failed { color: var(--forge-orange); }
+
+.tile {
+  position: relative;
+  aspect-ratio: 1;
+  border: 1px solid var(--forge-line);
+  border-radius: var(--r-0);
+  /* --checker carries its own position and size, so it has to ride in the
+     background shorthand. The flat colour is the final layer underneath. */
+  background: var(--checker), var(--forge-slot);
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: var(--ring-inset);
+}
+.tile:focus { outline: none; }
+.tile:focus-visible { outline: var(--focus-width) solid var(--focus-color); outline-offset: -1px; }
+
+.tile__layer {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: contain;
+}
+.tile__original { transition: opacity var(--dur-ui) var(--ease-out); }
+
+/* The radial erase only exists while the reveal is running. Attaching it at
+   rest would mean CSS hiding content that JS has to come back and rescue,
+   which is exactly what this project does not do.
+   The #000 below is mask opacity, not a colour: a mask stop has to be fully
+   opaque, and no design token can stand in for that. */
+.tile.is-revealing .tile__original {
+  mask-image: radial-gradient(circle at 50% 50%,
+    transparent var(--erase), #000 calc(var(--erase) + 16%));
+  -webkit-mask-image: radial-gradient(circle at 50% 50%,
+    transparent var(--erase), #000 calc(var(--erase) + 16%));
+}
+.tile__slot {
+  position: absolute; inset: 0;
+  background-color: var(--forge-slot);
+  background-image:
+    repeating-linear-gradient(0deg,  var(--forge-line) 0 1px, transparent 1px 8px),
+    repeating-linear-gradient(90deg, var(--forge-line) 0 1px, transparent 1px 8px);
+}
+
+.tile__scan {
+  position: absolute; inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(180deg,
+    transparent calc(var(--scan) - 7%),
+    var(--cyan-veil) calc(var(--scan) - 3%),
+    var(--cyan) calc(var(--scan) - 1px),
+    var(--cyan) calc(var(--scan) + 1px),
+    var(--cyan-veil) calc(var(--scan) + 3%),
+    transparent calc(var(--scan) + 7%));
+}
+.tile[data-status="running"] .tile__scan { opacity: 1; }
+
+/* reduced motion and no-JS-motion fallback: a static 2px rule at the top edge */
+.tile__runline {
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--cyan);
+  opacity: 0;
+}
+.tile[data-status="running"] .tile__runline { opacity: 1; }
+@media (prefers-reduced-motion: no-preference) {
+  .tile[data-status="running"] .tile__runline { opacity: 0; }
+}
+
+.tile__chrome {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  height: 28px;
+  display: flex; align-items: center; gap: var(--sp-2);
+  padding-inline: var(--sp-3);
+  background: var(--chrome-scrim);
+  backdrop-filter: var(--chrome-blur);
+  -webkit-backdrop-filter: var(--chrome-blur);
+  box-shadow: var(--shadow-1);
+  opacity: 0;
+  transition: opacity var(--dur-tap) var(--ease-out);
+}
+.tile:hover .tile__chrome,
+.tile:focus-visible .tile__chrome,
+.tile[data-status="queued"] .tile__chrome,
+.tile[data-status="decoding"] .tile__chrome,
+.tile[data-status="running"] .tile__chrome,
+.tile[data-status="failed"] .tile__chrome,
+.tile[data-status="paused"] .tile__chrome { opacity: 1; }
+
+.tile__name {
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  color: var(--ink);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.tile__dim {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  color: var(--ink-mid);
+  white-space: nowrap;
+}
+
+/* status lamps: shape first, colour second */
+.lamp { width: 8px; height: 8px; flex: none; border-radius: var(--r-1); }
+.lamp--solid   { background: var(--cyan); }
+.lamp--hollow  { background: transparent; box-shadow: inset 0 0 0 1px var(--ink-mid); width: 6px; height: 6px; }
+.lamp--frame   { background: transparent; box-shadow: inset 0 0 0 1px var(--forge-orange); }
+.lamp--tri     { background: var(--forge-orange); clip-path: polygon(50% 0, 100% 100%, 0 100%); border-radius: 0; }
+.lamp--idle    { background: var(--ink-hi); }
+.lamp--off     { background: var(--ink-off); }
+.lamp--hold    { background: transparent; box-shadow: inset 0 0 0 1px var(--ink-mid); position: relative; }
+.lamp--hold::after {
+  content: ""; position: absolute; left: -2px; right: -2px; top: 50%;
+  height: 1px; background: var(--ink-mid);
+}
+
+.tile[data-status="queued"] .tile__original { filter: saturate(0.55) brightness(0.72); }
+.tile[data-status="paused"] .tile__original { filter: saturate(0.55) brightness(0.72); }
+.tile[data-status="done"] .tile__original,
+.tile[data-status="flagged"] .tile__original { opacity: 0; }
+.tile[data-status="flagged"] { border-color: var(--forge-orange); }
+.tile[data-status="failed"] { background-color: var(--forge-slot); background-image: none; }
+.tile[data-status="failed"]::before {
+  content: ""; position: absolute; inset: 0; background: var(--forge-orange-wash);
+}
+.tile[data-status="failed"] .tile__original { opacity: 0.35; }
+.tile[data-status="skipped"] { opacity: 0.4; }
+
+.tile__flag {
+  position: absolute; top: var(--sp-3); right: var(--sp-3);
+  width: 10px; height: 10px;
+  background: var(--forge-orange);
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+.tile__msg {
+  position: absolute; left: var(--sp-3); right: var(--sp-3); top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px; line-height: 1.35;
+  color: var(--forge-orange);
+  text-align: center;
+}
+.tile__hold {
+  position: absolute; top: var(--sp-3); left: var(--sp-3);
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  color: var(--ink-mid);
+}
+
+.tile__ops {
+  position: absolute; left: 0; right: 0; bottom: 28px;
+  display: flex; gap: 1px;
+  opacity: 0;
+  transition: opacity var(--dur-tap) var(--ease-out);
+}
+.tile:hover .tile__ops, .tile:focus-visible .tile__ops, .tile.is-touched .tile__ops { opacity: 1; }
+.tile__op {
+  flex: 1 1 0;
+  min-height: 28px;
+  border: 0;
+  background: var(--chrome-scrim);
+  backdrop-filter: var(--chrome-blur);
+  -webkit-backdrop-filter: var(--chrome-blur);
+  color: var(--ink);
+  font-size: var(--fs-meta);
+  font-weight: var(--fw-medium);
+  cursor: pointer;
+}
+.tile__op:hover { background: var(--forge-rail); color: var(--ink-hi); }
+.tile__op:focus-visible { outline-offset: -2px; }
+
+.tile[aria-selected="true"] { border: 2px solid var(--cyan); }
+.tile__check {
+  position: absolute; top: var(--sp-3); left: var(--sp-3);
+  width: 12px; height: 12px;
+  background: var(--cyan);
+  border-radius: var(--r-1);
+  display: none;
+}
+.tile[aria-selected="true"] .tile__check { display: block; }
+
+/* --------------------------------------------------------------------------
+   8. Presets
+   -------------------------------------------------------------------------- */
+
+.presets { display: grid; }
+
+.preset { border-bottom: 1px solid var(--forge-line); }
+.preset:last-child { border-bottom: 0; }
+
+.preset__row {
+  display: flex; align-items: center; gap: var(--sp-3);
+  min-height: 40px;
+  transition: background-color var(--dur-tap) var(--ease-out);
+}
+.preset__row:hover { background: var(--forge-rail); }
+.preset__row:focus-within { background: var(--forge-rail); }
+
+.preset__label { display: flex; align-items: center; gap: var(--sp-3); flex: 1 1 auto; cursor: pointer; }
+.preset__label input { position: absolute; opacity: 0; width: 0; height: 0; }
+
+.checkbox {
+  width: 14px; height: 14px; flex: none;
+  border: 1px solid var(--forge-line-strong);
+  border-radius: var(--r-1);
+  display: grid; place-items: center;
+  color: transparent;
+  transition: background-color var(--dur-tap) var(--ease-out), border-color var(--dur-tap) var(--ease-out);
+}
+.preset__row:hover .checkbox { border-color: var(--cyan-deep); }
+.preset__label input:checked + .checkbox { background: var(--cyan); border-color: var(--cyan); color: var(--cyan-ink); }
+.preset__label input:focus-visible + .checkbox {
+  outline: var(--focus-width) solid var(--focus-color); outline-offset: var(--focus-offset);
+}
+.checkbox .icon { width: 10px; height: 10px; }
+
+.preset__name { font-size: var(--fs-ui); font-weight: var(--fw-medium); color: var(--ink); }
+.preset__label input:checked ~ .preset__name { color: var(--ink-hi); }
+.preset__spec {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  color: var(--ink);
+}
+.preset__checked { display: block; }
+
+.preset__edit {
+  border: 0; background: transparent; cursor: pointer;
+  font-size: var(--fs-meta); color: var(--ink-mid);
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-2);
+}
+.preset__edit:hover { color: var(--cyan); }
+.preset__edit[aria-expanded="true"] { color: var(--cyan); }
+
+.preset__source {
+  font-size: var(--fs-meta);
+  color: var(--ink-mid);
+  letter-spacing: var(--tr-meta);
+  padding: 0 0 var(--sp-3) 22px;   /* aligns under the label, past the checkbox */
+}
+
+.preset__panel {
+  background: var(--forge-slot);
+  border-left: 1px solid var(--cyan-deep);
+  padding: var(--sp-4) var(--sp-5);
+  margin-bottom: var(--sp-3);
+  display: grid; gap: var(--sp-3);
+}
+
+.field { display: grid; grid-template-columns: 76px minmax(0, 1fr) auto; align-items: center; gap: var(--sp-3); }
+.field__label { font-size: var(--fs-meta); color: var(--ink-mid); }
+.field__out { font-size: var(--fs-meta); color: var(--ink-hi); min-width: 44px; text-align: right; }
+
+.input {
+  height: 32px;
+  width: 100%;
+  padding-inline: var(--sp-3);
+  background: var(--forge-slot);
+  border: 1px solid var(--forge-line-strong);
+  border-radius: var(--r-2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-ui);
+  color: var(--ink-hi);
+}
+.input::placeholder { color: var(--ink-low); }
+.input:hover { border-color: var(--cyan-deep); }
+.input:focus-visible { border-color: var(--cyan); outline-offset: 1px; }
+.input[aria-invalid="true"] { border-color: var(--forge-orange); }
+
+.select {
+  height: 32px; width: 100%;
+  padding-inline: var(--sp-3);
+  background: var(--forge-slot);
+  border: 1px solid var(--forge-line-strong);
+  border-radius: var(--r-2);
+  font-size: var(--fs-ui);
+  color: var(--ink-hi);
+  cursor: pointer;
+}
+.select:hover { border-color: var(--cyan-deep); }
+
+/* range: 3px track, filled section cyan, square handle. No decorative track fill. */
+.range { -webkit-appearance: none; appearance: none; width: 100%; height: 16px; background: transparent; cursor: pointer; }
+.range::-webkit-slider-runnable-track {
+  height: 3px;
+  background: linear-gradient(90deg, var(--cyan) 0 var(--fill, 50%), var(--forge-slot) var(--fill, 50%) 100%);
+}
+.range::-moz-range-track { height: 3px; background: var(--forge-slot); }
+.range::-moz-range-progress { height: 3px; background: var(--cyan); }
+.range::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 12px; height: 16px; margin-top: -6.5px;
+  background: var(--ink-hi);
+  border: 0; border-radius: var(--r-1);
+}
+.range::-moz-range-thumb {
+  width: 12px; height: 16px;
+  background: var(--ink-hi);
+  border: 0; border-radius: var(--r-1);
+}
+.range:hover::-webkit-slider-thumb { background: var(--cyan); }
+.range:hover::-moz-range-thumb { background: var(--cyan); }
+
+.radio { display: inline-flex; align-items: center; gap: var(--sp-2); font-size: var(--fs-meta); color: var(--ink); cursor: pointer; }
+.radio input { accent-color: var(--cyan); }
+
+.skipped { margin-top: var(--sp-3); }
+.skipped__summary { font-size: var(--fs-meta); color: var(--forge-orange); cursor: pointer; }
+.skipped__list { font-size: var(--fs-meta); color: var(--ink-mid); margin-top: var(--sp-3); display: grid; gap: var(--sp-1); }
+
+/* --------------------------------------------------------------------------
+   9. Ledger
+   -------------------------------------------------------------------------- */
+
+.ledger {
+  border-top: 1px solid var(--forge-line);
+  padding-top: var(--sp-7);
+  margin-top: var(--sp-7);
+}
+.ledger__label { font-size: var(--fs-ui); color: var(--ink-mid); }
+.ledger__amount {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: var(--fs-ledger);
+  font-weight: var(--fw-medium);
+  letter-spacing: var(--tr-tight);
+  color: var(--ink-hi);
+  margin-top: var(--sp-2);
+  transition: color var(--dur-ui) var(--ease-out);
+}
+.ledger__amount.is-milestone { color: var(--cyan); }
+.ledger__amount.is-unset { font-size: var(--fs-h2); color: var(--ink-mid); }
+.ledger__basis { font-size: var(--fs-meta); color: var(--ink-mid); margin-top: var(--sp-2); }
+.ledger__rate { display: flex; align-items: center; gap: var(--sp-3); margin-top: var(--sp-4); }
+.ledger__rate .select { flex: 1 1 auto; }
+.ledger__why { margin-top: var(--sp-3); }
+.ledger__why summary { font-size: var(--fs-meta); color: var(--ink-mid); cursor: pointer; }
+.ledger__why summary:hover { color: var(--cyan); }
+.ledger__why p { font-size: var(--fs-meta); color: var(--ink-mid); margin-top: var(--sp-3); max-width: var(--measure); }
+.ledger__custom { margin-top: var(--sp-3); display: none; }
+.ledger__custom.is-open { display: block; }
+
+/* --------------------------------------------------------------------------
+   10. Export
+   -------------------------------------------------------------------------- */
+
+.btn--export { width: 100%; min-height: 48px; margin-top: var(--sp-5); overflow: hidden; }
+.btn--export.is-done { background: var(--cyan-deep); }
+.btn--export.is-error { background: var(--forge-orange); color: var(--forge-orange-ink); border-color: var(--forge-orange); }
+
+.tree {
+  font-size: var(--fs-meta);
+  color: var(--ink-mid);
+  line-height: 1.7;
+  margin-top: var(--sp-6);
+  max-height: 190px;
+  overflow-y: auto;
+}
+.tree li { white-space: pre; }
+.tree li.is-new { color: var(--cyan); }
+
+/* --------------------------------------------------------------------------
+   11. Inspector
+   -------------------------------------------------------------------------- */
+
+.inspector {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--inspector-w);
+  gap: var(--sp-6);
+  padding: var(--floor-inset);
+  position: relative;
+}
+
+.inspector__plate {
+  min-width: 0; min-height: 0;
+  display: grid; place-items: center;
+  padding: var(--sp-6);
+  background: var(--checker), var(--forge-slot);
+  border: 1px solid var(--forge-line);
+  overflow: auto;
+}
+
+.inspector__stage {
+  position: relative;
+  line-height: 0;
+  touch-action: none;
+  max-width: 100%;
+}
+.inspector__canvas { max-width: 100%; max-height: 100%; }
+.inspector__canvas--original {
+  position: absolute; inset: 0;
+  clip-path: inset(0 calc(100% - var(--split)) 0 0);
+}
+.inspector__stage.is-zoomed { cursor: grab; }
+.inspector__stage.is-zoomed .inspector__canvas { max-width: none; max-height: none; }
+
+.inspector__divider {
+  position: absolute; top: 0; bottom: 0;
+  left: var(--split);
+  width: 2px;
+  margin-left: -1px;
+  background: var(--cyan);
+  pointer-events: none;
+}
+.inspector__stage.is-dragging .inspector__divider { width: 3px; margin-left: -1.5px; }
+
+.split-handle {
+  position: absolute; top: 50%;
+  left: var(--split);
+  width: 32px; height: 32px;
+  margin: -16px 0 0 -16px;
+  display: grid; place-items: center;
+  background: var(--forge-rail);
+  border: 1px solid var(--cyan);
+  border-radius: var(--r-2);
+  color: var(--cyan);
+  cursor: col-resize;
+  touch-action: none;
+}
+.split-handle:hover { border-width: 2px; border-color: var(--cyan-bright); }
+.inspector__stage.is-dragging .split-handle { background: var(--cyan); color: var(--cyan-ink); }
+.split-handle .icon { width: 12px; height: 12px; }
+
+.inspector__zoomtag {
+  position: absolute; top: var(--sp-3); right: var(--sp-3);
+  padding: var(--sp-1) var(--sp-3);
+  background: var(--chrome-scrim);
+  color: var(--ink-hi);
+  font-size: var(--fs-meta);
+  line-height: 1.6;
+}
+
+.inspector__column {
+  min-width: 0;
+  overflow-y: auto;
+  display: flex; flex-direction: column;
+  gap: var(--sp-5);
+}
+.inspector__head { border-bottom: 1px solid var(--forge-line); padding-bottom: var(--sp-4); }
+.inspector__name {
+  font-family: var(--font-mono);
+  font-size: var(--fs-h2);
+  font-weight: var(--fw-medium);
+  letter-spacing: var(--tr-tight);
+  color: var(--ink-hi);
+  overflow-wrap: anywhere;
+}
+.inspector__dims { font-size: var(--fs-meta); color: var(--ink-mid); margin-top: var(--sp-2); }
+
+.kv--measure .kv__row { grid-template-columns: 96px minmax(0, 1fr); }
+.kv--measure dd { font-family: var(--font-mono); font-size: var(--fs-ui); }
+.kv--measure dd.is-fault { color: var(--forge-orange); }
+
+.field-group { border-top: 1px solid var(--forge-line); padding-top: var(--sp-5); }
+.field-group__title {
+  font-size: var(--fs-h3);
+  font-weight: var(--fw-semibold);
+  color: var(--ink-hi);
+  margin-bottom: var(--sp-4);
+}
+.field-group .field + .field { margin-top: var(--sp-3); }
+.field--radios { border: 0; padding: 0; margin: var(--sp-4) 0 0; display: flex; gap: var(--sp-4); align-items: center; }
+.field--radios .field__label { padding: 0; }
+
+.inspector__actions { display: grid; gap: var(--sp-3); margin-top: auto; padding-top: var(--sp-5); }
+
+/* --------------------------------------------------------------------------
+   12. Status rail
+   -------------------------------------------------------------------------- */
+
+.statusrail {
+  display: flex; align-items: center; gap: var(--sp-6);
+  /* As a grid item this row sizes to its own min-content, and the readouts
+     are a nowrap flex line. Without this the whole body column was being
+     widened to 529px at a 375px viewport, which pushed the masthead tools
+     past the right edge where body's overflow-x clipped them out of reach.
+     The readouts already carry overflow-x:auto to scroll instead. */
+  min-width: 0;
+  height: var(--statusbar-h);
+  padding-inline: var(--sp-5);
+  background: var(--forge-void);
+  border-top: 1px solid var(--forge-line);
+  font-size: var(--fs-meta);
+}
+.statusrail__readouts { display: flex; gap: var(--sp-6); color: var(--ink-mid); min-width: 0; }
+.statusrail__readouts span { white-space: nowrap; }
+.statusrail__alert {
+  margin-left: auto;
+  color: var(--ink-mid);
+  display: flex; align-items: center; gap: var(--sp-3);
+  min-width: 0;
+  text-align: right;
+}
+.statusrail__alert.is-warn { color: var(--forge-orange); }
+.statusrail__alert.is-warn::before {
+  content: ""; width: 8px; height: 8px; flex: none;
+  background: var(--forge-orange);
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+.statusrail__alert button {
+  border: 0; background: transparent; cursor: pointer;
+  color: var(--cyan);
+  font-size: var(--fs-meta);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  padding: 0;
+}
+
+/* --------------------------------------------------------------------------
+   13. Shortcuts dialog (the only <dialog> on the page)
+   -------------------------------------------------------------------------- */
+
+.shortcuts {
+  width: 560px; max-width: calc(100vw - var(--sp-8));
+  padding: var(--sp-6);
+  background: var(--forge-rail);
+  color: var(--ink);
+  border: 1px solid var(--forge-line-strong);
+  border-radius: var(--r-2);
+  box-shadow: var(--shadow-3);
+}
+.shortcuts::backdrop { background: var(--dialog-backdrop); }
+.shortcuts__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--sp-6); }
+.shortcuts__title { font-size: var(--fs-h2); font-weight: var(--fw-semibold); color: var(--ink-hi); letter-spacing: var(--tr-tight); }
+.shortcuts__cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-7); }
+
+/* --------------------------------------------------------------------------
+   14. Batch receipt - the end-of-run plate
+
+   Built and removed by js/motion.js, so it never exists under reduced motion
+   and never exists before a batch has actually finished. It is not a dialog:
+   it takes no focus, it is aria-hidden because the same counts are already
+   announced in the status rail live region, and pointer-events:none means the
+   wall behind it stays fully operable while it is up.
+   -------------------------------------------------------------------------- */
+
+.receipt {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-warmup);
+  display: grid;
+  place-items: center;
+  padding: var(--sp-6);
+  pointer-events: none;
+}
+.receipt__scrim { position: absolute; inset: 0; background: var(--receipt-scrim); }
+
+/* Solid plate rather than text on the scrim: the wall underneath carries
+   arbitrary product photography, and text floating over that cannot hold a
+   contrast ratio. On the void this reads 12.7:1. */
+.receipt__plate {
+  position: relative;
+  max-width: min(34rem, 100%);
+  display: grid;
+  justify-items: center;
+  gap: var(--sp-4);
+  padding: var(--sp-8) var(--sp-9);
+  text-align: center;
+  background: var(--forge-void);
+  border: 1px solid var(--forge-line-strong);
+  border-top: 1px solid var(--cyan);
+  border-radius: var(--r-2);
+  box-shadow: var(--shadow-3);
+}
+.receipt__label {
+  font-size: var(--fs-lead);
+  color: var(--ink-mid);
+  letter-spacing: var(--tr-body);
+}
+.receipt__amount {
+  font-family: var(--font-mono);
+  font-size: clamp(2.75rem, 1.4rem + 6vw, 6rem);
+  font-weight: var(--fw-medium);
+  line-height: 1.05;
+  letter-spacing: var(--tr-display);
+  color: var(--cyan);
+}
+.receipt__note {
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  color: var(--ink);
+  max-width: 40ch;
+}
+
+@media (max-width: 767px) {
+  .receipt__plate { padding: var(--sp-7) var(--sp-6); gap: var(--sp-3); }
+}
+
+/* The rail figure is scaled during the receipt beat, so it needs an origin
+   that does not shift the number sideways as it grows. */
+.ledger__amount { transform-origin: left center; }
+
+/* --------------------------------------------------------------------------
+   15. Responsive. Every multi-column layout declares its own < 768px rule.
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 1023px) {
+  body { grid-template-rows: var(--masthead-h) minmax(0, 1fr) var(--statusbar-h); }
+  .workbench { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
+  .floor { grid-column: 1; grid-row: 1; }
+  .rail {
+    grid-column: 1; grid-row: 2;
+    border-right: 0;
+    border-top: 1px solid var(--forge-line);
+    max-height: 42dvh;
+    padding-inline: var(--sp-5);
+  }
+  /* The rail becomes a short drawer here, so the one number worth
+     screenshotting rides its top edge instead of three scrolls down. */
+  #ledgerSlot { order: -1; }
+  #ledgerSlot .ledger { border-top: 0; margin-top: 0; padding-top: var(--sp-6); }
+  .inspector { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
+  .inspector__column { max-height: 40dvh; }
+}
+
+@media (max-width: 767px) {
+  .masthead { gap: var(--sp-3); padding-inline: var(--sp-3); }
+  .masthead__title {
+    padding-left: var(--sp-3);
+    min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .masthead__tools { gap: var(--sp-2); }
+  /* The engine chip stays on a phone: which of the two cutout paths is
+     running, and why, is the one piece of chrome a visitor still has to be
+     able to open. Its popover spans the screen because the mode explanation
+     is two paragraphs, not a tooltip. */
+  .chip { padding-inline: var(--sp-2); }
+  .engine .popover {
+    position: fixed;
+    top: calc(var(--masthead-h) + var(--sp-3));
+    left: var(--sp-3); right: var(--sp-3);
+    width: auto; max-width: none;
+  }
+
+  /* The zero-data floor is the hero and it has to hold without scrolling
+     next to a rail that keeps its own controls reachable. */
+  .bed { padding: var(--sp-5) var(--sp-5) 0; }
+  .bed__stack { max-width: 100%; padding-bottom: var(--sp-4); }
+  .bed__lead { margin-top: var(--sp-3); }
+  .bed__actions { flex-direction: column; align-items: stretch; margin-top: var(--sp-5); gap: var(--sp-3); }
+  .bed__actions .btn { width: 100%; }
+  .bed__engine { margin-top: var(--sp-3); }
+
+  .warmup { grid-template-columns: minmax(0, 1fr); gap: var(--sp-3); padding: var(--sp-4); }
+  .warmup__actions { justify-content: flex-start; }
+
+  /* The zero-data stack is four elements tall on a phone; the drawer gives
+     back the height it needs so the hardware line is not cut in half. */
+  .rail { max-height: 36dvh; }
+  .rail__title { margin-top: var(--sp-6); margin-bottom: var(--sp-4); }
+
+  .statusrail { gap: var(--sp-4); padding-inline: var(--sp-4); }
+  .statusrail__readouts { overflow-x: auto; gap: var(--sp-4); }
+  #stMemory { display: none; }
+
+  .shortcuts__cols { grid-template-columns: minmax(0, 1fr); gap: var(--sp-5); }
+  .kv__row { grid-template-columns: minmax(0, 1fr) auto; }
+
+  .inspector__column { max-height: 44dvh; }
+  /* Three text buttons do not fit a 105px tile. On this width a tap opens
+     the inspector, which carries Retry and Remove at a usable size. */
+  .tile__ops { display: none; }
+}
+
+/* On coarse pointers the tile operations must not depend on hover. */
+@media (hover: none) {
+  .tile__chrome { opacity: 1; }
+}

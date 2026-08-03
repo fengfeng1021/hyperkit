@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>發票回顧 / 把載具 CSV 變成你的年度消費回顧</title>
+<meta name="description" content="把財政部電子發票載具的消費明細 CSV 拖進來，在瀏覽器裡就地解析成一份可探索的年度消費結構與一段可分享的年度敘事。資料不離開這台裝置。">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0B0D17">
+
+<!-- 站頭那組 5 線條碼，畫在深靛底上。自繪，不是 emoji。 -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230B0D17'/%3E%3Cg fill='%23FF4D2E'%3E%3Crect x='6' y='7' width='3' height='18'/%3E%3Crect x='11' y='7' width='2' height='18'/%3E%3Crect x='15' y='7' width='5' height='18'/%3E%3Crect x='22' y='7' width='2' height='18'/%3E%3Crect x='26' y='7' width='3' height='18'/%3E%3C/g%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Martian+Mono:wght@400;600&family=Noto+Sans+TC:wght@400;700&display=swap">
+
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-mode="empty">
+<!--
+THESIS
+  這台機器已經替你記了一整年的帳，你只是從來沒有把那捲紙拉出來看過。
+  這個站的工作是把 22 KB 的原始 CSV 變成一個你會截圖的畫面，
+  而且全程不把那份資料交給任何人，包括我。
+  它是一台離線的印表機，不是一個雲端服務，也不是一個理財教練。
+  它報數字，給脈絡，不下判斷。
+
+OWN-WORLD
+  收銀機吐紙的那一刻，加上載具條碼被掃過的那一道紅光。
+  不是紙的懷舊（沒有米白、沒有牛皮、沒有黃銅），是機器輸出資料的當下。
+  地是深靛近黑 #0B0D17，油墨只有一種：朱橘紅 #FF4D2E，統一發票紅的現代化。
+  白是熱感應紙的白 #F4F6FB，不是純白，因為這是深夜關燈後在看的畫面。
+  材質語彙：齒孔邊緣、撕裂的鋸齒、掃描光帶、等寬對齊的資料列、
+  條碼那種粗細交替的節奏。圓角只有 0 與 2px 兩種。
+  分類不用彩虹色，這個世界只有一種油墨，濃淡就是分類。
+
+STORY
+  待命 → 進紙 → 解析（看得見的逐列印字）→ 攤開（儀表板，自由亂點）
+  → 收攏成敘事（全螢幕十屏）→ 撕下一張帶走（直式圖卡）。
+  情緒曲線：好奇 → 一點點被冒犯（214 次）→ 想給別人看。
+  轉場靠材質：紙帶吐出、撕開、捲起，不靠淡入淡出。
+
+FIRST VIEWPORT
+  左：兩行標題「一整年的消費 / 都在這捲紙上。」Archivo 800 / wdth 112，
+      副文一句話講完離線與時間成本，一顆朱橘紅實心 CTA「載入範例資料」。
+  右：進紙口本體。1px 虛線框、上下齒孔、一條 2px 朱橘紅掃描光帶 2.4 秒往返，
+      內含唯一的檔案按鈕。它不是插圖，它是真的可以用的控制項。
+  首屏文字元素恰好四個。沒有 eyebrow，沒有捲動提示，沒有裝飾字串，
+  沒有假儀表板截圖，沒有大數字統計模板。數字要等使用者的資料進來才出現。
+
+FORM
+  版面是收據的邏輯：等寬右對齊的金額欄、每五列一條 hairline（不是每列都有線）、
+  群組之間用空白而不是卡片邊框。禁止 icon + 標題 + 敘述的等大卡片網格。
+  字階：Archivo（顯示，最大 5.75rem）／Noto Sans TC（中文內文）／
+  Martian Mono（發票號碼、金額、日期，只用於資料與量測）。
+  一組 accent 鎖定全頁：朱橘紅。錯誤與警示也用它，配合 1px 描邊與自繪圖示區分，
+  不引入第二個色相。成功狀態沒有顏色，只有紙白。
+  深度靠帶偏移的柔陰影（tint 到靛藍），不用零偏移光暈。
+  動效只有一個被創作的時刻：第三屏「你的第二個家」。其餘全是回饋與狀態轉換。
+  內容預設可見，GSAP 掛掉時整頁照常運作。
+
+FINISH
+  unreviewed and undocumented is unfinished;
+  this build ends with the finish review, the verdict, and DESIGN.md
+-->
+
+<a class="skip-link" href="#main">跳到主要內容</a>
+<p id="live-region" class="sr-only" role="status" aria-live="polite"></p>
+
+<nav class="masthead" aria-label="主要">
+  <a class="wordmark" href="#main">
+    <span class="wordmark-text">發票回顧</span>
+    <span class="wordmark-mark" id="wordmark-mark" aria-hidden="true"></span>
+  </a>
+
+  <div class="masthead-right">
+    <div class="privacy">
+      <button type="button" id="privacy-dot" class="privacy-btn" aria-expanded="false" aria-controls="privacy-panel">
+        <span class="privacy-square" aria-hidden="true"></span>
+        <span class="privacy-text">資料未離開此裝置</span>
+      </button>
+      <div id="privacy-panel" class="privacy-panel" hidden>
+        <div id="privacy-panel-body"></div>
+      </div>
+    </div>
+    <a class="nav-link" href="../index.html">回 Hyperkit</a>
+  </div>
+</nav>
+
+<div id="sample-strip" class="sample-strip" hidden>
+  <span class="sample-strip-mark" aria-hidden="true"></span>
+  <span id="sample-strip-text">目前顯示的是範例資料</span>
+  <button type="button" id="sample-swap" class="btn btn-ghost btn-sm">換成我自己的檔案</button>
+</div>
+
+<main id="main">
+
+  <!-- ============ 首屏：一台待命的機器 ============ -->
+  <section class="hero" aria-labelledby="hero-h">
+    <div class="hero-copy">
+      <h1 class="hero-title" id="hero-h">一整年的消費<br>都在這捲紙上。</h1>
+      <p class="hero-lead">載具明細 CSV 拖進來，在這台電腦上解析，三十秒生成年度回顧。檔案不會離開這裡。</p>
+      <button type="button" id="load-sample" class="btn btn-primary btn-lg">載入範例資料</button>
+    </div>
+
+    <div class="hero-slot">
+      <div id="feed-slot" class="feed-slot" data-state="idle" aria-disabled="false">
+        <div class="feed-perf feed-perf--top" aria-hidden="true"></div>
+        <div class="feed-scan" aria-hidden="true"></div>
+        <div class="feed-body">
+          <p class="feed-hint" id="feed-hint">把 CSV 拖到這裡</p>
+          <button type="button" id="pick-file" class="btn btn-secondary">選擇 CSV 檔案</button>
+          <p class="feed-meta">支援 .csv，可一次多檔，會依發票號碼自動去重</p>
+          <input type="file" id="feed-input" accept=".csv,text/csv,text/plain" multiple class="sr-only" aria-label="選擇消費明細 CSV 檔案">
+        </div>
+        <div id="feed-progress" class="feed-progress"></div>
+        <div class="feed-perf feed-perf--bottom" aria-hidden="true"></div>
+      </div>
+      <div id="feed-notices" class="feed-notices"></div>
+      <div id="column-mapper" class="column-mapper" hidden></div>
+    </div>
+  </section>
+
+  <!-- ============ 六個數字（空狀態就是儀表板的預留位） ============ -->
+  <section class="section section--stats" aria-labelledby="stats-h">
+    <h2 class="section-h" id="stats-h">六個數字</h2>
+    <p class="section-text" id="stat-caption"></p>
+
+    <div class="stat-strip" id="stat-strip">
+      <div class="stat"><span class="stat-label">總金額</span><b class="stat-value num is-placeholder" data-stat="total">- - -</b></div>
+      <div class="stat"><span class="stat-label">筆數</span><b class="stat-value num is-placeholder" data-stat="count">- - -</b></div>
+      <div class="stat"><span class="stat-label">去過的店</span><b class="stat-value num is-placeholder" data-stat="stores">- - -</b></div>
+      <div class="stat"><span class="stat-label">平均單筆</span><b class="stat-value num is-placeholder" data-stat="avg">- - -</b></div>
+      <div class="stat"><span class="stat-label">最貴一筆</span><b class="stat-value num is-placeholder" data-stat="max">- - -</b></div>
+      <div class="stat stat--text"><span class="stat-label">最常去</span><b class="stat-value is-placeholder" data-stat="top">- - -</b></div>
+    </div>
+
+    <div id="parse-report" class="parse-report"></div>
+  </section>
+
+  <!-- ============ 取得 CSV 的教學紙帶（三段撕開的紙） ============ -->
+  <section class="section section--how" id="how" aria-labelledby="how-h">
+    <h2 class="section-h" id="how-h">怎麼拿到你的 CSV</h2>
+    <div class="tape" id="tape" role="region" tabindex="0" aria-label="取得消費明細的三個動作，左右方向鍵捲動">
+      <article class="tape-seg">
+        <span class="tape-icon" data-icon="file" data-icon-size="20" aria-hidden="true"></span>
+        <h3 class="tape-verb">登入</h3>
+        <p class="tape-text">到財政部電子發票整合服務平台，用手機條碼、自然人憑證或已註冊的帳號登入。手機條碼要先在「手機條碼註冊」設定過密碼。</p>
+        <p class="tape-where">einvoice.nat.gov.tw</p>
+      </article>
+      <article class="tape-seg">
+        <span class="tape-icon" data-icon="folder" data-icon-size="20" aria-hidden="true"></span>
+        <h3 class="tape-verb">找到明細</h3>
+        <p class="tape-text">左側選單進入「載具管理」，再點「消費明細」。這裡列的是逐筆發票，不是中獎清單，兩個是不同的頁面。</p>
+        <p class="tape-where">載具管理 &gt; 消費明細</p>
+      </article>
+      <article class="tape-seg">
+        <span class="tape-icon" data-icon="download" data-icon-size="20" aria-hidden="true"></span>
+        <h3 class="tape-verb">匯出</h3>
+        <p class="tape-text">選好年度與月份區間，檔案格式選 CSV 再下載。一次只能抓半年的話就抓兩次，這個站會自動合併並依發票號碼去重。</p>
+        <p class="tape-where">格式：CSV</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ============ 儀表板 ============ -->
+  <section class="section section--dash" id="dash" aria-labelledby="dash-h">
+    <h2 class="section-h" id="dash-h">攤開來看</h2>
+    <div id="dash-toolbar" class="dash-toolbar"></div>
+
+    <div class="bento">
+      <div class="bento-cell bento-cell--heat">
+        <h3 class="cell-h">星期 × 時段</h3>
+        <p class="cell-note">點一格，下面的明細表就只留那個時段。</p>
+        <div id="heatmap-host"></div>
+      </div>
+
+      <div class="bento-cell bento-cell--line">
+        <h3 class="cell-h">月度金額</h3>
+        <p class="cell-note">方向鍵切換月份。</p>
+        <div id="line-host" class="line-host"></div>
+      </div>
+
+      <div class="bento-cell bento-cell--bubble">
+        <h3 class="cell-h">店家</h3>
+        <p class="cell-note">泡泡面積是金額，濃淡與條紋是分類。點一顆看它的逐筆消費。</p>
+        <div id="bubble-host" class="bubble-host"></div>
+        <div id="store-detail" class="store-detail" hidden></div>
+      </div>
+
+      <div class="bento-cell bento-cell--flow">
+        <h3 class="cell-h">分類流到哪家店</h3>
+        <p class="cell-note">拖曳右欄節點可以重排，鍵盤用 Alt 加上下鍵。</p>
+        <div id="flow-host" class="flow-host"></div>
+      </div>
+
+      <div class="bento-cell bento-cell--ledger">
+        <h3 class="cell-h">逐筆明細</h3>
+        <p class="cell-note">按 Enter 展開品項。斜線鍵可以直接跳到搜尋。</p>
+        <div id="ledger-tags" class="ledger-tags" hidden></div>
+        <div id="ledger-host" class="ledger-host"></div>
+      </div>
+    </div>
+
+    <div class="subsection" aria-labelledby="cashback-h">
+      <h3 class="subsection-h" id="cashback-h">依你的消費結構試算回饋</h3>
+      <div id="cashback-host" class="cashback-host"></div>
+    </div>
+
+    <div class="review-cta">
+      <button type="button" id="open-review" class="btn btn-primary btn-lg">產生年度回顧</button>
+      <p class="review-cta-note">十屏敘事，最後一屏產出一張 1080 × 1920 的直式圖卡。按 G 再按 W 也可以打開。</p>
+    </div>
+  </section>
+
+  <!-- ============ 離線證明 ============ -->
+  <section class="section section--offline" id="offline" aria-labelledby="offline-h">
+    <h2 class="section-h" id="offline-h">這個頁面發出過哪些網路請求</h2>
+    <p class="section-text">
+      下面是這個分頁從開啟到現在的每一筆資源請求，用 PerformanceObserver 即時讀出來的，不是我寫的一段宣稱。
+      你的 CSV 不在裡面，因為它從來沒有被送出去過。
+    </p>
+    <div id="offline-list" class="offline-list"></div>
+  </section>
+
+  <!-- ============ 已保存的年度 ============ -->
+  <section class="section section--saved" aria-labelledby="saved-h">
+    <h2 class="section-h" id="saved-h">這台裝置上保存的年度</h2>
+    <p class="section-text">
+      每跑完一次分析，彙總結果會存進這台電腦的 IndexedDB（只留統計，不留逐筆原始列）。
+      第二個年度進來時，年度回顧的比較章節就會解鎖。
+    </p>
+    <div id="saved-years" class="saved-years"></div>
+  </section>
+
+  <!-- ============ 快捷鍵 ============ -->
+  <div class="shortcuts-wrap">
+    <button type="button" id="shortcuts-toggle" class="btn btn-ghost" aria-expanded="false" aria-controls="shortcuts">鍵盤快捷鍵</button>
+    <div id="shortcuts" class="shortcuts" hidden>
+      <h2 class="shortcuts-h" tabindex="-1">鍵盤快捷鍵</h2>
+      <dl class="shortcuts-list">
+        <div><dt class="num">/</dt><dd>跳到明細表搜尋</dd></div>
+        <div><dt class="num">G W</dt><dd>打開年度回顧</dd></div>
+        <div><dt class="num">Esc</dt><dd>由內而外收合一層</dd></div>
+        <div><dt class="num">方向鍵</dt><dd>在熱力圖、折線、泡泡雲、明細表裡移動</dd></div>
+        <div><dt class="num">Alt + 上下鍵</dt><dd>在流向圖裡重排店家順序</dd></div>
+        <div><dt class="num">?</dt><dd>開關這份清單</dd></div>
+      </dl>
+    </div>
+  </div>
+
+</main>
+
+<footer class="footer">
+  <div class="footer-col">
+    <p class="footer-title">發票回顧</p>
+    <p class="footer-text">把財政部電子發票載具的消費明細 CSV，在瀏覽器裡就地變成一份年度消費回顧。</p>
+  </div>
+  <div class="footer-col">
+    <p class="footer-title">資料怎麼處理</p>
+    <p class="footer-text">解析、統計、繪圖、產圖卡全在這個分頁完成。沒有伺服器，沒有分析追蹤，沒有錯誤回報。彙總結果只寫進你自己的瀏覽器。</p>
+  </div>
+  <div class="footer-col">
+    <p class="footer-title">其他</p>
+    <p class="footer-text"><a class="footer-link" href="../index.html">回 Hyperkit</a></p>
+    <p class="footer-text"><a class="footer-link" href="README.md">這個工具的說明</a></p>
+    <p class="footer-text num">© <span id="year-now">2026</span></p>
+  </div>
+</footer>
+
+<!-- 年度回顧：全站唯一覆蓋整個畫面的地方，因為它需要保護焦點並接管捲動 -->
+<div id="review" class="review" hidden></div>
+
+<!-- 只引入真的用到的兩支。第 3 屏的冠軍泡泡是畫在 canvas 上的，
+     Flip 動的是 DOM 版面，對 canvas 內容沒有作用，所以不載它。 -->
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,371 @@
+/* ==========================================================================
+   HYPERKIT — hub
+   櫃體是中性的。畫面上每一個顏色都是某個工具借給它的：--bg / --fg / --dim /
+   --accent 由 js/hub.js 在 OKLab 空間插值後寫入，這裡只描述結構。
+   ========================================================================== */
+
+:root {
+  /* 中性態（沒有任何一行被選中時的櫃體本色） */
+  --bg:      #0A0A0B;
+  --fg:      #E8E8E6;
+  --dim:     #8E8E8C;   /* 4.62:1 on #0A0A0B */
+  --accent:  #E8E8E6;
+
+  --hairline:        color-mix(in srgb, var(--fg) 14%, transparent);
+  --hairline-strong: color-mix(in srgb, var(--fg) 26%, transparent);
+  --wash:            color-mix(in srgb, var(--fg) 5%, transparent);
+
+  --pad-x: clamp(1.25rem, 4vw, 3.25rem);
+  --pad-y: clamp(1rem, 2vw, 1.5rem);
+
+  --ease-out: cubic-bezier(.16, 1, .3, 1);
+  --t-fast: 140ms;
+  --t-mid: 320ms;
+
+  color-scheme: dark;
+}
+
+@supports not (color: color-mix(in srgb, red 50%, transparent)) {
+  :root { --hairline: rgba(232,232,230,.14); --hairline-strong: rgba(232,232,230,.26); --wash: rgba(232,232,230,.05); }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'Archivo', 'Noto Sans TC', system-ui, -apple-system, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow: hidden;              /* 桌機：整個索引一屏內看完 */
+}
+
+.skip {
+  position: absolute; left: 8px; top: -60px; z-index: 90;
+  padding: 10px 16px;
+  background: var(--fg); color: var(--bg);
+  font-size: 13px; font-weight: 600; text-decoration: none;
+  transition: top var(--t-fast) var(--ease-out);
+}
+.skip:focus-visible { top: 8px; outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.shell {
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+/* ---------------------------------------------------------------- masthead */
+
+.masthead {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(1rem, 3vw, 2.5rem);
+  padding: var(--pad-y) var(--pad-x);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.brand { display: flex; align-items: baseline; gap: .55rem; flex: none; }
+
+.wordmark {
+  font-size: clamp(.9rem, 1.15vw, 1rem);
+  font-weight: 600;
+  letter-spacing: .2em;
+}
+
+.count {
+  font-size: 11px;
+  letter-spacing: .1em;
+  color: var(--dim);
+  padding: 1px 5px;
+  border: 1px solid var(--hairline-strong);
+}
+
+.proposition {
+  margin: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: 'Noto Sans TC', 'Archivo', system-ui, sans-serif;
+  font-size: clamp(12.5px, 1.05vw, 14px);
+  line-height: 1.45;
+  color: var(--dim);
+  /* 一行放得下就一行。62ch 對中文而言只有 31 個字，這句剛好被它切在「額／度」中間。 */
+  text-wrap: pretty;
+}
+.proposition em { font-style: normal; color: var(--fg); }
+
+.source {
+  flex: none;
+  display: inline-flex; align-items: center; gap: .4em;
+  font-size: 12.5px;
+  color: var(--dim);
+  text-decoration: none;
+  padding: 4px 2px;
+  border-bottom: 1px solid transparent;
+  transition: color var(--t-fast) var(--ease-out), border-color var(--t-fast) var(--ease-out);
+}
+.source:hover { color: var(--fg); border-bottom-color: var(--hairline-strong); }
+.source:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.source svg { opacity: .8; }
+
+/* ------------------------------------------------------------------- bench */
+
+.bench {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(300px, 38%, 620px);
+  min-height: 0;
+}
+
+/* ------------------------------------------------------------------- index */
+
+.index {
+  list-style: none;
+  margin: 0; padding: 0;
+  display: grid;
+  grid-auto-rows: 1fr;
+  min-height: 0;
+  border-right: 1px solid var(--hairline);
+}
+
+.row { min-height: 0; display: grid; }
+.row + .row { border-top: 1px solid var(--hairline); }
+
+.row-link {
+  display: grid;
+  grid-template-columns: clamp(28px, 3.2vw, 52px) minmax(0, 1fr);
+  align-items: center;
+  gap: 0 clamp(.75rem, 1.6vw, 1.5rem);
+  padding: 0 var(--pad-x) 0 0;
+  text-decoration: none;
+  color: inherit;
+  min-height: 0;
+  position: relative;
+  isolation: isolate;
+}
+.row-link::before {
+  content: "";
+  position: absolute; inset: 0; z-index: -1;
+  background: var(--wash);
+  opacity: 0;
+  transition: opacity var(--t-mid) var(--ease-out);
+}
+.row.is-active .row-link::before { opacity: 1; }
+
+.row-link:focus-visible { outline: 2px solid var(--accent); outline-offset: -3px; }
+
+/* 行首的短線：選中時從左長出來，是「你在這一行」最安靜的訊號 */
+.row-rule {
+  justify-self: end;
+  width: clamp(14px, 2vw, 30px);
+  height: 2px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: right center;
+  transition: transform var(--t-mid) var(--ease-out);
+}
+.row.is-active .row-rule { transform: scaleX(1); }
+
+.row-en {
+  display: block;
+  font-size: clamp(1.65rem, 4.1vw, 3.4rem);
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  color: var(--fg);
+  opacity: .58;
+  transition: opacity var(--t-mid) var(--ease-out);
+  grid-column: 2;
+  white-space: nowrap;
+}
+.row.is-active .row-en { opacity: 1; }
+
+.row-meta {
+  grid-column: 2;
+  display: flex;
+  align-items: baseline;
+  gap: .75rem;
+  margin-top: .3rem;
+  font-family: 'Noto Sans TC', system-ui, sans-serif;
+  min-width: 0;
+}
+
+.row-zh {
+  flex: none;
+  font-size: clamp(12px, 1.05vw, 14px);
+  font-weight: 500;
+  color: var(--fg);
+  opacity: .72;
+  letter-spacing: .04em;
+}
+
+.row-line {
+  font-size: clamp(11.5px, .95vw, 13px);
+  color: var(--dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+/* ---------------------------------------------------------------- viewport */
+
+.viewport {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  padding: clamp(1rem, 2vw, 2rem) var(--pad-x) clamp(.75rem, 1.4vw, 1.1rem);
+  min-height: 0;
+  gap: .7rem;
+}
+
+.frame {
+  position: relative;
+  min-height: 0;
+  border: 1px solid var(--hairline-strong);
+  background: color-mix(in srgb, var(--fg) 3%, transparent);
+  overflow: hidden;
+}
+
+.shots { position: absolute; inset: 0; }
+
+.shot {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: top left;
+  clip-path: inset(0 100% 0 0);
+  will-change: clip-path;
+}
+.shot.is-current { clip-path: inset(0 0 0 0); }
+
+/* 擦除時走在新畫面前緣的那條 accent 線 */
+.frame-edge {
+  position: absolute; top: 0; bottom: 0; left: 0;
+  width: 2px;
+  background: var(--accent);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.frame-note {
+  margin: 0;
+  font-family: 'Noto Sans TC', system-ui, sans-serif;
+  font-size: 11.5px;
+  color: var(--dim);
+  letter-spacing: .04em;
+}
+
+/* --------------------------------------------------------------- statusbar */
+
+.statusbar {
+  display: flex;
+  align-items: center;
+  gap: clamp(.75rem, 2vw, 1.75rem);
+  padding: calc(var(--pad-y) * .8) var(--pad-x);
+  border-top: 1px solid var(--hairline);
+  font-family: 'Noto Sans TC', system-ui, sans-serif;
+  font-size: 12.5px;
+  min-height: 0;
+}
+
+.status-zh {
+  flex: none;
+  font-weight: 500;
+  letter-spacing: .06em;
+  color: var(--fg);
+}
+
+.status-line {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: var(--dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status-hint {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: .4em;
+  color: var(--dim);
+  font-size: 11.5px;
+}
+.status-hint .sep { width: 1px; height: 11px; background: var(--hairline-strong); margin: 0 .35em; }
+
+kbd {
+  font: inherit;
+  font-size: 10.5px;
+  line-height: 1;
+  padding: 3px 5px;
+  border: 1px solid var(--hairline-strong);
+  color: var(--fg);
+  opacity: .8;
+}
+
+/* ============================================================= 平板 / 手機 */
+
+@media (max-width: 900px) {
+  body { overflow: auto; }
+
+  .shell { height: auto; min-height: 100dvh; grid-template-rows: auto 1fr auto; }
+
+  .masthead { flex-wrap: wrap; gap: .5rem 1rem; }
+  .proposition { flex-basis: 100%; order: 3; }
+
+  .bench { grid-template-columns: 1fr; }
+
+  /* 手機沒有 hover：預覽視窗黏在上方，捲動索引就是換世界的動作 */
+  .viewport {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    height: 34dvh;
+    background: var(--bg);
+    border-bottom: 1px solid var(--hairline);
+    padding-bottom: .5rem;
+    order: -1;
+  }
+
+  .index { border-right: none; grid-auto-rows: auto; }
+
+  .row-link {
+    grid-template-columns: 22px minmax(0, 1fr);
+    padding: clamp(1rem, 3.5vw, 1.6rem) var(--pad-x) clamp(1rem, 3.5vw, 1.6rem) 0;
+    align-items: start;
+  }
+  .row-rule { margin-top: .85em; }
+  .row-en { white-space: normal; font-size: clamp(1.5rem, 8vw, 2.4rem); }
+  .row-meta { flex-wrap: wrap; gap: .2rem .7rem; }
+  .row-line { white-space: normal; }
+
+  .statusbar { position: sticky; bottom: 0; background: var(--bg); flex-wrap: wrap; gap: .3rem .9rem; }
+  .status-hint { display: none; }
+  .status-line { white-space: normal; }
+}
+
+@media (max-width: 560px) {
+  .viewport { height: 28dvh; }
+  .status-zh { font-size: 12px; }
+}
+
+/* ============================================================ 減少動態偏好 */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+  .shot { transition: none; }
+}
+
+/* 高對比模式：讓 hairline 用系統色，不靠 alpha */
+@media (forced-colors: active) {
+  .row + .row, .masthead, .statusbar, .frame { border-color: CanvasText; }
+  .row-rule, .frame-edge { background: Highlight; }
+}

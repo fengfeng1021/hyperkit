@@ -1,0 +1,1894 @@
+/* ==========================================================================
+   GradientKit - style.css
+
+   Every value comes from tokens.css. There is not one literal color in this
+   file: the chrome carries no hue at all, and the only two hue-bearing
+   properties in the product (--user-mid, --user-edge) are written onto :root
+   at runtime from the user's own gradient.
+
+   House rules enforced here:
+     no text-transform on any label, ever
+     no border-radius above 2px
+     exactly one shadow token, used on the dragged stop handle and the popover
+     nothing starts at opacity 0 waiting for JavaScript
+   ========================================================================== */
+
+/* ==========================================================================
+   1. Reset and base
+   ========================================================================== */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+/* The UA rule for [hidden] is display:none, but any author `display` beats it.
+   Several overlays here set display, so state that is toggled with the hidden
+   attribute must be enforced once, here, for all of them. */
+[hidden] { display: none !important; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scrollbar-color: var(--line-strong) var(--surface-void);
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--surface-void);
+  color: var(--fg-primary);
+  font-family: var(--font-ui);
+  font-size: var(--t-body-size);
+  line-height: var(--t-body-lh);
+  font-weight: var(--weight-regular);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body.is-scrubbing { cursor: ew-resize; user-select: none; }
+
+h1, h2, h3, p, dl, dd, figure { margin: 0; }
+ul, ol { margin: 0; padding: 0; list-style: none; }
+
+button, input, select, textarea {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  margin: 0;
+}
+button { cursor: pointer; }
+
+a { color: inherit; }
+
+canvas { display: block; }
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.94em;
+  letter-spacing: var(--t-code-ls);
+}
+
+/* Any control carrying a visually hidden label needs a positioned box. Without
+   one the absolutely positioned label resolves against the initial containing
+   block, escapes its scroll container, and drags the page sideways. Elements
+   that are already absolutely positioned are deliberately not in this list. */
+.gk-tile,
+.gk-vision-cell,
+.gk-stoprow-del,
+.gk-lib-delete,
+.gk-notice-close,
+.gk-sheet-close,
+.gk-pop-pick,
+.gk-mtab,
+.gk-weight,
+.gk-swatch,
+.gk-stepper button {
+  position: relative;
+}
+
+/* Screen-reader-only, never display:none, so labels stay announced. */
+.gk-sr {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* One focus treatment, identical everywhere. A white and black pair, because
+   no background can be close to both, so it survives on a bright gradient. */
+:focus { outline: none; }
+:focus-visible {
+  outline: var(--focus-width) solid var(--focus-color);
+  outline-offset: var(--focus-offset);
+  box-shadow: var(--focus-inner);
+  border-radius: var(--radius-1);
+}
+
+.gk-skip {
+  position: fixed;
+  top: var(--space-3);
+  left: var(--space-3);
+  z-index: var(--z-skiplink);
+  padding: var(--space-3) var(--space-5);
+  background: var(--surface-inverse);
+  color: var(--fg-on-inverse);
+  font-size: var(--t-ui-size);
+  font-weight: var(--weight-medium);
+  border-radius: var(--radius-1);
+  transform: translateY(calc(-100% - var(--space-8)));
+  transition: transform var(--dur-2) var(--ease-out);
+}
+.gk-skip:focus-visible { transform: translateY(0); }
+
+.gk-noscript {
+  margin: var(--space-7) auto;
+  max-width: var(--measure-prose);
+  padding: var(--space-5);
+  border: var(--hairline) solid var(--line);
+  color: var(--fg-secondary);
+}
+
+/* ==========================================================================
+   2. Type utilities
+   ========================================================================== */
+
+.gk-display {
+  font-size: var(--t-display-size);
+  line-height: var(--t-display-lh);
+  letter-spacing: var(--t-display-ls);
+  font-weight: var(--weight-semibold);
+  text-wrap: balance;
+  max-width: 18ch;
+}
+
+.gk-h1 {
+  font-size: var(--t-h1-size);
+  line-height: var(--t-h1-lh);
+  letter-spacing: var(--t-h1-ls);
+  font-weight: var(--weight-semibold);
+  text-wrap: balance;
+}
+
+.gk-h2 {
+  font-size: var(--t-h2-size);
+  line-height: var(--t-h2-lh);
+  letter-spacing: var(--t-h2-ls);
+  font-weight: var(--weight-semibold);
+  margin-top: var(--space-7);
+  margin-bottom: var(--space-4);
+}
+.gk-h2:first-child { margin-top: 0; }
+
+.gk-lede {
+  margin-top: var(--space-5);
+  max-width: var(--measure-prose);
+  color: var(--fg-secondary);
+  font-size: var(--t-body-size);
+  line-height: var(--t-body-lh);
+}
+
+.gk-help {
+  margin-top: var(--space-3);
+  max-width: var(--measure-caption);
+  color: var(--fg-muted);
+  font-size: var(--t-caption-size);
+  line-height: var(--t-caption-lh);
+}
+.gk-help--tight { margin-top: var(--space-2); }
+.gk-help.is-strong { color: var(--fg-secondary); }
+
+.gk-note {
+  margin-top: var(--space-3);
+  color: var(--fg-muted);
+  font-size: var(--t-caption-size);
+  line-height: var(--t-caption-lh);
+  max-width: var(--measure-caption);
+}
+.gk-note[data-state="bug"] { color: var(--fg-primary); }
+
+.gk-field-label {
+  display: block;
+  font-size: var(--t-ui-size);
+  line-height: var(--t-ui-lh);
+  color: var(--fg-muted);
+}
+
+/* ==========================================================================
+   3. Bar
+   ========================================================================== */
+
+.gk-bar {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-bar);
+  display: grid;
+  grid-template-columns: auto auto 1fr auto;
+  align-items: center;
+  gap: var(--space-5);
+  height: var(--bar-h);
+  padding: 0 var(--space-5);
+  background: var(--surface-0);
+  border-bottom: var(--hairline) solid var(--line);
+}
+
+.gk-wordmark {
+  font-size: 0.9375rem;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-weight: var(--weight-semibold);
+}
+.gk-wordmark a { text-decoration: none; }
+.gk-wordmark a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+.gk-proposition {
+  font-size: var(--t-caption-size);
+  color: var(--fg-muted);
+  white-space: nowrap;
+}
+
+.gk-bar-actions {
+  grid-column: 4;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* ==========================================================================
+   4. Buttons
+   ========================================================================== */
+
+.gk-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: var(--control-h);
+  padding: 0 14px;
+  border: var(--hairline) solid var(--line-strong);
+  border-radius: var(--radius-1);
+  color: var(--fg-primary);
+  font-size: var(--t-ui-size);
+  line-height: 1;
+  white-space: nowrap;
+  transition: background-color var(--dur-2) var(--ease-out),
+              border-color var(--dur-2) var(--ease-out),
+              transform var(--dur-1) var(--ease-out);
+}
+.gk-btn:hover { border-color: var(--line-full); background: var(--fill-hover); }
+.gk-btn:active { transform: scale(0.98); background: var(--fill-active); }
+.gk-btn[disabled],
+.gk-btn.is-disabled,
+.gk-btn[aria-disabled="true"] {
+  color: var(--fg-disabled);
+  border-color: var(--line-faint);
+  cursor: not-allowed;
+  transform: none;
+  background: none;
+}
+.gk-btn .gk-icon { flex: none; }
+.gk-btn-icon { display: inline-flex; }
+.gk-btn-icon:empty { display: none; }
+
+.gk-btn--sm { height: 28px; padding: 0 10px; font-size: var(--t-caption-size); }
+.gk-btn--wide { width: 100%; margin-top: var(--space-4); }
+.gk-btn--quiet { border-color: var(--line); color: var(--fg-secondary); }
+
+/* Loading: a determinate hairline along the bottom edge. */
+.gk-btn.is-loading::after {
+  content: "";
+  position: absolute;
+  left: 0; bottom: -1px;
+  height: 1px;
+  width: var(--progress, 0%);
+  background: var(--line-full);
+  transition: width var(--dur-2) linear;
+}
+.gk-btn.is-success { border-color: var(--line-full); }
+
+/* Reset is armed by a first press and drains a hairline right to left. */
+.gk-btn--arm.is-armed { border-color: var(--line-full); }
+.gk-btn--arm.is-armed::after {
+  content: "";
+  position: absolute;
+  right: 0; bottom: -1px;
+  height: 1px;
+  background: var(--line-full);
+  animation: gk-drain var(--arm-duration, 3000ms) linear forwards;
+}
+@keyframes gk-drain { from { width: 100%; } to { width: 0%; } }
+
+.gk-btn--copy {
+  flex: none;
+  width: var(--copy-btn-w);
+  height: 26px;
+  padding: 0;
+  font-size: var(--t-caption-size);
+  background: var(--surface-0);
+}
+
+/* ==========================================================================
+   5. Segmented radio groups
+   ========================================================================== */
+
+.gk-seg { display: inline-flex; }
+.gk-seg--full { display: flex; width: 100%; }
+
+.gk-seg-cell {
+  flex: 1 1 auto;
+  height: var(--control-h);
+  padding: 0 12px;
+  border: var(--hairline) solid var(--line);
+  border-radius: var(--radius-1);
+  color: var(--fg-secondary);
+  font-size: var(--t-ui-size);
+  line-height: 1;
+  white-space: nowrap;
+  transition: background-color var(--dur-2) var(--ease-out),
+              border-color var(--dur-2) var(--ease-out),
+              color var(--dur-2) var(--ease-out);
+}
+.gk-seg-cell + .gk-seg-cell { margin-left: -1px; }
+.gk-seg-cell:hover { border-color: var(--line-strong); color: var(--fg-primary); }
+.gk-seg-cell[aria-checked="true"] {
+  background: var(--surface-inverse);
+  color: var(--fg-on-inverse);
+  border-color: var(--surface-inverse);
+  font-weight: var(--weight-medium);
+  z-index: 1;
+}
+.gk-seg-cell[aria-disabled="true"] {
+  color: var(--fg-disabled);
+  border-color: var(--line-faint);
+  cursor: not-allowed;
+}
+
+/* The interpolation-space control: the product's primary affordance, and the
+   only thing in the chrome that sits at full-strength hairline at rest. */
+.gk-spaces {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  max-width: 128px;
+}
+.gk-space-cell {
+  height: 32px;
+  border: var(--hairline) solid var(--line-full);
+  border-radius: var(--radius-1);
+  color: var(--fg-primary);
+  font-size: var(--t-ui-size);
+  line-height: 1;
+  transition: background-color var(--dur-2) var(--ease-out),
+              color var(--dur-2) var(--ease-out),
+              transform var(--dur-1) var(--ease-out);
+}
+.gk-space-cell:nth-child(2), .gk-space-cell:nth-child(4) { margin-left: -1px; }
+.gk-space-cell:nth-child(3), .gk-space-cell:nth-child(4) { margin-top: -1px; }
+.gk-space-cell:hover { background: var(--fill-hover); }
+.gk-space-cell:active { transform: scale(0.98); }
+.gk-space-cell[aria-checked="true"] {
+  background: var(--surface-inverse);
+  color: var(--fg-on-inverse);
+  font-weight: var(--weight-medium);
+  z-index: 1;
+}
+.gk-space-cell[aria-disabled="true"] {
+  border-color: var(--line-faint);
+  color: var(--fg-disabled);
+  cursor: not-allowed;
+}
+.gk-group-reason:empty { display: none; }
+.gk-group-reason {
+  margin-top: var(--space-3);
+  font-size: var(--t-caption-size);
+  color: var(--fg-secondary);
+  max-width: var(--measure-caption);
+}
+
+/* ==========================================================================
+   6. Numeric field
+   ========================================================================== */
+
+.gk-num {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  padding-bottom: 2px;
+}
+.gk-num-label {
+  font-size: var(--t-ui-size);
+  color: var(--fg-muted);
+  cursor: ew-resize;
+  user-select: none;
+  touch-action: none;
+}
+.gk-num-input {
+  height: var(--field-h);
+  width: 100%;
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: var(--t-num-size);
+  letter-spacing: var(--t-num-ls);
+  font-variant-numeric: tabular-nums;
+  border-bottom: var(--hairline) solid var(--line);
+  border-radius: var(--radius-1) var(--radius-1) 0 0;
+  transition: border-color var(--dur-2) var(--ease-out);
+}
+.gk-num:hover .gk-num-input { border-bottom-color: var(--line-strong); }
+.gk-num-input:focus-visible { border-bottom-color: var(--line-full); }
+.gk-num-unit {
+  font-family: var(--font-mono);
+  font-style: italic;
+  font-size: var(--t-caption-size);
+  line-height: 1.4;
+  color: var(--fg-muted);
+  min-width: 2.2em;
+}
+.gk-num-msg {
+  grid-column: 1 / -1;
+  font-size: var(--t-caption-size);
+  color: var(--fg-secondary);
+  max-width: var(--measure-caption);
+}
+.gk-num-msg:empty { display: none; }
+.gk-num.is-error .gk-num-input {
+  border-bottom: 2px dashed var(--line-full);
+}
+.gk-num.is-disabled .gk-num-label,
+.gk-num.is-disabled .gk-num-input,
+.gk-num.is-disabled .gk-num-unit {
+  color: var(--fg-disabled);
+  cursor: not-allowed;
+}
+.gk-num.is-disabled .gk-num-input { border-bottom-color: var(--line-faint); }
+.gk-num.is-wiping .gk-num-input { animation: gk-underline var(--dur-3) var(--ease-out); }
+@keyframes gk-underline {
+  from { border-bottom-color: var(--line-full); }
+  to { border-bottom-color: var(--line); }
+}
+.gk-num--compact { margin-top: 0; gap: var(--space-2); }
+.gk-num--compact .gk-num-label { font-size: var(--t-caption-size); }
+
+/* ==========================================================================
+   7. Slider, toggle, stepper, select
+   ========================================================================== */
+
+.gk-slider {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: var(--space-3) var(--space-4);
+  margin-top: var(--space-4);
+}
+.gk-slider-label {
+  grid-column: 1 / -1;
+  font-size: var(--t-ui-size);
+  color: var(--fg-muted);
+}
+.gk-slider input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 20px;
+  background: none;
+  cursor: pointer;
+}
+.gk-slider input[type="range"]::-webkit-slider-runnable-track {
+  height: 1px;
+  background: linear-gradient(to right, var(--line-full) 0 var(--fill, 0%), var(--line) var(--fill, 0%) 100%);
+}
+.gk-slider input[type="range"]::-moz-range-track {
+  height: 1px;
+  background: var(--line);
+}
+.gk-slider input[type="range"]::-moz-range-progress {
+  height: 1px;
+  background: var(--line-full);
+}
+.gk-slider input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 10px; height: 10px;
+  margin-top: -4.5px;
+  background: var(--fg-primary);
+  border-radius: var(--radius-1);
+  border: 0;
+}
+.gk-slider input[type="range"]::-moz-range-thumb {
+  width: 10px; height: 10px;
+  background: var(--fg-primary);
+  border-radius: var(--radius-1);
+  border: 0;
+}
+.gk-slider:hover input[type="range"]::-webkit-slider-runnable-track { height: 2px; }
+.gk-slider-value {
+  font-family: var(--font-mono);
+  font-size: var(--t-num-size);
+  font-variant-numeric: tabular-nums;
+  color: var(--fg-primary);
+  min-width: 3ch;
+  text-align: right;
+}
+
+.gk-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}
+
+.gk-stepper { display: inline-flex; }
+.gk-stepper button {
+  min-width: 30px;
+  height: 26px;
+  padding: 0 var(--space-2);
+  border: var(--hairline) solid var(--line);
+  border-radius: var(--radius-1);
+  color: var(--fg-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--t-tick-size);
+  line-height: 1;
+  transition: background-color var(--dur-2) var(--ease-out), color var(--dur-2) var(--ease-out);
+}
+.gk-stepper button + button { margin-left: -1px; }
+.gk-stepper button:hover { border-color: var(--line-strong); color: var(--fg-primary); }
+.gk-stepper button[aria-pressed="true"] {
+  background: var(--surface-inverse);
+  color: var(--fg-on-inverse);
+  z-index: 1;
+}
+.gk-stepper--swatch button { width: 26px; min-width: 26px; }
+.gk-stepper--swatch button:first-child { background-image: linear-gradient(var(--fg-primary), var(--fg-primary)); background-size: 12px 12px; background-position: center; background-repeat: no-repeat; }
+.gk-stepper--swatch button:last-child { background-image: linear-gradient(var(--surface-void), var(--surface-void)); background-size: 12px 12px; background-position: center; background-repeat: no-repeat; }
+.gk-stepper--swatch button[aria-pressed="true"] { outline: var(--hairline) solid var(--line-full); outline-offset: 1px; }
+
+.gk-weight {
+  min-width: 42px;
+  height: 26px;
+  border: var(--hairline) solid var(--line);
+  border-radius: var(--radius-1);
+  font-family: var(--font-mono);
+  font-size: var(--t-tick-size);
+  color: var(--fg-secondary);
+}
+.gk-weight:hover { border-color: var(--line-strong); color: var(--fg-primary); }
+.gk-weight[aria-pressed="true"] { color: var(--fg-primary); border-color: var(--line-strong); }
+
+.gk-toggle {
+  position: relative;
+  width: 22px; height: 12px;
+  border: var(--hairline) solid var(--line);
+  border-radius: var(--radius-1);
+  flex: none;
+  transition: background-color var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out);
+}
+.gk-toggle-knob {
+  position: absolute;
+  top: 1px; left: 1px;
+  width: 8px; height: 8px;
+  background: var(--fg-primary);
+  border-radius: var(--radius-0);
+  transition: transform var(--dur-2) var(--ease-out), background-color var(--dur-2) var(--ease-out);
+}
+.gk-toggle:hover { border-color: var(--line-strong); }
+.gk-toggle[aria-pressed="true"] { background: var(--surface-inverse); border-color: var(--surface-inverse); }
+.gk-toggle[aria-pressed="true"] .gk-toggle-knob {
+  transform: translateX(10px);
+  background: var(--surface-0);
+}
+
+.gk-select { display: grid; gap: var(--space-2); }
+.gk-select-label { font-size: var(--t-caption-size); color: var(--fg-muted); }
+.gk-select-input {
+  height: 28px;
+  padding: 0 var(--space-3);
+  border: var(--hairline) solid var(--line);
+  border-radius: var(--radius-1);
+  background: var(--surface-0);
+  color: var(--fg-primary);
+  font-size: var(--t-caption-size);
+}
+.gk-select-input:hover { border-color: var(--line-strong); }
+
+.gk-text-input {
+  width: 100%;
+  height: var(--control-h);
+  margin-top: var(--space-3);
+  padding: 0 var(--space-3);
+  border: var(--hairline) solid var(--line);
+  border-radius: var(--radius-1);
+  font-size: var(--t-ui-size);
+  transition: border-color var(--dur-2) var(--ease-out);
+}
+.gk-text-input::placeholder { color: var(--fg-muted); }
+.gk-text-input:hover { border-color: var(--line-strong); }
+
+.gk-hidden-color {
+  position: fixed;
+  left: -9999px;
+  width: 1px; height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   8. Workbench layout
+   ========================================================================== */
+
+.gk-work {
+  display: grid;
+  grid-template-columns: var(--rail-left-w) minmax(0, 1fr) var(--rail-right-w);
+  /* minmax(0, 1fr), not auto. An auto row is sized by its content and happily
+     overflows the container, and the Stage canvas is a replaced element with a
+     square intrinsic ratio, so on a tall viewport it grew to its own width and
+     pushed the rule off the bottom of the screen. */
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-areas: "left stage right";
+  height: calc(100dvh - var(--bar-h));
+  min-height: 460px;
+}
+
+.gk-mtabs { display: none; }
+
+.gk-rail {
+  background: var(--surface-0);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  padding-bottom: var(--space-7);
+}
+.gk-rail--left { grid-area: left; border-right: var(--hairline) solid var(--line); }
+.gk-rail--right { grid-area: right; border-left: var(--hairline) solid var(--line); }
+
+/* A panel is defined by its title, its padding and a single top rule.
+   No background, no border box, no radius. Panels never nest. */
+.gk-panel {
+  padding: var(--space-5);
+  border-top: var(--hairline) solid var(--line);
+}
+.gk-panel:first-child { border-top: 0; }
+.gk-panel-title {
+  font-size: var(--t-panel-size);
+  line-height: var(--t-panel-lh);
+  letter-spacing: var(--t-panel-ls);
+  font-weight: var(--weight-medium);
+  color: var(--fg-muted);
+  margin-bottom: var(--space-4);
+}
+.gk-panel-actions {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+}
+
+.gk-stagecol {
+  grid-area: stage;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  background: var(--surface-void);
+}
+
+.gk-stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: var(--stage-min-h);
+  overflow: hidden;
+}
+/* The canvas must never contribute its intrinsic square ratio to layout. */
+.gk-stage-canvas { min-height: 0; }
+.gk-stage-canvas { width: 100%; height: 100%; }
+.gk-stage-canvas:focus-visible { outline-offset: calc(var(--focus-offset) * -2); }
+.gk-stage.is-dissolving .gk-stage-canvas { animation: gk-dissolve var(--dur-4) var(--ease-out); }
+@keyframes gk-dissolve { from { filter: blur(6px); } to { filter: blur(0); } }
+
+.gk-stage-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: var(--z-stage-overlay);
+}
+.gk-stage-overlay > * { pointer-events: auto; }
+
+.gk-crosshair {
+  position: absolute;
+  width: 1px; height: 1px;
+  pointer-events: none;
+}
+.gk-crosshair::before, .gk-crosshair::after {
+  content: "";
+  position: absolute;
+  background: var(--line-strong);
+}
+.gk-crosshair::before { left: 0; top: -8px; width: 1px; height: 17px; }
+.gk-crosshair::after { top: 0; left: -8px; height: 1px; width: 17px; }
+
+.gk-guide {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 1px;
+  background: var(--line-full);
+  pointer-events: none;
+}
+
+.gk-stage-readout {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface-void);
+  border: var(--hairline) solid var(--line);
+  border-radius: var(--radius-1);
+  font-family: var(--font-mono);
+  font-size: var(--t-num-size);
+  letter-spacing: var(--t-num-ls);
+  font-variant-numeric: tabular-nums;
+  color: var(--fg-primary);
+  white-space: pre;
+  pointer-events: none;
+}
+
+.gk-probe-sample {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-ui);
+  line-height: 1.2;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  cursor: grab;
+  touch-action: none;
+  padding: 2px 4px;
+  /* The specimen has to stay on the specimen holder. A sentence wider than a
+     phone's stage would hang off both edges and the measured box would then
+     cover pixels the user cannot see. */
+  width: max-content;
+  max-width: calc(100% - var(--space-5) * 2);
+  text-align: center;
+}
+.gk-probe-sample.is-dragging { cursor: grabbing; }
+.gk-probe-sample:focus-visible, .gk-probe-sample.is-dragging {
+  outline: var(--hairline) solid var(--line-full);
+}
+
+.gk-probe-marker {
+  position: absolute;
+  width: 6px; height: 6px;
+  transform: translate(-50%, -50%);
+  border: var(--hairline) solid var(--line-full);
+  box-shadow: var(--focus-inner);
+  pointer-events: none;
+  transition: width var(--dur-2) var(--ease-out), height var(--dur-2) var(--ease-out);
+}
+.gk-probe-marker.is-large { width: 10px; height: 10px; }
+
+.gk-mesh-points { position: absolute; inset: 0; }
+.gk-meshpoint {
+  position: absolute;
+  width: 14px; height: 14px;
+  transform: translate(-50%, -50%);
+  border: var(--hairline) solid var(--line-full);
+  border-radius: var(--radius-1);
+  background: var(--c, var(--surface-void));
+  box-shadow: var(--focus-inner);
+  touch-action: none;
+}
+.gk-meshpoint-ring {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: var(--ring, 40%); height: var(--ring, 40%);
+  transform: translate(-50%, -50%);
+  border: 1px dashed var(--line-strong);
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-2) var(--ease-out);
+}
+.gk-meshpoint:hover .gk-meshpoint-ring,
+.gk-meshpoint:focus-visible .gk-meshpoint-ring,
+.gk-meshpoint.is-active .gk-meshpoint-ring { opacity: 1; }
+.gk-mesh-points.is-dragging .gk-meshpoint:not(.is-active) { opacity: 0.3; }
+
+.gk-drop {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  gap: var(--space-4);
+  outline: 2px solid var(--line-full);
+  outline-offset: -2px;
+  background: var(--scrim);
+}
+.gk-drop-text { font-size: var(--t-ui-size); color: var(--fg-primary); }
+.gk-drop-bar {
+  display: block;
+  height: 1px;
+  width: 240px;
+  background: linear-gradient(to right, var(--line-full) 0 var(--progress, 0%), var(--line) var(--progress, 0%) 100%);
+}
+
+/* ==========================================================================
+   9. Sweep overlay (the comparison seam)
+   ========================================================================== */
+
+.gk-sweep { position: absolute; inset: 0; pointer-events: none; }
+.gk-sweep > * { pointer-events: auto; }
+
+/* The seam is placed by a transform, never by `left`: during the authored
+   sweep it is rewritten sixty times a second. The line and its grip ride a
+   rail that spans the stage, so --seam is a percentage of the stage and the
+   seam needs no measurement and survives a resize by itself. */
+.gk-sweep-rail {
+  position: absolute;
+  inset: 0;
+  transform: translate3d(calc(var(--seam, 50%) + var(--shake, 0px)), 0, 0);
+  pointer-events: none;
+}
+.gk-sweep-line {
+  position: absolute;
+  top: 0; bottom: 0;
+  left: 0;
+  width: 1px;
+  background: var(--line-full);
+  pointer-events: none;
+}
+.gk-sweep-grip {
+  position: absolute;
+  top: 0; bottom: 0;
+  left: -10px;
+  width: 20px;
+  cursor: ew-resize;
+  touch-action: none;
+  pointer-events: auto;
+}
+.gk-sweep-grip::after {
+  content: "";
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 9px; height: 22px;
+  transform: translate(-50%, -50%);
+  border: var(--hairline) solid var(--line-full);
+  border-radius: var(--radius-1);
+  background: var(--surface-void);
+}
+.gk-sweep-grip:hover::after, .gk-sweep-grip.is-dragging::after { background: var(--surface-1); }
+
+.gk-sweep-label {
+  position: absolute;
+  top: var(--space-4);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface-void);
+  border: var(--hairline) solid var(--line);
+  border-radius: var(--radius-1);
+  font-family: var(--font-mono);
+  font-size: var(--t-tick-size);
+  letter-spacing: var(--t-tick-ls);
+  color: var(--fg-muted);
+  white-space: pre;
+}
+
+.gk-sweep-bracket {
+  position: absolute;
+  top: 18%; bottom: 18%;
+  border: 1px dashed var(--line-full);
+  pointer-events: none;
+}
+.gk-sweep-deficit {
+  position: absolute;
+  bottom: var(--space-6);
+  transform: translateX(-50%);
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface-void);
+  border: var(--hairline) solid var(--line);
+  border-radius: var(--radius-1);
+  font-family: var(--font-mono);
+  font-size: var(--t-tick-size);
+  color: var(--fg-primary);
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   10. Notice
+   ========================================================================== */
+
+.gk-notice-slot { flex: none; }
+.gk-notice {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--space-3);
+  height: var(--notice-h);
+  padding: 0 var(--space-4);
+  background: var(--surface-0);
+  border-top: var(--hairline) solid var(--line);
+  border-bottom: var(--hairline) solid var(--line);
+  animation: gk-notice-in var(--dur-3) var(--ease-out);
+}
+@keyframes gk-notice-in {
+  from { transform: translateY(-6px); }
+  to { transform: translateY(0); }
+}
+.gk-notice:hover { border-color: var(--line-strong); }
+.gk-notice-icon { display: inline-flex; color: var(--fg-muted); }
+.gk-notice-text {
+  font-size: var(--t-ui-size);
+  color: var(--fg-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gk-notice-action {
+  font-size: var(--t-ui-size);
+  color: var(--fg-primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+.gk-notice-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px; height: 24px;
+  color: var(--fg-muted);
+  border-radius: var(--radius-1);
+}
+.gk-notice-close:hover { color: var(--fg-primary); background: var(--fill-hover); }
+
+/* ==========================================================================
+   11. Track
+   ========================================================================== */
+
+.gk-track {
+  position: relative;
+  flex: none;
+  height: var(--track-h);
+  background: var(--surface-0);
+  border-top: var(--hairline) solid var(--line);
+  z-index: var(--z-track);
+  touch-action: none;
+  overflow: hidden;
+}
+
+/* 8px ticks every 2 percent, 12px ticks every 10 percent. */
+.gk-track-rule {
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 12px;
+  background-image:
+    repeating-linear-gradient(to right, var(--fg-tick) 0 1px, transparent 1px 10%),
+    repeating-linear-gradient(to right, var(--fg-tick) 0 1px, transparent 1px 2%);
+  background-size: 100% 12px, 100% 8px;
+  background-repeat: no-repeat;
+}
+.gk-track-nums {
+  position: absolute;
+  left: 0; right: 0; bottom: 4px;
+  height: 14px;
+}
+.gk-track-nums span {
+  position: absolute;
+  left: var(--at);
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: var(--t-tick-size);
+  letter-spacing: var(--t-tick-ls);
+  color: var(--fg-muted);
+  transition: opacity var(--dur-2) var(--ease-out);
+}
+.gk-track-nums span:first-child { transform: translateX(0); }
+.gk-track-nums span:last-child { transform: translateX(-100%); }
+.gk-track.is-dragging .gk-track-nums span { opacity: 0.3; }
+
+.gk-track-ghost {
+  position: absolute;
+  top: 14px;
+  transform: translateX(-50%);
+  width: 12px;
+  height: var(--stop-h);
+  border: var(--hairline) solid var(--line-strong);
+  border-radius: var(--radius-1);
+  opacity: 0.3;
+  pointer-events: none;
+  font-family: var(--font-mono);
+  font-size: var(--t-tick-size);
+  color: var(--fg-primary);
+  text-indent: 16px;
+  line-height: var(--stop-h);
+  white-space: nowrap;
+}
+
+.gk-track-handles { position: absolute; inset: 0; }
+
+.gk-stop {
+  position: absolute;
+  top: 14px;
+  width: var(--stop-w);
+  height: var(--stop-h);
+  transform: translateX(-50%);
+  transform-origin: bottom center;
+  background: var(--stop-color, var(--surface-1));
+  border-radius: var(--radius-1);
+  box-shadow: 0 0 0 1px var(--line-strong);
+  touch-action: none;
+  transition: box-shadow var(--dur-2) var(--ease-out), scale var(--dur-2) var(--ease-out);
+}
+.gk-stop:hover { box-shadow: 0 0 0 1px var(--line-full); scale: 1 1.08; }
+.gk-stop:focus-visible { box-shadow: 0 0 0 1px var(--line-full); }
+.gk-stop.is-dragging {
+  scale: 1 1.14;
+  box-shadow: 0 0 0 1px var(--line-full), var(--shadow-lift);
+}
+.gk-stop.is-settling { animation: gk-settle var(--dur-3) var(--ease-out); }
+@keyframes gk-settle {
+  0% { scale: 1 1.14; }
+  60% { scale: 1 0.96; }
+  100% { scale: 1 1; }
+}
+.gk-stop.is-hardstop { width: calc(var(--stop-w) / 2); }
+.gk-stop-value {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 3px);
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: var(--t-tick-size);
+  color: var(--fg-primary);
+  opacity: 0;
+  white-space: nowrap;
+  pointer-events: none;
+  transition: opacity var(--dur-2) var(--ease-out);
+}
+.gk-stop[data-edge="start"] .gk-stop-value { left: 0; transform: translateX(0); }
+.gk-stop[data-edge="end"] .gk-stop-value { left: 100%; transform: translateX(-100%); }
+.gk-stop:hover .gk-stop-value,
+.gk-stop:focus-visible .gk-stop-value,
+.gk-stop.is-dragging .gk-stop-value { opacity: 1; }
+
+/* A readout window cut into the rule. It carries the panel ground and sits
+   above the handles, because on a short rule a stop near 100% lands under it
+   and two overlapping mono strings read as neither. */
+.gk-track-readout {
+  position: absolute;
+  right: var(--space-4);
+  top: 4px;
+  z-index: 1;
+  padding: 1px var(--space-2);
+  background: var(--surface-0);
+  font-family: var(--font-mono);
+  font-size: var(--t-tick-size);
+  letter-spacing: var(--t-tick-ls);
+  color: var(--fg-muted);
+}
+.gk-track-readout:empty { display: none; }
+
+/* ==========================================================================
+   12. Stop list rows
+   ========================================================================== */
+
+.gk-stoplist { display: grid; gap: var(--space-3); }
+.gk-stoprow {
+  display: grid;
+  grid-template-columns: 18px auto minmax(0, 1fr) 22px;
+  align-items: center;
+  gap: var(--space-3);
+}
+.gk-swatch {
+  width: 18px; height: 18px;
+  background: var(--c, var(--surface-1));
+  border: var(--hairline) solid var(--line-strong);
+  border-radius: var(--radius-1);
+  transition: border-color var(--dur-2) var(--ease-out);
+}
+.gk-swatch:hover { border-color: var(--line-full); }
+.gk-stoprow-hex, .gk-stoprow-coord {
+  font-family: var(--font-mono);
+  font-size: var(--t-num-size);
+  letter-spacing: var(--t-num-ls);
+  font-variant-numeric: tabular-nums;
+  color: var(--fg-secondary);
+}
+.gk-stoprow-del {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px; height: 22px;
+  color: var(--fg-muted);
+  border-radius: var(--radius-1);
+  transition: color var(--dur-2) var(--ease-out), background-color var(--dur-2) var(--ease-out);
+}
+.gk-stoprow-del:hover { color: var(--fg-primary); background: var(--fill-hover); }
+.gk-stoprow-del.is-disabled, .gk-stoprow-del[aria-disabled="true"] {
+  color: var(--fg-disabled);
+  cursor: not-allowed;
+}
+
+/* ==========================================================================
+   13. Color popover
+   ========================================================================== */
+
+.gk-popover {
+  position: fixed;
+  z-index: var(--z-popover);
+  width: 260px;
+  padding: var(--space-4);
+  background: var(--surface-1);
+  border: var(--hairline) solid var(--line);
+  border-radius: var(--radius-1);
+  box-shadow: var(--shadow-lift);
+}
+.gk-popover[data-side="above"] { transform: translateY(-100%); }
+.gk-pop-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+}
+.gk-pop-label { font-size: var(--t-caption-size); color: var(--fg-muted); }
+.gk-pop-hex {
+  height: 26px;
+  width: 100%;
+  padding: 0 var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--t-num-size);
+  border-bottom: var(--hairline) solid var(--line);
+}
+.gk-popover.is-error .gk-pop-hex { border-bottom: 2px dashed var(--line-full); }
+.gk-pop-pick {
+  display: inline-flex;
+  width: 26px; height: 26px;
+  align-items: center;
+  justify-content: center;
+  border: var(--hairline) solid var(--line);
+  border-radius: var(--radius-1);
+  color: var(--fg-secondary);
+}
+.gk-pop-pick:hover { border-color: var(--line-full); color: var(--fg-primary); }
+.gk-pop-msg {
+  margin-top: var(--space-2);
+  font-size: var(--t-caption-size);
+  color: var(--fg-secondary);
+}
+.gk-pop-msg:empty { display: none; }
+.gk-pop-triple { margin-top: var(--space-4); display: grid; gap: var(--space-3); }
+.gk-pop-field {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr) 52px;
+  align-items: center;
+  gap: var(--space-3);
+}
+.gk-pop-key { font-family: var(--font-mono); font-size: var(--t-tick-size); color: var(--fg-muted); }
+.gk-pop-num {
+  font-family: var(--font-mono);
+  font-size: var(--t-num-size);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.gk-pop-rail {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 18px;
+  background: none;
+  cursor: pointer;
+}
+.gk-pop-rail::-webkit-slider-runnable-track { height: 1px; background: var(--line); }
+.gk-pop-rail::-moz-range-track { height: 1px; background: var(--line); }
+.gk-pop-rail:hover::-webkit-slider-runnable-track { height: 2px; background: var(--line-strong); }
+.gk-pop-rail::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 10px; height: 10px;
+  margin-top: -4.5px;
+  background: var(--fg-primary);
+  border-radius: var(--radius-1);
+}
+.gk-pop-rail::-moz-range-thumb {
+  width: 10px; height: 10px;
+  background: var(--fg-primary);
+  border: 0;
+  border-radius: var(--radius-1);
+}
+.gk-pop-gamut {
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: var(--hairline) solid var(--line-faint);
+  font-family: var(--font-mono);
+  font-size: var(--t-tick-size);
+  line-height: 1.5;
+  color: var(--fg-muted);
+}
+.gk-pop-gamut.is-clipped { color: var(--fg-primary); }
+
+/* ==========================================================================
+   14. Output panel
+   ========================================================================== */
+
+.gk-tablist { display: flex; }
+.gk-tab {
+  flex: 1 1 auto;
+  height: 28px;
+  border-bottom: var(--hairline) solid var(--line);
+  color: var(--fg-muted);
+  font-size: var(--t-ui-size);
+  line-height: 1;
+  transition: color var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out);
+}
+.gk-tab:hover { color: var(--fg-primary); }
+.gk-tab[aria-selected="true"] {
+  color: var(--fg-primary);
+  border-bottom: 1px solid var(--line-full);
+  font-weight: var(--weight-medium);
+}
+
+.gk-codebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  min-height: 26px;
+}
+.gk-code-meta {
+  font-family: var(--font-mono);
+  font-size: var(--t-tick-size);
+  color: var(--fg-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.gk-codewrap {
+  position: relative;
+  margin-top: var(--space-3);
+  border: var(--hairline) solid var(--line);
+  border-radius: var(--radius-1);
+  background: var(--surface-void);
+  overflow: hidden;
+  transition: border-color var(--dur-2) var(--ease-out);
+}
+.gk-codewrap:hover { border-color: var(--line-strong); }
+/* Set by outputs.js only while there is code below the fold, so a fully
+   scrolled block is never dimmed for no reason. */
+.gk-codewrap.has-more::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 28px;
+  background: linear-gradient(to bottom, transparent, var(--surface-void));
+  pointer-events: none;
+}
+.gk-code {
+  margin: 0;
+  padding: var(--space-4) var(--space-4) var(--space-4) var(--space-3);
+  max-height: var(--code-max-h);
+  overflow-x: hidden;
+  overflow-y: auto;
+  font-family: var(--font-mono);
+  font-size: var(--t-code-size);
+  line-height: var(--t-code-lh);
+  color: var(--fg-primary);
+  white-space: normal;
+  scrollbar-width: thin;
+}
+/* One row per logical line. The number is drawn by the row itself, so a line
+   that wraps keeps its number aligned with its first visual line and the
+   continuation is indented under the code, not under the gutter. Nothing is
+   ever clipped horizontally: the whole declaration is readable in place. */
+.gk-code-line {
+  position: relative;
+  display: block;
+  min-height: calc(var(--t-code-lh) * 1em);
+  padding-left: calc(var(--code-gutter-w) + var(--space-3) + 2ch);
+  text-indent: -2ch;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+.gk-code-line::before {
+  content: attr(data-n);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--code-gutter-w);
+  padding-right: var(--space-2);
+  text-align: right;
+  text-indent: 0;
+  color: var(--fg-tick);
+  user-select: none;
+  pointer-events: none;
+}
+/* MOTION HOOK: the changed-line highlight tweens this element's clip-path.
+   Its fill is the gradient's own mid color, never green. */
+.gk-code-wipe {
+  position: absolute;
+  inset: 0;
+  background: var(--user-mid-wash);
+  clip-path: inset(0 100% 0 0);
+  pointer-events: none;
+}
+.gk-code-wipe.is-wiping { animation: gk-wipe var(--dur-4) var(--ease-out); }
+@keyframes gk-wipe {
+  0% { clip-path: inset(0 100% 0 0); }
+  55% { clip-path: inset(0 0 0 0); }
+  100% { clip-path: inset(0 0 0 100%); }
+}
+
+.gk-png { margin-top: var(--space-5); }
+.gk-outpanel:focus-visible { outline-offset: var(--focus-offset); }
+
+/* ==========================================================================
+   15. Contrast readout
+   ========================================================================== */
+
+.gk-probe-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+.gk-readout {
+  margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: var(--hairline) solid var(--line-faint);
+}
+.gk-readout-num {
+  font-family: var(--font-mono);
+  font-size: var(--t-num-lg-size);
+  line-height: var(--t-num-lg-lh);
+  font-variant-numeric: tabular-nums;
+  color: var(--fg-primary);
+}
+.gk-readout-verdict {
+  margin-top: var(--space-2);
+  font-size: var(--t-ui-size);
+  font-weight: var(--weight-semibold);
+  color: var(--fg-primary);
+}
+.gk-readout-verdict[data-pass="false"] { font-weight: var(--weight-regular); color: var(--fg-secondary); }
+.gk-readout-where {
+  margin-top: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--t-tick-size);
+  color: var(--fg-muted);
+}
+.gk-readout-hint { margin-top: var(--space-3); }
+
+/* ==========================================================================
+   16. Vision strip
+   ========================================================================== */
+
+.gk-vision {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+.gk-vision-cell {
+  display: grid;
+  gap: var(--space-2);
+  padding: 0;
+  text-align: left;
+}
+.gk-vision-canvas {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 68 / 44;
+  border: var(--hairline) solid var(--line);
+  border-radius: var(--radius-1);
+  transition: border-color var(--dur-2) var(--ease-out);
+}
+.gk-vision-cell:hover .gk-vision-canvas { border-color: var(--line-full); }
+.gk-vision-cell.is-selected .gk-vision-canvas {
+  outline: 2px solid var(--surface-inverse);
+  outline-offset: var(--focus-offset);
+}
+.gk-vision-name {
+  font-size: var(--t-caption-size);
+  color: var(--fg-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.gk-vision-cell.is-selected .gk-vision-name { color: var(--fg-primary); }
+
+/* ==========================================================================
+   17. Loupe
+   ========================================================================== */
+
+.gk-loupe-wrap {
+  display: grid;
+  grid-template-columns: var(--loupe-size) minmax(0, 1fr);
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+  align-items: start;
+}
+.gk-loupe {
+  width: var(--loupe-size);
+  height: var(--loupe-size);
+  border: var(--hairline) solid var(--line);
+  border-radius: var(--radius-1);
+  image-rendering: pixelated;
+  background: var(--surface-void);
+}
+.gk-loupe-wrap { position: relative; }
+.gk-loupe-wrap::after {
+  content: "";
+  position: absolute;
+  left: calc(var(--loupe-size) / 2);
+  top: calc(var(--loupe-size) / 2);
+  width: 11px; height: 11px;
+  transform: translate(-50%, -50%);
+  border: var(--hairline) solid var(--line-full);
+  pointer-events: none;
+}
+.gk-loupe-hex {
+  font-family: var(--font-mono);
+  font-size: var(--t-num-size);
+  letter-spacing: var(--t-num-ls);
+  color: var(--fg-primary);
+}
+
+/* ==========================================================================
+   18. Saved library
+   ========================================================================== */
+
+.gk-lib { display: grid; gap: 0; }
+.gk-lib-row {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) 22px;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: var(--hairline) solid var(--line-faint);
+  transition: border-color var(--dur-2) var(--ease-out);
+}
+.gk-lib-row:hover { border-color: var(--line-strong); }
+.gk-lib-row.is-oldest { border-left: 2px solid var(--line-full); padding-left: var(--space-3); }
+.gk-lib-thumb {
+  width: 40px; height: 24px;
+  border: var(--hairline) solid var(--line);
+  border-radius: var(--radius-1);
+  background-size: cover;
+}
+.gk-lib-load {
+  display: grid;
+  gap: 2px;
+  text-align: left;
+  padding: 0;
+}
+.gk-lib-name { font-size: var(--t-ui-size); color: var(--fg-primary); }
+.gk-lib-time { font-family: var(--font-mono); font-size: var(--t-tick-size); color: var(--fg-muted); }
+.gk-lib-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px; height: 22px;
+  color: var(--fg-muted);
+  opacity: 0;
+  border-radius: var(--radius-1);
+  transition: opacity var(--dur-2) var(--ease-out), color var(--dur-2) var(--ease-out);
+}
+.gk-lib-row:hover .gk-lib-delete, .gk-lib-delete:focus-visible { opacity: 1; color: var(--fg-primary); }
+
+/* A composed empty state, not a blank: a drawn spectral rule in the same
+   language as the Track. */
+.gk-lib-empty { display: grid; gap: var(--space-4); }
+.gk-spectral {
+  display: block;
+  height: 20px;
+  border-bottom: var(--hairline) solid var(--line);
+  background-image:
+    repeating-linear-gradient(to right, var(--fg-tick) 0 1px, transparent 1px 6.25%),
+    repeating-linear-gradient(to right, var(--line-strong) 0 1px, transparent 1px 25%);
+  background-size: 100% 8px, 100% 14px;
+  background-position: bottom left;
+  background-repeat: no-repeat;
+}
+
+/* ==========================================================================
+   19. Below-fold sections
+   ========================================================================== */
+
+.gk-section {
+  padding: var(--space-9) var(--space-7) var(--space-10);
+  border-top: var(--hairline) solid var(--line);
+  max-width: 1600px;
+  margin: 0 auto;
+}
+.gk-section > .gk-lede { margin-bottom: var(--space-8); }
+
+/* B. Four measurement bands. */
+.gk-bands { display: grid; }
+.gk-band {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr) auto;
+  align-items: stretch;
+  height: var(--band-compare-h);
+  border-top: var(--hairline) solid var(--line);
+}
+.gk-band:last-child { border-bottom: var(--hairline) solid var(--line); }
+.gk-band-name {
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-4);
+  background: var(--surface-0);
+  font-size: var(--t-panel-size);
+  font-weight: var(--weight-medium);
+  color: var(--fg-secondary);
+}
+.gk-band.is-current .gk-band-name { color: var(--fg-primary); }
+.gk-band.is-current { outline: var(--hairline) solid var(--line-strong); outline-offset: -1px; }
+.gk-band-swatch { min-width: 0; }
+.gk-band-metric {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 2px;
+  padding: 0 var(--space-5);
+  background: var(--surface-0);
+  min-width: 148px;
+}
+.gk-band-num {
+  font-family: var(--font-mono);
+  font-size: var(--t-num-lg-size);
+  line-height: var(--t-num-lg-lh);
+  font-variant-numeric: tabular-nums;
+  color: var(--fg-primary);
+}
+.gk-band.is-clean .gk-band-num { color: var(--fg-muted); }
+.gk-band-unit { font-size: var(--t-caption-size); color: var(--fg-muted); }
+
+/* C. Reference shelf. */
+.gk-shelf {
+  display: flex;
+  gap: var(--space-4);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-bottom: var(--space-4);
+  scrollbar-width: thin;
+}
+.gk-tile {
+  flex: none;
+  display: grid;
+  gap: var(--space-2);
+  width: var(--tile-preset-w);
+  padding: 0;
+  text-align: left;
+  scroll-snap-align: start;
+}
+.gk-tile-art {
+  display: block;
+  height: var(--tile-preset-h);
+  border: var(--hairline) solid var(--line);
+  border-radius: var(--radius-1);
+  transition: border-color var(--dur-2) var(--ease-out);
+}
+.gk-tile:hover .gk-tile-art { border-color: var(--line-full); }
+.gk-tile.is-active .gk-tile-art { outline: 2px solid var(--surface-inverse); outline-offset: var(--focus-offset); }
+.gk-tile-name { font-size: var(--t-ui-size); color: var(--fg-primary); }
+.gk-tile.is-active .gk-tile-name { background: var(--user-edge-wash); }
+.gk-tile-meta {
+  font-family: var(--font-mono);
+  font-size: var(--t-tick-size);
+  letter-spacing: var(--t-tick-ls);
+  color: var(--fg-muted);
+}
+
+/* D. Output reference. */
+.gk-docs-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr);
+  gap: var(--space-10) var(--space-9);
+  margin-top: var(--space-8);
+}
+.gk-prose p, .gk-support p {
+  color: var(--fg-secondary);
+  max-width: var(--measure-prose);
+  margin-bottom: var(--space-4);
+}
+.gk-prose code, .gk-support code { color: var(--fg-primary); }
+
+.gk-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--t-ui-size);
+}
+.gk-table th, .gk-table td {
+  text-align: left;
+  padding: var(--space-3) var(--space-4) var(--space-3) 0;
+  color: var(--fg-secondary);
+}
+.gk-table thead th {
+  color: var(--fg-muted);
+  font-weight: var(--weight-regular);
+  border-bottom: var(--hairline) solid var(--line);
+}
+.gk-table tbody td:nth-child(2), .gk-table tbody td:nth-child(3) {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   20. Shortcut sheet
+   ========================================================================== */
+
+.gk-sheet {
+  position: fixed;
+  top: 0; right: 0;
+  z-index: var(--z-sheet);
+  width: var(--sheet-w);
+  max-width: 92vw;
+  height: 100dvh;
+  overflow-y: auto;
+  padding: var(--space-5);
+  background: var(--surface-1);
+  border-left: var(--hairline) solid var(--line);
+  animation: gk-sheet-in var(--dur-3) var(--ease-out);
+}
+@keyframes gk-sheet-in {
+  from { transform: translateX(24px); }
+  to { transform: translateX(0); }
+}
+.gk-sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-6);
+}
+.gk-sheet-title {
+  font-size: var(--t-h2-size);
+  line-height: var(--t-h2-lh);
+  letter-spacing: var(--t-h2-ls);
+  font-weight: var(--weight-semibold);
+}
+.gk-sheet-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px; height: 28px;
+  border: var(--hairline) solid var(--line);
+  border-radius: var(--radius-1);
+  color: var(--fg-secondary);
+}
+.gk-sheet-close:hover { border-color: var(--line-full); color: var(--fg-primary); }
+.gk-sheet-list { display: grid; gap: var(--space-4); }
+.gk-sheet-row {
+  display: grid;
+  grid-template-columns: 108px minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: baseline;
+}
+.gk-sheet-row dt {
+  font-family: var(--font-mono);
+  font-size: var(--t-tick-size);
+  letter-spacing: var(--t-tick-ls);
+  color: var(--fg-primary);
+}
+.gk-sheet-row dd { margin: 0; font-size: var(--t-caption-size); color: var(--fg-secondary); }
+
+/* ==========================================================================
+   21. Footer
+   ========================================================================== */
+
+.gk-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-5);
+  padding: var(--space-7);
+  border-top: var(--hairline) solid var(--line);
+}
+.gk-foot-link {
+  font-size: var(--t-ui-size);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.gk-foot-btn {
+  padding: 0;
+  font: inherit;
+  font-size: var(--t-ui-size);
+  color: var(--fg-primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.gk-foot-note {
+  flex: 1 1 100%;
+  font-size: var(--t-caption-size);
+  color: var(--fg-muted);
+}
+
+/* ==========================================================================
+   22. Breakpoints
+   ========================================================================== */
+
+/* Tablet: the right rail becomes a bottom drawer with the same panels. */
+@media (max-width: 1279px) {
+  .gk-work {
+    grid-template-columns: var(--rail-left-w) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) var(--drawer-h);
+    grid-template-areas:
+      "left stage"
+      "right right";
+  }
+  .gk-rail--right {
+    border-left: 0;
+    border-top: var(--hairline) solid var(--line);
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-content: start;
+    resize: vertical;
+  }
+  .gk-rail--right .gk-panel:nth-child(odd) { border-right: var(--hairline) solid var(--line); }
+  .gk-proposition { display: none; }
+  .gk-docs-grid { grid-template-columns: minmax(0, 1fr); gap: var(--space-9); }
+}
+
+/* The bar stays on one line at every width, so it only carries working
+   actions. Shortcuts lives in the footer, where it does not compete. */
+@media (max-width: 1024px) {
+  .gk-bar { gap: var(--space-4); padding: 0 var(--space-4); }
+  .gk-bar-actions { gap: var(--space-2); }
+}
+
+@media (max-width: 900px) {
+  .gk-proposition { display: none; }
+}
+
+/* Phone: one column, four panel groups behind a segmented control. */
+@media (max-width: 767px) {
+  /* Four controls do not fit beside the wordmark at 375px. They used to be
+     pushed off the start edge of a scroll container by justify-content:
+     flex-end, where no gesture could reach them, so the mode switch was
+     simply gone. They wrap onto their own row instead, and the bar releases
+     its fixed height and its sticky position to pay for it. */
+  .gk-bar {
+    position: static;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-3);
+    height: auto;
+    padding: var(--space-3) var(--space-4);
+  }
+  .gk-bar-actions {
+    grid-column: 1;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: var(--space-2);
+  }
+  .gk-bar-actions > * { flex: none; }
+  .gk-btn { padding: 0 10px; }
+
+  /* At 375 the rule is short enough that a stop handle lands on top of this
+     readout and the two become unreadable. The Stops panel directly below
+     carries the same hex and position and updates on the same frame, so the
+     duplicate goes rather than the overlap staying. */
+  .gk-track-readout { display: none; }
+
+  .gk-work {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto auto;
+    grid-template-areas:
+      "stage"
+      "tabs"
+      "left"
+      "right";
+    height: auto;
+  }
+  .gk-stagecol { height: 52dvh; min-height: 280px; }
+  .gk-rail { overflow: visible; padding-bottom: 0; }
+  .gk-rail--left, .gk-rail--right {
+    border: 0;
+    border-top: var(--hairline) solid var(--line);
+    display: block;
+  }
+  .gk-rail--right .gk-panel:nth-child(odd) { border-right: 0; }
+
+  .gk-mtabs {
+    grid-area: tabs;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    background: var(--surface-0);
+    border-top: var(--hairline) solid var(--line);
+  }
+  .gk-mtab {
+    height: 36px;
+    border-bottom: var(--hairline) solid var(--line);
+    color: var(--fg-muted);
+    font-size: var(--t-ui-size);
+  }
+  .gk-mtab[aria-current="true"] {
+    color: var(--fg-primary);
+    border-bottom: 1px solid var(--line-full);
+    font-weight: var(--weight-medium);
+  }
+
+  .gk-work[data-mtab="stops"] .gk-panel:not([data-mgroup="stops"]),
+  .gk-work[data-mtab="space"] .gk-panel:not([data-mgroup="space"]),
+  .gk-work[data-mtab="output"] .gk-panel:not([data-mgroup="output"]),
+  .gk-work[data-mtab="measure"] .gk-panel:not([data-mgroup="measure"]) {
+    display: none;
+  }
+
+  .gk-section { padding: var(--space-9) var(--space-5) var(--space-10); }
+  .gk-band { grid-template-columns: 76px minmax(0, 1fr); grid-template-rows: auto auto; height: auto; }
+  .gk-band-swatch { height: 64px; }
+  .gk-band-metric {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    min-width: 0;
+  }
+  .gk-vision { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .gk-loupe-wrap { grid-template-columns: var(--loupe-size) minmax(0, 1fr); }
+  .gk-display { max-width: none; }
+}
+
+/* ==========================================================================
+   22b. Motion layer support
+   Every rule below is either a state class js/motion.js adds and removes for
+   the duration of one sequence, or a custom property whose default is the
+   resting value. Delete motion.js and the page is unchanged and complete.
+   ========================================================================== */
+
+/* While the scan crosses the specimen the hover instruments step aside. Two
+   readouts fighting for the same pixels is not a measurement. */
+.gk-stage.is-scanning .gk-crosshair,
+.gk-stage.is-scanning .gk-stage-readout { visibility: hidden; }
+.gk-stage.is-scanning { cursor: progress; }
+
+/* Compositor hints, carried only for the ~3s the sweep is running. */
+.gk-stage.is-scanning .gk-stage-canvas,
+.gk-sweep.is-running .gk-sweep-rail { will-change: transform; }
+
+/* First visit only: one hairline pulse around the interpolation-space control,
+   which is the first thing on the page worth touching. The ring is pure
+   signal, carries no content, and stays at 0 unless the motion layer raises
+   --pulse, so a page without motion.js simply never draws it. */
+.gk-spaces { position: relative; }
+.gk-spaces::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border: var(--hairline) solid var(--line-full);
+  border-radius: var(--radius-1);
+  opacity: var(--pulse, 0);
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   23. Reduced motion
+   Content is complete without animation. Nothing here is hidden waiting for a
+   transition to finish.
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+  .gk-btn--arm.is-armed::after { animation: none; width: 100%; }
+  /* The signature sweep never runs here, so neither does its ring. */
+  .gk-spaces::after { display: none; }
+}
+
+/* ==========================================================================
+   24. Print
+   ========================================================================== */
+
+@media print {
+  .gk-rail, .gk-bar-actions, .gk-mtabs, .gk-track, .gk-sheet { display: none; }
+  body { background: var(--surface-void); }
+}

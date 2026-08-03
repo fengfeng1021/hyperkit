@@ -1,0 +1,302 @@
+/* ==========================================================================
+   Mockup Loom - design tokens
+   The single source of colour, type, space, shape and motion for this build.
+   No bare hex values are allowed anywhere else in css/. Fabric colours are
+   content, not interface: they live in js/templates/colorways.js.
+
+   World: textile and print workshop under photographic light.
+   Assigned by docs/VISUAL-WORLDS.md (project 4). Not negotiable.
+   ========================================================================== */
+
+:root {
+
+  /* ---------------------------------------------------------------------
+     1. NEUTRAL RAMP - photographic studio grey
+     #E6E4E1 and #2A2A28 are the pinned endpoints. Every step keeps its
+     channel spread at or under 5/255, so there is no measurable cast.
+     --stage is the one exception in the other direction: it is exactly
+     R=G=B, because that is the surface where fabric colour gets judged.
+     Contrast values in comments are against --grey-050 unless stated.
+     --------------------------------------------------------------------- */
+
+  --grey-000: #F2F1EF;   /* raised surface: inputs, swatch faces, button text */
+  --grey-050: #E6E4E1;   /* app chrome background (pinned)                    */
+  --grey-100: #DCDAD6;   /* left and right rail background                    */
+  --grey-200: #CFCDC9;   /* tracks, filled dividers                           */
+  --grey-300: #B7B5B1;   /* disabled fill                            1.62 : 1 */
+  --grey-400: #8B8985;   /* disabled text only (aria-disabled set)   2.83 : 1 */
+  --grey-500: #6E6C68;   /* graphic elements, tick marks             4.13 : 1 */
+  --grey-600: #55534F;   /* SECONDARY TEXT                           6.05 : 1 */
+  --grey-700: #3A3937;   /* deep surface                             8.90 : 1 */
+  --grey-800: #2A2A28;   /* dark chips, banners, stage frame (pinned) 11.33:1 */
+  --ink:      #1E1E1C;   /* PRIMARY TEXT                            13.16 : 1 */
+
+  --stage:    #767676;   /* render stage. exactly neutral, ~18% reflectance   */
+
+  /* Text and accents on the dark surface (--grey-800). Secondary tones are
+     tinted from their own hue, never mixed toward grey. */
+  --on-dark:    #E6E4E1; /* primary text on dark                    11.33 : 1 */
+  --on-dark-2:  #B8B6B2; /* secondary text on dark                   7.10 : 1 */
+
+  /* ---------------------------------------------------------------------
+     2. ACCENT - deep olive. The working colour. Action only.
+     --------------------------------------------------------------------- */
+
+  --olive:      #4A5233; /* primary fill, selection outline, progress, checks
+                            --grey-000 on it   7.31 : 1
+                            as text on --grey-050  6.50 : 1                  */
+  --olive-deep: #363C25; /* hover and active fill                            */
+  --olive-lift: #9AAE63; /* olive on the dark surface        5.90 : 1        */
+
+  /* ---------------------------------------------------------------------
+     3. ACCENT - brick red. State only, and only in three roles:
+        (a) the WOVEN condition, (b) the design placement frame,
+        (c) errors and the outer focus ring.
+     --brick is a FILL token. Never use it in a `color:` declaration.
+     Red text always uses --brick-ink.
+     --------------------------------------------------------------------- */
+
+  --brick:      #B5462F; /* fill and graphics
+                            --grey-000 on it   4.79 : 1
+                            as text it is only 4.26 : 1, so it is banned
+                            from `color:` by rule                            */
+  --brick-deep: #93331F; /* hover and active fill                            */
+  --brick-ink:  #8E3320; /* RED TEXT
+                            on --grey-050  6.26 : 1
+                            on --grey-000  7.03 : 1
+                            on --grey-100  5.36 : 1                          */
+  --brick-lift: #E08A6B; /* red text on the dark surface     5.49 : 1        */
+
+  /* ---------------------------------------------------------------------
+     4. RULES, SCRIMS, CHECKER
+     Depth in this build comes from a three step hairline ladder, not boxes.
+     --------------------------------------------------------------------- */
+
+  --rule-hair:    rgba(30, 30, 28, 0.14);   /* inside a group                */
+  --rule-firm:    rgba(30, 30, 28, 0.28);   /* between groups, surface edges */
+  --rule-hard:    rgba(30, 30, 28, 0.52);   /* stage frame                   */
+  --rule-on-dark: rgba(242, 241, 239, 0.18);
+  --scrim:        rgba(30, 30, 28, 0.08);   /* window scrim while dragging   */
+
+  --checker-a: #F2F1EF;                     /* transparency checker, 4px     */
+  --checker-b: #DCDAD6;
+
+  /* ---------------------------------------------------------------------
+     5. FOCUS RING - two tone, because focus can land on a render of any
+     brightness. One of the two rings always clears 3:1.
+     --------------------------------------------------------------------- */
+
+  --focus-inner:  var(--grey-000);
+  --focus-outer:  var(--brick);
+  --focus-w:      2px;
+  --focus-offset: 2px;
+
+  /* ---------------------------------------------------------------------
+     6. TYPE
+     Bricolage Grotesque (variable: opsz 12-96, wdth 75-100, wght 200-800)
+     carries display and UI. The width axis is the loom: wide and heavy for
+     display, condensed for the dense control rails.
+     Fragment Mono carries numbers, file names, sizes, angles and seeds.
+     Nothing else. Never as a costume for "technical".
+     --------------------------------------------------------------------- */
+
+  --font-ui:   "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-num:  "Fragment Mono", ui-monospace, "SFMono-Regular", monospace;
+
+  /* size / line-height */
+  --t-display-size:   3.25rem;  --t-display-lh: 1.02;
+  --t-figure-size:    2rem;     --t-figure-lh:  1.06;
+  --t-title-size:     1.25rem;  --t-title-lh:   1.2;
+  --t-body-size:      0.9375rem;--t-body-lh:    1.55;
+  --t-label-size:     0.75rem;  --t-label-lh:   1.25;
+  --t-micro-size:     0.6875rem;--t-micro-lh:   1.35;
+  --t-num-size:       0.8125rem;--t-num-lh:     1.2;
+  --t-num-lg-size:    1.125rem; --t-num-lg-lh:  1.1;
+
+  /* weight */
+  --w-display: 800;
+  --w-figure:  700;
+  --w-title:   650;
+  --w-label:   600;
+  --w-micro:   500;
+  --w-body:    450;
+
+  /* width axis (Bricolage `wdth`), expressed as font-stretch percentages so it
+     survives inside the `font` shorthand. font-variation-settings does not. */
+  --wd-display: 100%;
+  --wd-figure:  96%;
+  --wd-title:   92%;
+  --wd-body:    100%;
+  --wd-label:   82%;
+
+  /* tracking. Floor is -0.035em, above the -0.04em limit. */
+  --tr-display: -0.035em;
+  --tr-figure:  -0.02em;
+  --tr-title:   -0.01em;
+  --tr-body:    0em;
+  --tr-label:   0.005em;
+  --tr-micro:   0.01em;
+
+  --measure: 68ch;   /* body copy max width */
+
+  /* Composite roles. Use as `font: var(--t-label);` and then, on the SAME rule
+     and AFTER it, `font-stretch: var(--wd-label);` plus
+     `letter-spacing: var(--tr-label);`.
+     The width axis is deliberately NOT folded into the shorthand: the CSS
+     `font` shorthand only accepts font-stretch KEYWORDS, so a percentage
+     inside it invalidates the whole declaration. The `.t-*` helper classes in
+     style.css pair the three properties correctly; use those.
+     Shorthand order: weight, size/line-height, family.
+     Uppercase is permitted on --t-display only. Everything below 2rem is
+     sentence case: this build has no uppercase micro labels. */
+  --t-display: var(--w-display) var(--t-display-size)/var(--t-display-lh) var(--font-ui);
+  --t-figure:  var(--w-figure)  var(--t-figure-size)/var(--t-figure-lh)   var(--font-ui);
+  --t-title:   var(--w-title)   var(--t-title-size)/var(--t-title-lh)     var(--font-ui);
+  --t-body:    var(--w-body)    var(--t-body-size)/var(--t-body-lh)       var(--font-ui);
+  --t-label:   var(--w-label)   var(--t-label-size)/var(--t-label-lh)     var(--font-ui);
+  --t-micro:   var(--w-micro)   var(--t-micro-size)/var(--t-micro-lh)     var(--font-ui);
+  --t-num:     400 var(--t-num-size)/var(--t-num-lh)       var(--font-num);
+  --t-num-lg:  400 var(--t-num-lg-size)/var(--t-num-lg-lh) var(--font-num);
+
+  /* ---------------------------------------------------------------------
+     7. SPACE - 4px base.
+     Rhythm, applied everywhere without exception:
+       inside a control group   --sp-2
+       between control groups   --sp-6 plus one --rule-hair
+       above a section heading  --sp-6   below it  --sp-2
+     Space above a heading is always larger than space below it.
+     --------------------------------------------------------------------- */
+
+  --sp-1:  4px;
+  --sp-2:  8px;
+  --sp-3:  12px;
+  --sp-4:  16px;
+  --sp-5:  20px;
+  --sp-6:  24px;
+  --sp-8:  32px;
+  --sp-10: 40px;
+  --sp-14: 56px;
+  --sp-18: 72px;
+
+  /* ---------------------------------------------------------------------
+     8. SIZE
+     --------------------------------------------------------------------- */
+
+  --bar-h:     64px;   /* top bar. under the 80px cap, single line on desktop */
+  --rail-l:    300px;
+  --rail-r:    320px;
+  --ctl-h:     32px;   /* inputs, segments, slider rows                       */
+  --btn-h:     40px;
+  --hit-min:   44px;   /* touch target floor, padded out when the box is small*/
+
+  --switch-w:  220px;
+  --switch-h:  44px;
+  --switch-knob: 44px;
+  --switch-travel: 176px;   /* --switch-w minus --switch-knob                 */
+
+  --dial:      148px;
+  --dial-min:  132px;
+  --thumb:     72px;
+  --tpl-thumb: 56px;
+  --swatch:    24px;
+  --checker-size: 4px;
+
+  /* ---------------------------------------------------------------------
+     9. SHAPE - zero radius across the whole interface.
+     Swatch cards are guillotine cut, punch cards are punched, not rounded.
+     The documented exception: a physical grip is round, because the user
+     puts a finger on it and turns it. There are exactly two of those.
+     --------------------------------------------------------------------- */
+
+  --radius:      0;
+  --radius-grip: 50%;   /* light dial handle, design rotate handle. Only these */
+
+  --border-w:      1px;
+  --border-w-emph: 2px;
+  --dash: 2px;          /* dropzone dash length */
+  --gap:  3px;          /* dropzone dash gap    */
+
+  /* ---------------------------------------------------------------------
+     10. SHADOW - exactly two, both with offset and blur.
+     Reserved for real objects: the render surface, and a frame being
+     dragged. There are no zero-offset glows in this build.
+     --------------------------------------------------------------------- */
+
+  --shadow-stage:
+    0 2px 0 rgba(30, 30, 28, 0.10),
+    0 18px 40px -18px rgba(30, 30, 28, 0.45);
+
+  --shadow-lift:
+    0 1px 0 rgba(30, 30, 28, 0.08),
+    0 8px 20px -12px rgba(30, 30, 28, 0.35);
+
+  /* ---------------------------------------------------------------------
+     11. MOTION
+     One authored moment (the switch) plus feedback. No entrance animation,
+     no scroll narrative, therefore no ScrollTrigger in this build.
+     Linear easing is banned except on determinate progress fills, where the
+     value represents real elapsed work.
+     --------------------------------------------------------------------- */
+
+  --dur-tap:       90ms;    /* press feedback                                */
+  --dur-ui:        180ms;   /* selection move, label crossfade, hover        */
+  --dur-panel:     280ms;   /* panel reflow, tray open                       */
+  --dur-signature: 300ms;   /* the shader scalar 0 -> 1                      */
+  --dur-knob:      420ms;   /* switch knob overshoot travel                  */
+  --dur-card:      420ms;   /* a batch card arriving                         */
+
+  --ease-out:   cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* GSAP equivalents, kept here so the pair stays in sync:
+       shader scalar   power2.inOut   --dur-signature
+       switch knob     back.out(2.2)  --dur-knob      (the only overshoot)
+       card arrival    expo.out       --dur-card
+       verdict line    power3.out     260ms
+       light dial      power2.out     180ms via gsap.quickTo                 */
+
+  /* ---------------------------------------------------------------------
+     12. LAYER - documented scale, no arbitrary numbers anywhere else.
+     --------------------------------------------------------------------- */
+
+  --z-stage:   1;
+  --z-frame:   10;   /* placement frame and handles over the canvas */
+  --z-rail:    20;
+  --z-bar:     30;
+  --z-banner:  40;
+  --z-toast:   50;
+  --z-overlay: 60;   /* keyboard map, the only dialog in the build   */
+}
+
+/* ==========================================================================
+   Reduced motion. Durations collapse; nothing is hidden, nothing is lost.
+   Content is visible by default in CSS at all times, so a failed animation
+   never hides anything. GSAP paths are gated separately via matchMedia.
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-tap:       0ms;
+    --dur-ui:        0ms;
+    --dur-panel:     0ms;
+    --dur-signature: 0ms;
+    --dur-knob:      0ms;
+    --dur-card:      0ms;
+  }
+}
+
+/* ==========================================================================
+   Narrow viewport overrides. Every multi column layout declares its own
+   behaviour under 768px in style.css; these are the token level shifts.
+   ========================================================================== */
+
+@media (max-width: 767px) {
+  :root {
+    --bar-h:          56px;
+    --t-display-size: 2.25rem;
+    --t-figure-size:  1.625rem;
+    --dial:           var(--dial-min);
+    --thumb:          64px;
+    --sp-8:           24px;
+  }
+}

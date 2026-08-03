@@ -1,0 +1,335 @@
+/* ==========================================================================
+   Cutout Forge - design tokens
+   World: industrial process monitor. Dark, cyan instrument accent,
+   forge orange for faults only. Geist / Geist Mono.
+
+   THIS FILE IS THE ONLY SOURCE OF COLOUR IN THIS PROJECT.
+   No bare hex values are permitted in style.css or in any JS file.
+   Contrast ratios in the comments are computed with the WCAG 2.1
+   relative-luminance formula, not estimated.
+   ========================================================================== */
+
+:root {
+  color-scheme: dark;
+
+  /* ---------------------------------------------------------------------
+     SURFACES - nine-step neutral ramp, no blue cast
+     Each step is a real luminance level used for depth.
+     Depth comes from these steps plus offset black shadows.
+     --------------------------------------------------------------------- */
+  --forge-void:        #08090A;  /* masthead, status rail, dialog backdrop base */
+  --forge-bed:         #0E0E10;  /* FLOOR background (assigned family base)     */
+  --forge-plate:       #141518;  /* intake rail, FLOOR while dragover           */
+  --forge-rail:        #1B1D21;  /* raised: tile chrome, popover, ghost hover   */
+  --forge-slot:        #232629;  /* inset: inputs, progress tracks, disclosure  */
+  --forge-line:        #2C3033;  /* 1px dividers                                */
+  --forge-line-strong: #3A3F44;  /* 1px control outlines, hover edges           */
+
+  /* ---------------------------------------------------------------------
+     TEXT
+     --ink-hi   17.78:1 on bed | 15.56:1 on rail
+     --ink      11.76:1 on bed | 10.29:1 on rail
+     --ink-mid   6.81:1 on bed |  5.96:1 on rail |  5.37:1 on slot
+     --ink-low   6.07:1 on bed |  4.79:1 on slot   <- placeholder floor, passes AA
+     --ink-off   4.02:1 on rail  <- DISABLED LABELS ONLY (WCAG 1.4.3 exempt).
+                 Must always ship with the hatch texture below so that
+                 disabled state is never communicated by colour alone.
+     --------------------------------------------------------------------- */
+  --ink-hi:  #F4F6F6;
+  --ink:     #C6CBCB;
+  --ink-mid: #949B9B;
+  --ink-low: #8A9292;
+  --ink-off: #767D7D;
+
+  /* ---------------------------------------------------------------------
+     ACCENT - electric cyan. The instrument colour. Locked for the whole
+     page. Appears only as a 1px line, a 2px band, or a solid fill.
+     Never as a glow. See --shadow-* for the depth system.
+     --cyan       12.04:1 on bed | 10.54:1 on rail
+     --cyan-bright 14.05:1 on bed | 12.29:1 on rail  <- focus ring
+     --cyan-deep    6.46:1 on bed |  5.09:1 on slot
+     --cyan-ink    10.36:1 on --cyan | 12.09:1 on --cyan-bright
+     --------------------------------------------------------------------- */
+  --cyan:        #22E5C8;
+  --cyan-bright: #5BF3DC;
+  --cyan-deep:   #0FA891;
+  --cyan-ink:    #04231F;
+  --cyan-wash:   rgb(34 229 200 / 0.10);
+  --cyan-veil:   rgb(34 229 200 / 0.24);
+
+  /* ---------------------------------------------------------------------
+     FAULT - forge orange. Errors and warnings only. Appears nowhere else,
+     so that when it appears the eye goes straight to it.
+     Success uses --cyan. No green is introduced. Total hues on page: 2.
+     --forge-orange      7.39:1 on bed | 6.47:1 on rail
+     --forge-orange-ink  6.86:1 on --forge-orange
+     --------------------------------------------------------------------- */
+  --forge-orange:      #FF7A18;
+  --forge-orange-ink:  #2A1000;
+  --forge-orange-wash: rgb(255 122 24 / 0.12);
+
+  /* ---------------------------------------------------------------------
+     TRANSPARENCY CHECKERBOARD - 1.21:1 between the two squares.
+     Deliberately near-invisible so the product photo is the bright thing.
+     --------------------------------------------------------------------- */
+  --checker-a: #262A2C;
+  --checker-b: #33373A;
+
+  /* ---------------------------------------------------------------------
+     TYPE
+     Geist for what the interface says. Geist Mono only for what the
+     machine measured: file names, pixel dimensions, seconds, dollars,
+     percentages, hex samples. This split is enforced, not decorative.
+     --------------------------------------------------------------------- */
+  --font-ui:   "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", "Consolas", monospace;
+
+  /* Tuned against the real headline: the vw coefficient is set so the line
+     reaches 68px only on viewports wide enough to still hold it in two
+     lines beside a 304px rail. */
+  --fs-display: clamp(2.25rem, 1.10rem + 3.2vw, 4.25rem); /* max 68px */
+  --fs-ledger:  clamp(1.75rem, 1.20rem + 2.0vw, 2.50rem);
+  --fs-h2:      1.375rem;    /* 22px   */
+  --fs-lead:    1.0625rem;   /* 17px   */
+  --fs-h3:      1rem;        /* 16px   */
+  --fs-body:    0.9375rem;   /* 15px   */
+  --fs-ui:      0.8125rem;   /* 13px   */
+  --fs-meta:    0.71875rem;  /* 11.5px */
+
+  --lh-display: 1.02;
+  --lh-tight:   1.25;
+  --lh-body:    1.6;
+  --lh-ui:      1.4;
+
+  --tr-display: -0.035em;  /* tracking floor is -0.04em; this stays above it */
+  --tr-tight:   -0.02em;
+  --tr-body:    -0.005em;
+  --tr-meta:     0.01em;
+
+  --fw-regular:  400;
+  --fw-medium:   500;
+  --fw-semibold: 600;
+  --fw-bold:     700;
+
+  --measure: 68ch;  /* body measure, inside the 65-75ch band */
+
+  /* ---------------------------------------------------------------------
+     SPACING - 4px base. Tight inside a group, generous between groups.
+     A heading always carries more space above it than below it.
+     --------------------------------------------------------------------- */
+  --sp-1:  2px;
+  --sp-2:  4px;
+  --sp-3:  8px;
+  --sp-4:  12px;
+  --sp-5:  16px;
+  --sp-6:  24px;
+  --sp-7:  32px;
+  --sp-8:  48px;
+  --sp-9:  64px;
+  --sp-10: 96px;
+
+  /* ---------------------------------------------------------------------
+     RADIUS - three values, one stated rule:
+       --r-0  image edges (tiles, canvas, checkerboard, inspector plate)
+       --r-1  chips, checkboxes, status lamps, small marks
+       --r-2  every control, panel, popover, dialog
+     Nothing is a pill. There is no border-radius: 999px in this project.
+     --------------------------------------------------------------------- */
+  --r-0: 0px;
+  --r-1: 2px;
+  --r-2: 4px;
+
+  /* ---------------------------------------------------------------------
+     DEPTH - offset plus soft blur, black only.
+     BANNED in this project: any zero-offset coloured shadow,
+     any drop-shadow(0 0 ...), any text-shadow.
+     --------------------------------------------------------------------- */
+  --shadow-1: 0 1px 2px rgb(0 0 0 / 0.45);
+  --shadow-2: 0 4px 12px -2px rgb(0 0 0 / 0.55);
+  --shadow-3: 0 12px 32px -8px rgb(0 0 0 / 0.65);
+  --ring-inset: inset 0 0 0 1px rgb(34 229 200 / var(--ring, 0));
+
+  /* ---------------------------------------------------------------------
+     FOCUS - one writing, used everywhere, never removed.
+     14.05:1 on bed, 12.29:1 on rail.
+     --------------------------------------------------------------------- */
+  --focus-width: 2px;
+  --focus-color: var(--cyan-bright);
+  --focus-offset: 2px;
+
+  /* ---------------------------------------------------------------------
+     MOTION
+     Exponential ease-out from an already-visible default state.
+     ease "none" is permitted in exactly one place: the scan band,
+     because a scan is a constant-rate measurement.
+     --------------------------------------------------------------------- */
+  --dur-tap:    120ms;
+  --dur-ui:     220ms;
+  --dur-reveal: 420ms;
+  --dur-pop:     80ms;
+  --dur-flip:   700ms;
+
+  --ease-out:    cubic-bezier(0.16, 1, 0.30, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* ---------------------------------------------------------------------
+     LAYOUT
+     --------------------------------------------------------------------- */
+  --masthead-h:  56px;
+  --statusbar-h: 36px;
+  --rail-w:      304px;
+  --rail-w-md:   264px;
+  --tile-min:    148px;
+  --tile-gap:    8px;
+  --inspector-w: 264px;
+  --floor-inset: 24px;
+
+  /* z-index scale, documented. No arbitrary values anywhere else. */
+  --z-floor:     0;
+  --z-chrome:    10;
+  --z-rail:      20;
+  --z-masthead:  30;
+  --z-warmup:    40;
+  --z-popover:   50;
+  --z-dialog:    60;
+
+  /* ---------------------------------------------------------------------
+     MATERIALS
+     --------------------------------------------------------------------- */
+  --grid-size: 32px;
+  --grid-bed:
+    repeating-linear-gradient(0deg,  var(--forge-line) 0 1px, transparent 1px var(--grid-size)),
+    repeating-linear-gradient(90deg, var(--forge-line) 0 1px, transparent 1px var(--grid-size));
+  --grid-opacity: 0.4;
+
+  /* --checker-size is the repeating TILE; each visible square is half of it.
+     24px tile = 12px squares. The 767px override drops to 16px / 8px. */
+  --checker-size: 24px;
+  --checker: conic-gradient(
+      var(--checker-a) 0deg 90deg,
+      var(--checker-b) 90deg 180deg,
+      var(--checker-a) 180deg 270deg,
+      var(--checker-b) 270deg 360deg)
+    0 0 / var(--checker-size) var(--checker-size);
+
+  /* Disabled controls carry this on top of --ink-off so that the state is
+     never signalled by colour alone. 45 degrees, 4px pitch. */
+  --hatch-disabled: repeating-linear-gradient(
+    45deg,
+    transparent 0 3px,
+    rgb(118 125 125 / 0.16) 3px 4px);
+
+  /* Tile chrome scrim. backdrop-filter here is a specific legibility
+     effect over arbitrary product photography, not decoration. */
+  --chrome-scrim: rgb(8 9 10 / 0.82);
+  --chrome-blur: blur(6px);
+
+  /* Backdrop behind the shortcuts dialog, the same void with the page
+     still readable through it. */
+  --dialog-backdrop: rgb(8 9 10 / 0.72);
+
+  /* Behind the end-of-batch receipt. Lighter than the dialog backdrop on
+     purpose: the finished wall has to stay legible through it, because the
+     wall is half of what the screenshot is for. */
+  --receipt-scrim: rgb(8 9 10 / 0.55);
+}
+
+/* --------------------------------------------------------------------------
+   Registered custom properties.
+   These four are animated by GSAP and must interpolate, so they are declared
+   with @property. Every one of them starts at a value that leaves content
+   visible: no element is hidden by CSS waiting for JS to rescue it.
+   -------------------------------------------------------------------------- */
+
+/* Scan band position on a tile that is currently being processed.
+   Starts off the top edge, so a tile with no JS shows no band at all.
+   Inherits, because the value is set on .tile and read by .tile__scan. */
+@property --scan {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: -8%;
+}
+
+/* Radial erase of the original photo layer during the reveal.
+   0% means "nothing erased". The mask itself is only attached while the
+   .is-revealing class is present, so nothing is ever hidden at rest.
+   Inherits, because the value is set on .tile and read by .tile__original. */
+@property --erase {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 0%;
+}
+
+/* Alpha of the 1px inset ring that flashes once at the reveal.
+   0 means no ring. This is a line, not a glow. */
+@property --ring {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+/* NOTE for anyone adding motion here: the standalone `scale` / `translate` /
+   `rotate` properties are not a usable second channel on any element GSAP
+   touches. GSAP folds their computed values into `transform` and writes
+   `scale: none` inline the first time it builds a transform cache for that
+   element, which silently disables the CSS declaration for the rest of the
+   session. Tile arrival, the resolve flinch and the end-of-batch regroup
+   therefore share `transform` and are sequenced in js/motion.js instead. */
+
+/* Position of the before/after divider in the inspector, 0 to 100.
+   Inherits, because the value is set on .inspector__stage and read by the
+   clipped canvas, the divider rule, and the grip. */
+@property --split {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 50%;
+}
+
+/* --------------------------------------------------------------------------
+   Responsive token overrides.
+   Every multi-column layout declares its own < 768px behaviour in style.css;
+   these are only the token-level changes.
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 1279px) {
+  :root {
+    --rail-w: var(--rail-w-md);
+    --tile-min: 132px;
+  }
+}
+
+@media (max-width: 1023px) {
+  :root {
+    --tile-min: 120px;
+    --floor-inset: 16px;
+  }
+}
+
+@media (max-width: 767px) {
+  :root {
+    --tile-min: 104px;
+    --tile-gap: 6px;
+    --grid-size: 24px;
+    --checker-size: 16px;
+    --floor-inset: 12px;
+    --inspector-w: 100%;
+    --sp-10: 48px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Reduced motion.
+   Content is visible by default, so this block only needs to stop movement.
+   The JS side mirrors this with gsap.matchMedia(); nothing is hidden here
+   that JS would have to reveal.
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-tap: 1ms;
+    --dur-ui: 1ms;
+    --dur-reveal: 1ms;
+    --dur-pop: 1ms;
+    --dur-flip: 1ms;
+  }
+}

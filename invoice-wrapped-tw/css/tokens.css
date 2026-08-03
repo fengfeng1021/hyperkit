@@ -1,0 +1,201 @@
+/* ============================================================
+   invoice-wrapped-tw / tokens.css
+   Design tokens. THE ONLY SOURCE OF COLOR IN THIS PROJECT.
+   No bare hex is allowed in style.css or in any JS.
+   JS reads colors via getComputedStyle(document.documentElement)
+   .getPropertyValue('--ramp-4') for canvas drawing.
+
+   World (pinned, see hyperkit/docs/VISUAL-WORLDS.md #1):
+   thermal receipt tape + barcode scan. Dark indigo near-black
+   ground, one ink only: vermilion. Radius 0 or 2px.
+   Contrast ratios in comments are computed with the WCAG 2.1
+   relative-luminance formula, not estimated.
+   ============================================================ */
+
+:root {
+  color-scheme: dark;
+
+  /* ---------- 1. Ground (deep indigo near-black) ---------- */
+  --ink-void:        #06070E;  /* deepest: overlay ground, text on vermilion fills, share-card bg */
+  --ink-base:        #0B0D17;  /* page background, the only body color */
+  --ink-raised:      #12141F;  /* raised: row hover, panel floor, empty heat cell */
+  --ink-panel:       #171A28;  /* floating: tooltip, expanded panel, card controls */
+
+  --line-1:          #1D2030;  /* finest rule, every 5th receipt row */
+  --line-2:          #2B2F44;  /* default border, feed-slot dashed frame */
+  --line-3:          #363B54;  /* hover border, strong divider */
+
+  /* ---------- 2. Paper (thermal white, indigo-tinted, never neutral gray) ---------- */
+  --paper:           #F4F6FB;  /* 17.91:1 on --ink-base | primary text, headings, selected */
+  --paper-dim:       #AEB4CC;  /*  9.41:1 on --ink-base | secondary body, chapter copy */
+  --paper-mute:      #8790AC;  /*  6.10:1 on --ink-base | table heads, meta, placeholder */
+  --paper-faint:     #7A82A0;  /*  5.10:1 on --ink-base | tertiary notes, unit labels */
+  --paper-off:       #565D78;  /*  3.02:1 on --ink-base | DISABLED CONTROLS ONLY,
+                                  always paired with opacity + cursor:not-allowed */
+
+  /* ---------- 3. The only accent (vermilion, modernised 統一發票紅) ---------- */
+  --vermilion:       #FF4D2E;  /*  5.86:1 on --ink-base | CTA fill, scan band, selected frame, error stroke */
+  --vermilion-bright:#FF7A5C;  /*  7.55:1 on --ink-base | hover fill, FOCUS RING */
+  --vermilion-deep:  #C4321A;  /*  5.09:1 on --paper     | pressed, accent text on paper, static scan band */
+  --vermilion-wash:  rgb(255 77 46 / .12);  /* dragover ground, selected row ground */
+  --vermilion-tint:  rgb(255 77 46 / .20);  /* tag hover */
+  --vermilion-hair:  rgb(255 77 46 / .32);  /* 1px marker line, chart guide */
+
+  /* No green success. No amber warning. No second hue anywhere.
+     Success = paper + the print-head motion. Error = accent + 1px stroke + drawn icon. */
+
+  /* ---------- 4. Single-ink ramp (heat scale AND category encoding) ---------- */
+  /* Categories are NOT separated by hue. They are separated by
+     ramp step + stripe density (--stripe-*) + a drawn icon. */
+  --ramp-0:          #12141F;  /* no spend */
+  --ramp-1:          #4A1A10;  /* quintile 1 | category: 其他        | 0 stripes */
+  --ramp-2:          #7E2A16;  /* quintile 2 | category: 電商        | 1 stripe  / 12px */
+  --ramp-3:          #B23A1D;  /* quintile 3 | category: 藥妝        | 2 stripes / 12px */
+  --ramp-4:          #FF4D2E;  /* quintile 4 | category: 交通        | 3 stripes / 12px */
+  --ramp-5:          #FF8A63;  /* quintile 5 | category: 餐飲        | 4 stripes / 12px */
+  --ramp-6:          #FFC5B0;  /* peak       | category: 超商/超市   | 5 stripes / 12px */
+
+  /* Label color on top of a ramp fill. Switch threshold is hard-set at --ramp-4. */
+  --on-ramp-dark:    var(--paper);     /* on --ramp-1..3, min 5.52:1 */
+  --on-ramp-light:   var(--ink-void);  /* on --ramp-4..6, min 6.08:1 */
+
+  --stripe-0: 0; --stripe-1: 1; --stripe-2: 2;
+  --stripe-3: 3; --stripe-4: 4; --stripe-5: 5;
+
+  /* ---------- 5. Semantic aliases (use these in style.css) ---------- */
+  --bg-page:         var(--ink-base);
+  --bg-raised:       var(--ink-raised);
+  --bg-panel:        var(--ink-panel);
+  --bg-overlay:      var(--ink-void);
+
+  --text-strong:     var(--paper);
+  --text-body:       var(--paper-dim);
+  --text-meta:       var(--paper-mute);
+  --text-faint:      var(--paper-faint);
+  --text-disabled:   var(--paper-off);
+  --text-on-accent:  var(--ink-void);
+
+  --border-hair:     var(--line-1);
+  --border-default:  var(--line-2);
+  --border-strong:   var(--line-3);
+
+  --accent:          var(--vermilion);
+  --accent-hover:    var(--vermilion-bright);
+  --accent-press:    var(--vermilion-deep);
+  --focus-ring:      var(--vermilion-bright);
+
+  /* ---------- 6. Type families ---------- */
+  --font-display: "Archivo", "Arial Narrow", "Helvetica Neue", system-ui, sans-serif;
+  --font-text:    "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", "Heiti TC", sans-serif;
+  --font-data:    "Martian Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  /* --font-data is for numbers, ids and measurements only. Never for prose or labels. */
+
+  /* ---------- 7. Type scale ---------- */
+  --fs-chapter:  clamp(3.25rem, 11vw, 5.75rem); /* review chapter number, ceiling under 6rem */
+  --fs-hero:     clamp(2.5rem, 6.2vw, 4.25rem); /* H1, max 2 lines */
+  --fs-h2:       clamp(1.75rem, 3.2vw, 2.5rem);
+  --fs-h3:       1.3125rem;   /* 21px */
+  --fs-lead:     1.0625rem;   /* 17px */
+  --fs-body:     0.9375rem;   /* 15px */
+  --fs-meta:     0.8125rem;   /* 13px */
+  --fs-micro:    0.6875rem;   /* 11px */
+  --fs-num-xl:   clamp(2rem, 5vw, 3.25rem);
+  --fs-num:      0.875rem;    /* 14px */
+  --fs-num-sm:   0.75rem;     /* 12px */
+
+  --lh-chapter: 0.92;  --lh-hero: 0.98;  --lh-h2: 1.08;
+  --lh-h3: 1.25;       --lh-lead: 1.6;   --lh-body: 1.65;
+  --lh-meta: 1.5;      --lh-micro: 1.4;  --lh-num: 1.5;
+
+  --tr-chapter: -0.04em;  /* tracking floor, do not go below */
+  --tr-hero:    -0.035em;
+  --tr-h2:      -0.02em;
+  --tr-h3:      -0.01em;
+  --tr-micro:    0.06em;
+
+  --fw-body: 400; --fw-label: 500; --fw-mid: 600;
+  --fw-bold: 700; --fw-hero: 800; --fw-max: 900;
+
+  /* Archivo variable width axis */
+  --wd-normal: 100;  --wd-wide: 112;  --wd-expanded: 125;
+
+  --measure-prose:   68ch;
+  --measure-chapter: 42ch;
+  --measure-caption: 46ch;
+
+  /* ---------- 8. Space (base 4px, receipt row rhythm 28px) ---------- */
+  --sp-1:  0.25rem;   /*   4 */
+  --sp-2:  0.5rem;    /*   8 */
+  --sp-3:  0.75rem;   /*  12 */
+  --sp-4:  1rem;      /*  16 */
+  --sp-5:  1.5rem;    /*  24 */
+  --sp-6:  2rem;      /*  32 */
+  --sp-7:  3rem;      /*  48 - space ABOVE a heading (3x the space below it) */
+  --sp-8:  4rem;      /*  64 */
+  --sp-9:  6rem;      /*  96 */
+  --sp-10: 8.5rem;    /* 136 */
+
+  --row-h:  1.75rem;                    /* 28px receipt row, the vertical unit of the page */
+  --gutter: clamp(1rem, 4vw, 2.5rem);
+  --shell:  1240px;
+
+  /* Heading rhythm: always use the pair, never invent a third value. */
+  --stack-heading-top:    var(--sp-7);
+  --stack-heading-bottom: var(--sp-4);
+
+  /* ---------- 9. Radius (exactly three values, no others allowed) ---------- */
+  --r-data:  0;      /* every data surface: rows, heat cells, charts, tape */
+  --r-ui:    2px;    /* every control and container: button, input, panel, tooltip, tag */
+  --r-round: 50%;    /* store bubbles only, where circle IS the data encoding */
+
+  /* ---------- 10. Elevation (offset + soft blur, tinted to indigo) ---------- */
+  --shadow-row:   0 1px 0 rgb(6 7 14 / .55);
+  --shadow-panel: 0 2px 4px -2px rgb(4 5 12 / .70),
+                  0 12px 28px -12px rgb(4 5 12 / .80);
+  --shadow-lift:  0 4px 8px -4px rgb(4 5 12 / .75),
+                  0 24px 56px -20px rgb(4 5 12 / .90);
+  --shadow-inset: inset 0 1px 0 rgb(244 246 251 / .06);
+  /* Zero-offset colored halos do not exist in this project. */
+
+  /* ---------- 11. Motion ---------- */
+  --t-tap:   90ms;    /* :active */
+  --t-quick: 160ms;   /* hover, focus, tooltip */
+  --t-base:  260ms;   /* expand, filter, panel */
+  --t-panel: 420ms;   /* large transition, feed-slot collapse */
+  --t-story: 1200ms;  /* chapter number roll */
+  --t-scan:  2400ms;  /* idle scan band, one pass */
+
+  --e-out:   cubic-bezier(.16, 1, .3, 1);      /* primary exponential ease-out */
+  --e-out-2: cubic-bezier(.22, .61, .36, 1);   /* hover, micro-interaction */
+  --e-in:    cubic-bezier(.55, 0, 1, .45);     /* collapse, exit */
+  --e-inout: cubic-bezier(.65, 0, .35, 1);     /* reorder */
+  /* GSAP equivalents: power4.out / power2.out / power2.in / power2.inOut / expo.out */
+
+  /* ---------- 12. Layers (five, do not add a sixth) ---------- */
+  --z-base:    0;
+  --z-raised:  10;
+  --z-sticky:  100;
+  --z-overlay: 500;
+  --z-toast:   700;
+
+  /* ---------- 13. Component metrics ---------- */
+  --nav-h:        64px;    /* desktop cap is 80px, we use 64 */
+  --slot-min-h:   320px;   /* feed slot, desktop */
+  --slot-min-h-s: 132px;   /* feed slot, < 768px */
+  --heat-cell:    min(1.4vw, 18px);
+  --heat-cell-s:  14px;
+  --heat-gap:     2px;
+  --flow-node-w:  12px;
+  --sample-bar-h: 28px;    /* sample-data marker strip, equals --row-h */
+  --focus-w:      2px;
+  --focus-offset: 3px;
+}
+
+/* Content is visible by default. Motion is added on top, never a prerequisite.
+   This block only removes movement, it never hides or reveals content. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --t-tap: 0ms; --t-quick: 0ms; --t-base: 0ms;
+    --t-panel: 0ms; --t-story: 0ms; --t-scan: 0ms;
+  }
+}

@@ -1,0 +1,285 @@
+/* ==========================================================================
+   ChatVault - design tokens
+   World: library card catalogue (VISUAL-WORLDS.md #6, pinned).
+
+   This file is the ONLY source of colour in the project.
+   No bare hex values are allowed anywhere else in css/ or js/.
+
+   Contrast ratios in comments are measured against the WCAG 2.x relative
+   luminance formula and are stated as (foreground on background).
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+
+  /* ------------------------------------------------------------------
+     SURFACES
+     Cool paper grey. Not warm cream, not beige.
+     ------------------------------------------------------------------ */
+  --paper:              #F2F2EF;  /* page ground */
+  --surface-card:       #FAFAF8;  /* index cards, assistant messages, popovers */
+  --surface-recessed:   #E7E7E2;  /* drawer cavity, filter panel, skeletons */
+  --surface-code:       #EDEDE8;  /* code blocks */
+  --surface-inverse:    #1C1C1A;  /* selected chips, active toggle segment */
+
+  /* ------------------------------------------------------------------
+     INK
+     Every step is lightened from --ink's own hue (near-neutral, hue 60,
+     very low saturation). These are not neutral greys.
+     ------------------------------------------------------------------ */
+  --ink:            #1C1C1A;  /* 15.22 on paper | 16.33 on card | 13.76 on recessed */
+  --ink-2:          #45453F;  /*  8.60 on paper |  9.23 on card |  7.78 on recessed */
+  --ink-3:          #5E5E57;  /*  5.82 on paper |  6.25 on card |  5.27 on recessed */
+  --ink-4:          #67675F;  /*  5.08 on paper |  5.45 on card |  4.86 on code     */
+  --ink-disabled:   #7E7E76;  /*  3.72 on paper |  3.30 on recessed (disabled only) */
+
+  /* ------------------------------------------------------------------
+     RULES
+     One hairline system. 1px everywhere. Non-text, so no 4.5 floor.
+     ------------------------------------------------------------------ */
+  --rule:           #D2D2CB;  /* 1.35 on paper - row and section dividers */
+  --rule-strong:    #B4B4AC;  /* 1.86 on paper - field underlines, chip outlines */
+
+  /* ------------------------------------------------------------------
+     ACCENT - amber. The colour of an index tab. The only accent.
+     --amber is for surfaces and lines ONLY. It never carries text.
+     Text that must read as amber uses --amber-deep.
+     ------------------------------------------------------------------ */
+  --amber:              #C8901A;  /* 2.51 on paper - surfaces and 1-3px marks only */
+  --amber-deep:         #8A5F06;  /*  5.03 on paper |  5.40 on card |  4.81 on code */
+  --amber-wash:         #F6E7C4;  /* ink 13.94 on it | ink-3 5.33 on it */
+  --amber-wash-strong:  #EFD9A8;  /* ink 12.40 on it - hover step of amber-wash */
+  --hit:                #F0D48A;  /* ink 11.78 on it - search <mark> ground */
+  --ink-on-amber:       #1C1C1A;  /* 6.06 on --amber */
+
+  /* ------------------------------------------------------------------
+     ALERT - semantic only, never decorative. No green anywhere:
+     success is expressed with amber plus words.
+     ------------------------------------------------------------------ */
+  --alert:          #A62B1F;  /* 6.27 on paper | 6.73 on card | 5.65 on alert-wash */
+  --alert-wash:     #F7E2DE;  /* ink 13.73 on it */
+
+  /* the only translucent colour in the system, tinted from the ink hue */
+  --scrim:          rgba(28, 28, 26, .28);
+
+  /* ------------------------------------------------------------------
+     CODE TOKENS - all inside the paper world's gamut (ink, amber,
+     burnt earth, grey). Keywords use weight, not hue.
+     Background is --surface-code.
+     ------------------------------------------------------------------ */
+  --code-key:       #1C1C1A;  /* 14.53 on code - paired with weight 650 */
+  --code-str:       #8A5F06;  /*  4.81 on code */
+  --code-num:       #8C3B12;  /*  6.50 on code */
+  --code-com:       #67675F;  /*  4.86 on code - italic */
+  --code-punct:     #5E5E57;  /*  5.56 on code */
+  --code-weight-key: 650;
+
+  /* ------------------------------------------------------------------
+     FOCUS
+     ------------------------------------------------------------------ */
+  --focus:          #8A5F06;  /* 5.03 on paper - default ring */
+  --focus-inverse:  #C8901A;  /* 6.06 on --surface-inverse */
+  --focus-width:    2px;
+  --focus-offset:   2px;
+
+  /* ------------------------------------------------------------------
+     TYPE FAMILIES
+     Literata is the only serif in the whole portfolio, justified by
+     long-form reading and by the catalogue-card typographic tradition.
+     ------------------------------------------------------------------ */
+  --font-read: "Literata", Georgia, "Times New Roman", serif;
+  --font-ui:   "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Spline Sans Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* ------------------------------------------------------------------
+     TYPE SCALE
+     Each token below is used together with its matching line-height,
+     tracking, weight and optical size. Ratios: 4.5 / 2.375 / 1.3125 /
+     1.0625 / 0.8125. Tracking floor is -0.02em (limit is -0.04em).
+     ------------------------------------------------------------------ */
+
+  /* display - H1 */
+  --t-display-size:   clamp(2.75rem, 6.2vw, 4.5rem);
+  --t-display-lh:     1.06;
+  --t-display-ls:     -0.02em;
+  --t-display-wght:   620;
+  --t-display-opsz:   72;
+
+  /* h2 - section headings */
+  --t-h2-size:        clamp(1.75rem, 3vw, 2.375rem);
+  --t-h2-lh:          1.14;
+  --t-h2-ls:          -0.015em;
+  --t-h2-wght:        600;
+  --t-h2-opsz:        36;
+
+  /* h3 - conversation title, stats subheads */
+  --t-h3-size:        1.3125rem;
+  --t-h3-lh:          1.25;
+  --t-h3-ls:          -0.01em;
+  --t-h3-wght:        600;
+  --t-h3-opsz:        20;
+
+  /* card - index card title */
+  --t-card-size:      1rem;
+  --t-card-lh:        1.32;
+  --t-card-ls:        -0.005em;
+  --t-card-wght:      560;
+  --t-card-opsz:      16;
+
+  /* read - message body */
+  --t-read-size:      1.0625rem;
+  --t-read-lh:        1.62;
+  --t-read-ls:        0em;
+  --t-read-wght:      400;
+  --t-read-opsz:      16;
+  /* Measured, not assumed: `ch` is the advance of "0", which in Literata is
+     much wider than its average lowercase letter, so 68ch renders about 90
+     characters per line. 56ch lands the rendered line at 65 to 75 characters,
+     which is what the requirement is actually about. */
+  --measure-read:     56ch;
+
+  /* body - explanatory prose */
+  --t-body-size:      0.9375rem;
+  --t-body-lh:        1.58;
+  --t-body-ls:        0em;
+  --t-body-wght:      400;
+  --t-body-opsz:      14;
+  --measure-body:     53ch;   /* same correction, measured at the 15px body size */
+
+  /* ui - buttons, chips, filter labels */
+  --t-ui-size:        0.8125rem;
+  --t-ui-lh:          1.40;
+  --t-ui-ls:          0.005em;
+  --t-ui-wght:        500;
+
+  /* ui-sm - metadata, role labels, card second line */
+  --t-ui-sm-size:     0.75rem;
+  --t-ui-sm-lh:       1.35;
+  --t-ui-sm-ls:       0.01em;
+  --t-ui-sm-wght:     500;
+
+  /* mono - code, byte counts, query syntax */
+  --t-mono-size:      0.8125rem;
+  --t-mono-lh:        1.62;
+  --t-mono-ls:        0em;
+  --t-mono-wght:      400;
+
+  /* mono-sm - tab strip terms above the spine */
+  --t-mono-sm-size:   0.6875rem;
+  --t-mono-sm-lh:     1.4;
+  --t-mono-sm-ls:     0.02em;
+  --t-mono-sm-wght:   500;
+
+  /* italic descender reserve - Literata italic y g j p q */
+  --italic-lh-floor:  1.1;
+  --italic-pb:        0.08em;
+
+  /* ------------------------------------------------------------------
+     SPACING - 4px base.
+     Rhythm: tight inside a group, generous between groups,
+     twice as much space above a heading as below it.
+     ------------------------------------------------------------------ */
+  --s-1:  2px;
+  --s-2:  4px;
+  --s-3:  6px;
+  --s-4:  8px;
+  --s-5:  12px;
+  --s-6:  16px;
+  --s-7:  20px;
+  --s-8:  24px;
+  --s-9:  32px;
+  --s-10: 44px;
+  --s-11: 60px;
+  --s-12: 84px;
+  --s-13: 120px;
+
+  --space-heading-above: var(--s-11);  /* 60px */
+  --space-heading-below: var(--s-7);   /* 20px, exactly one third of above */
+  --space-section:       var(--s-12);  /* 84px desktop */
+
+  /* ------------------------------------------------------------------
+     RADIUS - one system, locked. A cut card edge is not round.
+     No pills, no 12px cards, no circular buttons.
+     ------------------------------------------------------------------ */
+  --r:    2px;
+  --r-0:  0px;
+
+  /* ------------------------------------------------------------------
+     SHADOW - every shadow carries an offset and a soft blur,
+     tinted from the ink hue. No zero-offset halos.
+     No hard block shadows: this world is not neobrutalist.
+     ------------------------------------------------------------------ */
+  --shadow-card:          0 1px 2px rgba(28, 28, 26, .06), 0 2px 8px rgba(28, 28, 26, .05);
+  --shadow-raised:        0 2px 4px rgba(28, 28, 26, .07), 0 10px 24px -6px rgba(28, 28, 26, .11);
+  --shadow-drawer:        0 8px 18px -4px rgba(28, 28, 26, .13), 0 24px 60px -18px rgba(28, 28, 26, .18);
+  --shadow-drawer-hover:  0 10px 22px -4px rgba(28, 28, 26, .16), 0 30px 72px -18px rgba(28, 28, 26, .22);
+  --shadow-inset-rule:    inset 0 -1px 0 var(--rule);
+  --shadow-drawer-cavity: inset 0 6px 14px -6px rgba(28, 28, 26, .20);
+
+  /* ------------------------------------------------------------------
+     MOTION
+     Exponential ease-out from an already-visible default state.
+     Linear is never a default. "none" is used in exactly two places
+     and both are data-driven, not motion: the tab strip's continuous
+     drift and the canvas progress value bound to real byte progress.
+     ------------------------------------------------------------------ */
+  --dur-1:      120ms;   /* state feedback: hover, chip toggle, :active */
+  --dur-2:      180ms;   /* search restate, tab rise, popover open */
+  --dur-3:      300ms;   /* pane swap, mobile overlay slide */
+  --dur-4:      520ms;   /* drawer plate drop, workspace reveal */
+  --dur-batch:  640ms;   /* one batch of card slivers in flight */
+  --dur-trail:  350ms;   /* sliver trail decay */
+
+  --ease-out:     cubic-bezier(.16, 1, .3, 1);      /* default, ~ power4.out */
+  --ease-settle:  cubic-bezier(.22, 1.15, .36, 1);  /* tiny overshoot on landing */
+  --ease-in-out:  cubic-bezier(.65, 0, .35, 1);     /* pane swap */
+  --ease-in:      cubic-bezier(.55, 0, 1, .45);     /* exits only */
+
+  /* ------------------------------------------------------------------
+     LAYOUT
+     ------------------------------------------------------------------ */
+  --rail-h:           64px;
+  --rail-h-mobile:    112px;
+  --status-h:         28px;   /* always reserved, prevents CLS */
+  --spine-h:          120px;
+  --spine-h-mobile:   72px;
+  --drawer-w:         244px;
+  --index-w:          372px;
+  --index-w-md:       300px;
+  --row-h-index:      92px;
+  --row-h-index-sm:   104px;
+  --row-h-msg-est:    180px;  /* estimate before measurement */
+  --dropzone-h:       380px;
+  --dropzone-h-sm:    240px;
+  --bp-md:            768px;
+  --bp-lg:            1120px;
+
+  /* canvas geometry for the signature moment */
+  --sliver-h:         3px;
+  --sliver-gap:       1px;
+  --sliver-max:       4000;
+}
+
+/* ==========================================================================
+   REDUCED MOTION
+   Content is visible by default in every case. Nothing in this stylesheet
+   sets opacity: 0 waiting to be rescued by JavaScript. These overrides only
+   collapse durations; the GSAP side is handled with gsap.matchMedia().
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-1:     1ms;
+    --dur-2:     1ms;
+    --dur-3:     1ms;
+    --dur-4:     1ms;
+    --dur-batch: 1ms;
+    --dur-trail: 1ms;
+  }
+}
+
+/* ==========================================================================
+   NO DARK MODE - deliberate.
+   The use scene is long-form reading of large amounts of text, the world is
+   a paper card catalogue, and VISUAL-WORLDS.md pins this project as light.
+   A prefers-color-scheme: dark block would contradict all three.
+   ========================================================================== */

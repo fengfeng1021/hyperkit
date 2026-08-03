@@ -1,0 +1,131 @@
+{
+  "portfolio": [
+    {
+      "slug": "invoice-wrapped-tw",
+      "nameZh": "發票回顧",
+      "nameEn": "Invoice Wrapped TW",
+      "tagline": "把載具 CSV 拖進來，30 秒生成你的年度消費回顧——資料不離開這台電腦",
+      "whyItWins": "差異化是全清單最高：載具消費明細 CSV 是台灣獨有、全民可取得、格式單一的高品質個人資料集，而現有玩家全部走偏——invoice.tw 只做對獎、LINE 發票管家分析陽春且封閉、麻布/MOZE/CWMoney 要綁金融帳號並上雲、唯一的分析工具 MF-Studio-lab/invoice-analyzer 要自己跑程式且無設計。沒有任何人把發票明細當成「敘事」來做。Spotify Wrapped 已證明「個人資料→精美視覺→社群分享」的迴圈成立，而這個題材在台灣是完全空白地帶。它同時是整個作品集的流量放大器：年度回顧圖卡是唯一自帶病毒係數的入口，把非工程受眾（一般消費者）帶進 hub。要壓的季節性風險（12–1 月尖峰）用「多年度比較 + 月度回顧」與「報稅季第二波」硬拉回訪。",
+      "coreLoop": "從財政部載具專區下載當年度消費明細 CSV（站內有三步驟圖解，含手機截圖）→ 拖進首頁大 drop zone，粒子動畫顯示解析中，全程離線 → 進入 bento grid 儀表板自由探索（熱力圖、店家泡泡、Sankey、月度折線）→ 點「產生年度回顧」進入全螢幕 scroll-snap 章節，每屏一個帶情緒的洞察 → 最後一屏產出直式圖卡，存檔分享到 IG/Threads → 資料存進 IndexedDB，明年再匯入即自動解鎖「2025 vs 2026 比較」章節而回訪；讀完消費結構後底部出現「你超商佔 32%，這幾張卡回饋最高」的推薦區塊。",
+      "keyFeatures": [
+        "拖曳 CSV 即解析：自動偵測 Big5/UTF-8 BOM、多檔合併、依發票號碼去重、欄位對映可手動修正（因應財政部格式改版）",
+        "星期×時段消費熱力圖（GitHub contribution 風格但改暖色階），點格子展開該時段明細",
+        "店家泡泡雲：力導向排列，泡泡面積＝金額、顏色＝分類，點擊展開該店家的逐筆消費與造訪次數",
+        "分類→店家的 Sankey 流向圖，可拖曳節點重排，滑過高亮整條流",
+        "全螢幕 scroll-snap 年度回顧模式：8–10 屏洞察（最常去的店、最貴的一筆、最晚的一次消費、消費最兇的一週）",
+        "直式分享圖卡產生器：站內 canvas 自繪（不依賴外部截圖服務），可選 4 種版型與自訂遮蔽金額",
+        "多年度比較：IndexedDB 保存歷年解析結果，第二年起自動解鎖同期比較與成長率",
+        "消費結構驅動的信用卡回饋試算：依你的實際分類佔比排序回饋金額，附「這個數字怎麼算的」展開說明"
+      ],
+      "signatureMoment": "年度回顧第 3 屏「你的第二個家」。使用者往下捲一格，ScrollTrigger 立刻 pin 住畫面：原本在跑力導向的店家泡泡雲，除了最大的那顆（7-ELEVEN）之外，其餘 200 多顆以 stagger { from: 'random', each: 0.008 } 同時 scale 到 0.3、blur 8px 並往畫面四周散出視野；主泡泡脫離力學系統後用 Flip 從它原本的座標飛到畫面正中央並放大到 60vh，泡泡表面的店家 logo 淡出換成一個數字，用 innerText tween + snap:1 從 0 滾到 214（1.2 秒，power3.out），數字落定的同一幀，泡泡外圈迸出由 214 個小方塊組成的年輪，每個方塊代表一次造訪、依日期順時針排列，用 drawSVG 般的 stagger 0.004 秒逐格點亮，滑鼠移到任一格會浮出那天的日期與金額。捲動繼續時整圈年輪收縮成一顆點，飛進下一屏的月度折線圖上成為一個資料點。",
+      "monetization": "（1）信用卡回饋推薦 affiliate——讀完真實消費結構後的推薦有資料依據，台灣 CPA 最高品類之一；（2）記帳 App / 理財服務導流分潤；（3）一次性 NT$99 解鎖高解析圖卡、全部 4 種版型、多年度比較報告 PDF（Lemon Squeezy license key 前端驗證）；（4）AdSense；（5）1 月與 5 月報稅季流量尖峰承接銀行/發票平台的品牌贊助版位。",
+      "techNotes": "純前端：PapaParse 串流解析 + TextDecoder('big5') 自動編碼偵測；解析用 Web Worker 分片 + requestIdleCallback 讓 UI 不掉幀。視覺層 d3-force（泡泡）、d3-sankey、Canvas 2D 畫熱力圖與折線，動畫全走 GSAP（ScrollTrigger pin/scrub、Flip、stagger from random、innerText+snap）。多年度資料存 IndexedDB，絕不寫入任何網路請求；頁面常駐「資料未離開此裝置」指示燈並提供 DevTools Network 面板截圖佐證。分享圖卡用離屏 canvas 自繪（內嵌 subset 過的中文字型子集，避免 html-to-image 的字型掉字）。財政部欄位改版的防禦：解析失敗時進入「欄位對映精靈」，使用者自己指定哪一欄是日期/店家/金額，並把對映存進 localStorage。"
+    },
+    {
+      "slug": "mortgage-sandbox-tw",
+      "nameZh": "房貸沙盤",
+      "nameEn": "Mortgage Sandbox TW",
+      "tagline": "提前還款、丟 ETF、還是用寬限期？三條淨資產曲線放在同一張時間軸上對撞",
+      "whyItWins": "每單位流量的變現效率是全清單最高：台灣房貸轉貸 CPA、券商開戶推薦碼、財經垂直頂級的展示廣告 RPM 三者同時成立，而「年終獎金該還房貸還是投資」是每年固定發生、金額夠大、使用者願意花 20 分鐘研究的高焦慮決策。需求證據極硬：搜尋前 10 筆有 8 個買房 vs 租房試算器，卻沒有任何一個處理「提前還款 vs 投資」，連 591 都只有陽春房貸試算——中文市場明確空白。競品全是 Bootstrap 填表出表格、假設寫死不揭露、滿版廣告，可拖曳時間軸加三條曲線對撞是體驗上的代差，而純數學運算靜態完全可行、零維運。信任是這案的命門，所以每個假設都設計成可展開追問。",
+      "coreLoop": "輸入貸款餘額、利率、剩餘年限、每月可動用現金（有新青安/一般房貸預設值一鍵套用，降低輸入摩擦）→ 三條淨資產曲線立刻畫出來 → 抓住時間軸 scrubber 往右拖，30 年逐年掃過，三個數字同步滾動、交叉點自動長出標註 → 調整報酬率/房價漲幅滑桿看結論翻轉，任何假設都能點開看「這個數字怎麼來的」→ 把兩三個情境拖進比較欄並排 → 產出直式決策圖卡與可分享的 URL hash 連結（貼進 PTT home-sale / Dcard 房屋板就是天然傳播）→ 底部依你的結論導流：偏還款者看轉貸比較，偏投資者看券商開戶。",
+      "keyFeatures": [
+        "三路徑並行模擬：全額提前還款 / 只繳月付投資差額 / 寬限期 + 投資，同一張淨資產時間軸上對撞",
+        "可拖曳的 30 年時間軸 scrubber，拖動時三條曲線與三組數字即時重算並滾動",
+        "1000 條蒙地卡羅路徑繪成半透明機率扇形（一次 canvas 繪製），顯示 P10/P50/P90 帶",
+        "台灣在地變數內建：寬限期、新青安、轉貸成本、房地合一稅、提前清償違約金、綜所稅扣除額",
+        "每一個假設都可展開的「這個數字怎麼來的」抽屜，含公式與資料來源，對打競品的不透明",
+        "情境卡片並排比較：把情境拖進比較欄用 Flip 吸附，最多三張同框",
+        "全參數走 URL hash，分享連結即完整還原情境，零伺服器",
+        "一次性解鎖完整 PDF 決策報告 + 自訂蒙地卡羅參數 + 情境庫保存"
+      ],
+      "signatureMoment": "交叉點誕生的那一刻。使用者按住時間軸 scrubber 往右拖（Draggable + InertiaPlugin，放手還有慣性滑行），三條淨資產曲線的端點跟著游標跑、三個數字用 innerText tween 滾動；當拖到「投資」曲線正要越過「提前還款」曲線的那一格，畫面在該座標點爆出一圈環形波（scale 0→3.2、opacity 1→0、0.6 秒 power2.out），一根細線從交叉點往上長出（drawSVG 0→100%），頂端展開一顆標註 pill，pill 內文字用 SplitText 逐字打出「第 11 年 3 個月，投資開始領先」，同時交叉點右側的區域被半透明藍色塊由左往右 clipPath 擦出填滿，代表「這之後投資贏」；背景 1000 條蒙地卡羅路徑同步重繪成扇形，扇形邊緣的 P10/P90 邊界線像呼吸一樣輕微起伏。使用者若把報酬率滑桿往下拉，整個標註會反向收回、交叉點沿曲線往右滑到第 19 年再重新爆開——結論在你手上翻轉的那個瞬間，就是這個產品的全部價值。",
+      "monetization": "（1）房貸轉貸/銀行貸款比較 affiliate（台灣金融導流 CPA 極高）；（2）券商開戶推薦碼（另一條路徑本來就是投資）；（3）AdSense/Ezoic 展示廣告，mortgage 類 RPM 在財經垂直屬頂級；（4）一次性 NT$290 解鎖完整 PDF 決策報告 + 自訂蒙地卡羅情境（Lemon Squeezy license key 前端驗證）；（5）授權嵌入版 widget 給房仲、代銷、財經媒體。導流區塊一律放在結論之後、標示為推薦連結，維持工具中立感。",
+      "techNotes": "純數學運算，零外部依賴：本金均攤/本息均攤攤還表、IRR、蒙地卡羅（Box-Muller 生成常態報酬，seeded PRNG 讓同一組參數結果可重現、分享連結才還原得出同一張圖）。1000 條路徑在 OffscreenCanvas 內一次繪製成半透明點陣圖，之後只重畫三條主曲線，維持拖曳 60fps。GSAP 負責 Draggable scrubber、innerText 數字滾動、Flip 情境卡片吸附、drawSVG 標註線、SplitText 逐字。狀態序列化進 URL hash（LZ 壓縮），PDF 用 jsPDF 前端產生。所有假設常數集中在一個 assumptions.json，UI 直接讀它渲染「這個數字怎麼來的」抽屜，法規變動只需改一個檔。"
+    },
+    {
+      "slug": "cutout-forge",
+      "nameZh": "去背熔爐",
+      "nameEn": "Cutout Forge",
+      "tagline": "200 張商品圖一次去背，不上傳、不算 credit、不限張數",
+      "whyItWins": "痛點具體到可以直接抄成文案：remove.bg $29/月只有 200 credits、免費層被鎖在 0.25 megapixels、高量團隊 7000 張要 $736/月；而「免費無限張數」是競品結構上無法跟進的攻擊——他們每張都有 GPU 成本，我們沒有。需求量體是整份清單最大的（電商賣家永遠在處理商品圖），且技術可行性已被公開驗證（Xenova 的 remove-background-webgpu、addyosmani/bg-remove 全客戶端跑 RMBG）。競品的第二個破口是規格散亂：一站過關的檔案會被 Amazon 退，去背與平台規格輸出至今是兩個工具、賣家要在網站間搬檔案。這是全作品集裡「一次性大量處理」最有奇觀感、也最能秀 GPU 硬實力的一站。",
+      "coreLoop": "整頁一個超大 drop zone → 丟進 100–200 張商品圖，畫面立刻鋪成縮圖矩陣並開始佇列處理（可暫停、可中斷續跑）→ 每張完成即顯影成棋盤格透明底，右上「已省下 $XX」計數器同步跳動 → 用前後對比分割線與髮絲放大鏡抽檢品質 → 選平台 Preset（蝦皮/Amazon/Etsy/Shopify）一鍵輸出白底 JPEG + 透明 PNG 雙版本，打包成依平台分資料夾的 ZIP → 完成頁引導「接下來把去背圖套進情境模板」直接跳到 mockup-loom → 賣家每次上新品就回訪。",
+      "keyFeatures": [
+        "WebGPU 批次去背（RMBG/BiRefNet via transformers.js），無張數上限、無浮水印、無上傳",
+        "佇列管理：可暫停/續跑/重試單張，記憶體壓力偵測自動降並行數，避免中階筆電爆掉",
+        "WASM fallback 與誠實的預期告知：偵測到無 WebGPU 時明示速度差異並建議分批",
+        "平台規格 Preset 一鍵輸出：尺寸、留白比例、白底 JPEG + 透明 PNG 雙輸出、自動命名",
+        "邊緣品質工具：前後對比可拖曳分割線、alpha matting 髮絲放大鏡、邊緣羽化與去色溢",
+        "陰影/倒影合成，讓白底商品圖不死板",
+        "結構化 ZIP 匯出（依平台/依 SKU 分資料夾），資料夾樹在畫面上即時長出",
+        "「已省下 $XX（vs remove.bg 單價）」即時計數器，可截圖分享"
+      ],
+      "signatureMoment": "200 張同時顯影的那一分鐘。丟入檔案後，200 張縮圖以 stagger { from: 'center', grid: 'auto', each: 0.006 } 從 scale 0.6 + opacity 0 彈進成一面牆；每張卡片上有一條 2px 的青色掃描光帶由上往下推進（tween 一個 CSS 變數驅動 linear-gradient 位置），推到底的瞬間，該張的原始背景以 mask-image 徑向擦除溶解成棋盤格透明底，同時卡片整體做一次 0.08 秒的 scale 1→1.04→1 微彈，邊緣迸出一圈極短的白光。因為每張的推論完成時間本來就參差，200 張的顯影會像雨打在水面上一樣此起彼落地爆開——這個畫面不是特效，它就是「我不用一張張等」的視覺證明。右上角的「已省下 $358.00」計數器每完成一張就用 innerText tween 加上 $1.79 並輕彈一次，數字每破 $100 整個計數器換一次色階；全部完成時，整面牆用 Flip 重排成依平台分組的格狀，計數器放大到畫面中央停留 1.5 秒——那一幀就是使用者會截圖發到賣家社團的東西。",
+      "monetization": "免費無限張數當流量入口（正是競品最痛的地方）→ Pro 一次性買斷 US$29（Lemon Squeezy/Polar 授權碼前端驗證）解鎖：批次規格 Preset 編輯器、陰影/倒影合成、雙輸出、自訂浮水印、批次自動命名。第二層：賣「平台規格 Preset 包」（蝦皮/Amazon/樂天/Coupang）。第三層：攝影棚與 POD 服務聯盟分潤。第四層：完成頁導流到同作品集的 mockup-loom 模板包，兩站共用同一批賣家錢包。",
+      "techNotes": "transformers.js + WebGPU 跑 RMBG-1.4（快）與 BiRefNet（品質，選用），模型分片載入並用 Cache API 常駐，首次載入做成「熔爐預熱」進度動畫避免跳出。推論在 Web Worker，主執行緒只負責繪製；並行數依 navigator.hardwareConcurrency 與 GPU 記憶體回報動態調整，處理中的縮圖用 createImageBitmap 降採樣顯示，原圖只在匯出時才解到全解析度（這是不爆記憶體的關鍵）。輸出用 OffscreenCanvas + toBlob，ZIP 用 fs-lite/zip.js 串流寫入，不在記憶體堆積。GSAP 負責 grid stagger、掃描光帶（tween CSS 變數）、mask 溶解、Flip 重排、innerText 計數器。模型選型是成敗點：上線前必須用髮絲、玻璃、絨毛三組地獄樣本做盲測比對。"
+    },
+    {
+      "slug": "mockup-loom",
+      "nameZh": "情境織機",
+      "nameEn": "Mockup Loom",
+      "tagline": "50 個設計一次套 10 個模板，圖案會跟著布料皺褶彎曲，不用 Photoshop",
+      "whyItWins": "付費意願證據是全清單最硬的一種——Etsy 上有人專門賣 Photoshop 批次腳本給「tired of doing mockups one by one」的賣家，賣家願意花錢買腳本來逃離逐張做圖。競品的共同破口是批次全被鎖在付費牆後，而免費工具做的是「平貼」而非位移變形，一眼就假。技術可行性已被公開示範（fabric.js 即時 displacement mapping、GPU 貼圖運算全在瀏覽器內）。護城河不在程式而在資產：高品質 displacement map + 陰影圖層要靠攝影與後製產出，這正是對手抄不走的東西，也讓「模板包買斷」成為一條乾淨的收入線（Placeit 已驗證願付）。加上「設計稿不離開瀏覽器」——賣家最怕設計被抄——這在此處是真的能成交的賣點，不是行銷詞。",
+      "coreLoop": "丟進 1 個設計先玩單張，用「平貼 vs 位移」開關一秒理解價值 → 選 3–5 個模板、拖動光源方位調到滿意 → 切到批次模式丟 50 個設計，瀑布流牆持續生長出 500 張 → 一鍵匯出結構化 ZIP（依設計/依模板自動命名）→ 想要更多場景就買模板包 → 每次上新品、每次改設計都回訪；上游從 cutout-forge 的完成頁直接帶著透明 PNG 走進來。",
+      "keyFeatures": [
+        "WebGL displacement mapping：設計沿布料/紙張/杯面的 Z-depth 彎折，非平貼",
+        "「平貼 vs 位移」即時切換開關——一秒說完產品存在理由的價值示範",
+        "批次模式：N 個設計 × M 個模板一次跑完，卡片算完即淡入補位的瀑布流",
+        "可拖曳的光源方位控制點，全部卡片陰影同時重算轉向",
+        "內建 8–10 個高品質模板（T恤、帽T、馬克杯、海報框、貼紙、托特包），免費無限批次",
+        "設計放置控制：位置、縮放、旋轉、混合模式（multiply 讓白色布料透出質地）",
+        "結構化 ZIP 匯出與自動命名規則（{設計名}_{模板名}_{尺寸}），平台規格輸出",
+        "模板包市集：每包 15–20 個含 displacement map 與陰影圖層的高品質場景"
+      ],
+      "signatureMoment": "「平貼 vs 位移」那 0.3 秒。開關滑塊本身用 back.out(2.2) 的超彈滑過去，同一條 GSAP timeline 同時 tween shader 的 u_displaceScale 從 0 到 1（power2.inOut，0.3 秒）——使用者眼前那張印在帽T胸口的圖案，在 0.3 秒內從死板的貼紙感沿著布料的每一道皺褶彎折下去，同時陰影圖層 opacity 0→0.85、布料纖維的高光層 screen 混合上來，圖案邊緣被縫線吃掉一點點；開關左右兩側的「假 / 真」標籤 crossfade，畫面右下角浮出一行小字「這就是為什麼客人不會問你這是不是合成的」。賣家通常會來回撥個五六次——每一次撥動都是一次轉換。第二個高潮在批次模式：500 張卡片像照片在顯影盤裡浮出來，每張 GPU 算完就以 blur 12px→0 + scale 0.9→1 淡入補位（GSAP quickTo 驅動，不是固定 stagger，所以節奏跟著實際運算走）；此時抓住光源控制點繞一圈，500 張卡片的陰影會同時轉向，整面牆像被一盞燈掃過。",
+      "monetization": "免費：內建 8–10 個模板 + 無限批次 + 無浮水印，作流量入口。核心營收是模板包一次性買斷 US$12–29/包（Gumroad/Lemon Squeezy），符合賣家「買一次用一輩子」的心態，優於訂閱。第二層：開放攝影師/3D 設計師上架模板包抽成，形成市集（模板不過是幾張 PNG + 一張 displacement map，完全靜態託管）。第三層：Pro 解鎖批次自動命名、平台規格輸出、品牌浮水印。第四層：與 cutout-forge 綁定的組合包（去背 Pro + 模板包）。",
+      "techNotes": "WebGL2（regl 或裸 WebGL）單一 fragment shader：base color × 設計貼圖（依 displacement map 的 UV 位移取樣）× 陰影乘算 × 高光疊加；每個模板 = base.jpg + displace.png + shadow.png + mask.png 四張圖，純靜態託管在 GitHub Pages。批次渲染用 OffscreenCanvas + 單一 WebGL context 循環繪製再 transferToImageBitmap，避免建立數百個 context；輸出走 toBlob → zip.js 串流。設計稿全程只存在於記憶體與 GPU 貼圖，永不上傳（首屏就講）。GSAP 負責開關 timeline（tween shader uniform 物件）、瀑布流 quickTo 淡入、光源控制點 Draggable、ZIP 資料夾樹生長。真正的工程量在資產製作：8–10 個模板的攝影與 displacement map 後製要排進時程，模板品質就是這產品的全部。"
+    },
+    {
+      "slug": "gradientkit",
+      "nameZh": "漸層工坊",
+      "nameEn": "GradientKit",
+      "tagline": "OKLCH 感知均勻插值、mesh 漸層、顆粒噪點消色帶——現代漸層該有的樣子",
+      "whyItWins": "流量池與競品老化程度的對比最極端：cssgradient.io 月訪 462.6K、69.52% 來自 organic search，關鍵字 CPC $5.07，而它仍停在 sRGB 插值（兩色之間必然出現髒灰色帶）；webgradients 已停更、uigradients 是 2017 年代產物；唯一技術正確的 gradient.style 只有 11.4K 月訪且無 SEO 經營。等於一批高商業價值關鍵字目前由 2018 年代的工具把持，而 OKLCH 插值 + mesh + 顆粒噪點是一眼可見的品質代差、截圖即行銷。同賽道唯一成長的 fffuel.co（+23.7%）證明「做得漂亮的產生器」現在仍吃得到流量。它在作品集裡的角色是全年無季節性的長流量底盤與品牌資產：開發者與設計師每週回來，順手看見其他五站。",
+      "coreLoop": "進站即看到一面正在緩慢流動的 mesh 漸層 → 直接在畫布上拖曳控制點變形、雙擊加色停 → 撥動 sRGB↔OKLCH 開關看髒灰色帶消失（決定性的三秒）→ 加顆粒噪點徹底消除色帶 → 即時預覽套在 hero section／按鈕／卡片上的樣子 → 一鍵複製 CSS 或匯出高解析 PNG／SVG／Tailwind v4 token → URL hash 存整個漸層，貼到 Slack 給同事就是可編輯連結 → 每次做新 landing page 都回來。",
+      "keyFeatures": [
+        "OKLCH/OKLab 感知均勻插值，與 sRGB 並排對照，色帶問題一眼看見",
+        "WebGL mesh 漸層：控制點可直接在畫布上拖曳變形，支援 4–12 個色停",
+        "film-grain shader 顆粒噪點，可調強度與粒徑，徹底消除大面積漸層的色帶",
+        "conic / radial / linear 全型別，含角度盤與 easing 曲線控制色停分佈",
+        "即時情境預覽：把漸層套在 hero、按鈕、卡片、文字遮罩上看真實效果",
+        "多目標輸出：CSS（含 @supports 降級）、SVG、高解析 PNG/WebP、Tailwind v4 @theme token",
+        "暗色模式配對建議：自動推導對應的暗色版漸層並檢查其上的文字對比",
+        "漸層 preset 庫與 preset pack 販售，全部可 fork 再編輯"
+      ],
+      "signatureMoment": "撥動 sRGB ↔ OKLCH 那一下。使用者撥動開關後，先有一條 1px 的白色掃描線從畫布左緣以 2.4 秒等速掃到右緣（GSAP tween 一個 x 值驅動 shader uniform）；掃描線經過的區域，漸層在它身後即時 morph 成 OKLCH 插值版本（shader 內用 mix(t) 在兩種色彩空間之間過渡），而在還沒掃到的左半邊仍是原本的 sRGB——畫面正中央出現一條清晰的分界，上方標籤寫著「sRGB ← | → OKLCH」。當掃描線走到那塊髒灰色帶區域時，它會停頓 0.15 秒並抖動一下，該區域被一個紅色虛線框標成「dead zone」並浮出「這裡的飽和度掉了 34%」，接著紅框收縮消失、灰濁被抽掉、飽和度整片回來，像有人把蒙在畫上的一層灰紗抽走。掃描完成後整條漸層做一次 1.5% 的呼吸，右側的 CSS 程式碼區塊對應行以綠色高亮從左往右擦出更新。這一鏡三秒說完整個產品的存在理由，且它本身就是最好的 SEO 內容與社群素材。",
+      "monetization": "Carbon Ads / EthicalAds（開發者受眾 CPM 高於一般 AdSense）；Pro 一次性買斷 US$19 解鎖高解析 PNG/WebP 匯出、動態 mesh 動畫程式碼、品牌漸層庫本機保存與匯出、暗色配對批次產生；漸層 preset pack 販售（magicpattern 已驗證此模式有實際金流）；Figma plugin 作為 Pro 的延伸。定位上把它當作全作品集的流量與品牌資產而非主要收入來源——它的任務是把前端工程師與設計師帶進 hub，再導到 cutout-forge / mockup-loom 這些會賺錢的工具。",
+      "techNotes": "WebGL2 fragment shader 做 mesh 漸層（多控制點的 IDW 或 Gaussian 加權混色）＋ film grain（hash noise，每幀微擾避免靜態顆粒感）。色彩轉換用 culori 或自寫的 OKLab↔sRGB 矩陣（含 gamut clipping，這是品質分水嶺）。控制點拖曳用 GSAP Draggable，掃描線與 morph 都是 tween shader uniform 物件而非 DOM；預覽區的漸層套用走 CSS Paint 或直接把 canvas 轉成 background-image。高解析匯出用同一個 shader 在 OffscreenCanvas 上以 4K 尺寸重繪。狀態壓進 URL hash，可分享可 fork。CSS 輸出附 @supports (color: oklch(0 0 0)) 的漸進增強降級，讓工程師敢直接貼進 production。"
+    },
+    {
+      "slug": "chatvault",
+      "nameZh": "對話金庫",
+      "nameEn": "ChatVault",
+      "tagline": "把 ChatGPT / Claude / Gemini 的匯出檔拖進來，秒開全文與語意搜尋，對話不離開你的電腦",
+      "whyItWins": "證據是全清單最硬的：HN 上一連串真實抱怨——原生搜尋「is basically useless (exact keyword match only)」、匯出兩年多的對話後「thousands of conversations with no way to find anything」、200 MiB 的 HTML 匯出檔根本開不起來、「None of the Chrome extensions for this purpose work properly」，而 ChatSherlock 已在 HN 公開驗證 $4.99/$9.99 的付費意願。競品要嘛是 Python/Node CLI（echomine、ChatKeeper、code 系工具），要嘛要把最私密的對話上傳到 Supabase 或跑 MCP server——沒有一個是「打開網頁、拖入 zip、立刻能用」。local-first 在「最私密對話」這個語境是真正的賣點而非行銷詞，而護城河要壓在「跨平台合併 + 離線封存 + 語意搜尋」，不是單純關鍵字搜尋。它為作品集帶來一個完全不同的受眾：AI 重度使用者與知識工作者，也是六站中回訪節奏最自然的一個（每次新匯出就回來一次）。",
+      "coreLoop": "從 ChatGPT/Claude/Gemini 設定頁申請匯出（站內有三家的圖解步驟與等待時間預期）→ 收到信、下載 zip、拖進瀏覽器 → Web Worker 分片解析，畫面上長出對話星圖，索引邊建邊可用（先關鍵字後語意）→ 打字搜尋，不符合的粒子淡出、命中的放大拉出摘要卡，點開跳到對話原文並 highlight → 標籤、收藏、匯出成 Obsidian vault 或 Markdown → 資料留在 IndexedDB，下次新匯出丟進來自動合併去重並顯示「這三個月你多了 412 則對話」。",
+      "keyFeatures": [
+        "拖入 zip 即用：ChatGPT conversations.json、Claude、Gemini 匯出格式全支援，Web Worker 分片解析 200MB 不當機",
+        "跨平台合併索引：三家對話進同一個時間軸與同一個搜尋框，官方做不到的事",
+        "本機語意搜尋（transformers.js + WebGPU embedding），零 API 成本、零上傳",
+        "對話星圖：每則對話一顆粒子，依時間與主題聚類漂移，搜尋即篩選",
+        "關鍵字搜尋 + 命中 highlight + jump-to-context（HN 使用者明確點名缺的功能）",
+        "GitHub 風格年度 heatmap 與「你在某月最常問什麼」的回顧牆，附可分享圖卡",
+        "標籤、收藏、單篇/批次匯出成 Markdown / Obsidian vault / PDF",
+        "增量合併：新匯出自動去重、只索引新增對話，並顯示成長回顧"
+      ],
+      "signatureMoment": "星圖生長——把不可避免的索引等待變成節目。zip 拖進來後，畫面中央先是一顆孤獨的光點；Web Worker 每解析完一批（約 200 則），就有一群粒子從中心以 stagger { each: 0.004, from: 'center' } 噴射而出，用 GSAP quickTo 各自飛向它在時間軸上的角度與主題聚類的半徑，飛行時拖著 0.4 秒的殘影；星圖因此是「一圈一圈長大」的，使用者能親眼看見自己兩年的思考被攤開成一片星雲，而不是盯著一條進度條。當語意 embedding 那一階段開始，粒子之間會逐漸浮現細如蛛絲的連線（相似度高於閾值的兩則對話），連線以 drawSVG 從一端長到另一端，整張圖從散沙緩緩結成一張網。索引完成的瞬間，整張星圖做一次 1.06 倍的「呼吸」並全體閃過一道白光，中央浮出「3,271 則對話，索引完成，全程未離開這台電腦」。之後在搜尋框每打一個字元，不符合的粒子在 0.18 秒內 opacity 降到 0.06 並縮到 0.4 倍、命中的放大 1.8 倍並亮起，畫面上剩下的那幾十顆星星就是你的答案——動效在這裡不是裝飾，它就是搜尋結果本身。",
+      "monetization": "免費：關鍵字搜尋、瀏覽、單篇 Markdown 匯出、對話星圖。Pro 一次性買斷 US$25（Lemon Squeezy license key 前端驗證）解鎖：本機語意搜尋、跨平台合併索引、批次匯出成 Obsidian vault / PDF、標籤與收藏、年度回顧圖卡高解析輸出。ChatSherlock 已在 HN 驗證 $4.99/$9.99 訂閱的付費意願，一次性買斷對隱私敏感受眾更容易成交。SEO 面吃「how to search ChatGPT history」「chatgpt export json viewer」這類持續高意圖長尾。",
+      "techNotes": "zip.js 串流解壓，JSON 用 Web Worker 內的分片 parser（不要一次 JSON.parse 200MB），解析結果直接寫進 IndexedDB 並建 inverted index（MiniSearch/FlexSearch）供關鍵字搜尋秒回；語意層用 transformers.js 跑小型 embedding 模型（bge-small / all-MiniLM）＋ WebGPU，向量存 IndexedDB，查詢時在 Worker 內做暴力 cosine（數千筆完全夠快，不需 HNSW）。星圖用 Canvas 2D 或 WebGL 畫點雲（數千顆粒子不要用 DOM），聚類用 UMAP-js 的簡化版或直接對 embedding 做 PCA 降到 2D。GSAP 負責 quickTo 粒子飛行、stagger 噴發、drawSVG 連線、搜尋時的淡出/放大。首屏必須誠實告知：首次索引需要幾分鐘、Safari/Firefox 無 WebGPU 時語意搜尋會退回 WASM（慢但可用），關鍵字搜尋不受影響。匯出格式改版是長期維護成本，因此把各平台的 schema adapter 隔離成獨立模組。"
+    }
+  ],
+  "portfolioLogic": "這六站是一個「同一個技術底盤、五種受眾、四條收入線」的組合，統一掛在一個 hub 首頁下（建議定位：一間只做『不上傳、不註冊、打開就能用』工具的獨立工作室），共同敘事是「你的檔案沒有離開這台電腦」——這句話在六站都是真的，是唯一靜態站能誠實宣稱、而所有 SaaS 競品都做不到的攻擊點，也讓 hub 的品牌有一個一句話就記得住的立場。\n\n受眾覆蓋刻意分成五叢、彼此不重疊卻可串接：(1) 台灣一般消費者（發票回顧）→ (2) 台灣有房貸族與理財者（房貸沙盤）→ (3)(4) 電商／POD 賣家（去背熔爐 → 情境織機）→ (5) 前端工程師與設計師（漸層工坊）→ (6) AI 重度使用者與知識工作者（對話金庫）。六站分屬四種產品型態（資料敘事、決策模擬、批次影像處理、開發者工具），不會出現「六個都是計算機」的問題。\n\n互導設計是實體的、不是首頁放六個 logo 而已：\n- 發票回顧 → 房貸沙盤：使用者剛看完自己一整年的錢流去哪，回顧最後一屏直接接「那這些錢該先還房貸還是投資？」——這是同一個台灣使用者、同一個情緒、同一個季節（1 月年終獎金＋報稅季），兩站的流量尖峰完全重疊，等於一次獲客餵飽兩站。\n- 去背熔爐 → 情境織機：這是作品集裡最硬的漏斗。去背完成頁匯出的透明 PNG，正是情境織機的輸入格式，一鍵帶著檔案跳站。同一批賣家、同一個上架流程的前後兩步，而且兩站的付費品（Pro 買斷 + 模板包）可以做組合包，共用同一個錢包。兩個電商站不是重複，是把一條工作流佔滿。\n- 漸層工坊 是全年無季節性的長流量底盤：cssgradient.io 級的關鍵字池、69% organic、開發者每做一個 landing page 就回來一次。它負責在台灣兩站的淡季（2–11 月）撐住 hub 的整體流量與外鏈權重，並把工程師受眾帶進來看其他五站——這五站本身就是「純前端能做到什麼程度」的最佳作品集證明，對開發者受眾的說服力遠高於任何自我介紹。\n- 對話金庫 帶進與其他五站零重疊的 AI 重度使用者，且它是六站中回訪節奏最自然的一個（每次新匯出就回來合併一次），同時是隱私敘事的最強背書：連你最私密的 AI 對話我們都不碰，其他五站的「不上傳」自然可信。\n\n季節性刻意錯開，讓 hub 全年不斷流：發票回顧與房貸沙盤吃 12–2 月與 5 月報稅季的脈衝；去背熔爐與情境織機吃 Q3–Q4 電商旺季備貨；漸層工坊與對話金庫是全年長流。任何單一站的流量歸零，hub 都不會斷。\n\n技術資產高度共用，六站的邊際開發成本遞減：一套 GSAP 動效系統（ScrollTrigger pin、Flip、Draggable+Inertia、quickTo 粒子、innerText 數字滾動、stagger from random）貫穿全部；OKLCH 色彩引擎在漸層工坊寫一次，發票回顧的熱力圖色階、房貸沙盤的曲線配色、去背熔爐的 UI 全部沿用；Web Worker + 分片解析 + IndexedDB 的骨架在發票回顧、對話金庫、去背熔爐三站共用；WebGL/WebGPU pipeline 在去背熔爐與情境織機共用；Lemon Squeezy license key 前端驗證與 ZIP 串流匯出寫一次用四站。整組全部靜態託管在 GitHub Pages，零維運成本、零伺服器帳單，任何一站爆紅都不會產生費用。\n\n收入結構刻意分散在四條互不相關的線上，避免單點失效：金融導流 CPA（發票回顧的信用卡推薦、房貸沙盤的轉貸與券商）是天花板最高的一條；一次性買斷（去背熔爐 Pro、對話金庫 Pro、房貸沙盤報告）是最穩定的一條；數位資產販售（情境織機模板包與市集抽成、漸層工坊 preset pack）是唯一有複利效果、且對手抄不走的一條；開發者廣告（漸層工坊 Carbon/EthicalAds）是最小但最不需照顧的一條。六站裡最會賺錢的（房貸沙盤、去背熔爐、情境織機）與最會帶流量的（發票回顧、漸層工坊）分工明確，沒有任何一站被要求同時扛兩件事。\n\n刻意排除的：retirement-onepager-tw 與房貸沙盤同屬台灣金融試算、受眾與變現高度重疊，留作房貸沙盤成功後的第二個模組而非獨立站；shadowsmith 依評審共識體量不足以獨立，應併入漸層工坊當一個分頁；caption-kiln 與 typeforge 工程風險（瀏覽器內影片重新編碼、harfbuzz 子集化與字型授權灰區）遠高於其餘選項，不適合放在首波六站；DarkPatternMuseum 與 FingerprintMirror 傳播力極強但屬一次性體驗且無真實營收，建議日後當作 hub 的獨立宣傳彈藥發射，不佔六站名額；localjson 與 regex-atlas 是紅到發黑的紅海，SEO 要跟十幾年老域名硬碰，投入產出比不如漸層工坊。"
+}

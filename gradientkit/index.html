@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GradientKit - perceptually even gradients, measured</title>
+<meta name="description" content="A gradient editor that interpolates in OKLCH instead of sRGB, shows you the exact point where the grey band disappears, and hands you production CSS with an sRGB fallback.">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#000000">
+
+<!-- Instrument mark: a black plate, a white hairline rule and a five-step grey
+     wedge. The interface has no hue of its own, so neither does the icon. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23000'/%3E%3Crect x='6' y='6' width='4' height='20' fill='%23FFF'/%3E%3Crect x='10' y='6' width='4' height='20' fill='%23BFBFBF'/%3E%3Crect x='14' y='6' width='4' height='20' fill='%23808080'/%3E%3Crect x='18' y='6' width='4' height='20' fill='%23404040'/%3E%3Crect x='22' y='6' width='4' height='20' fill='%23161616'/%3E%3Crect x='6' y='6' width='20' height='1' fill='%23FFF'/%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fragment+Mono:ital@0;1&family=Sora:wght@400;500;600&display=swap">
+
+<link rel="stylesheet" href="./css/tokens.css">
+<link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+<!--
+  DIRECTION CONTRACT - GradientKit
+  Assigned world: VISUAL-WORLDS.md #5 (pinned). concept-seed not run, per the
+  pinned-brief rule.
+
+  THESIS
+  A color tool with a brand color is a broken instrument. GradientKit removes
+  every hue from its own interface so that the only color on screen belongs to
+  the user, and then proves, in three seconds, that the way every other tool
+  blends color is measurably wrong.
+
+  OWN-WORLD
+  A spectrophotometer bench in a dark measurement room. Pure black ground,
+  white hairlines, engraved rules with numbered ticks, a specimen mounted under
+  a lamp. Nothing is styled; everything is calibrated. The chrome is the
+  instrument body, machined and unpainted. The gradient is the specimen.
+  Reference points: a Minolta CS-2000 readout, an optical rail with vernier
+  scales, a densitometer step wedge, a Kodak Q-13 grey card. Explicitly not:
+  cyberpunk neon, glassmorphism, dark-mode SaaS dashboards, or a black page
+  with a purple glow.
+
+  STORY
+  The user arrives irritated by a specific problem: the middle of their
+  gradient looks like dishwater. The first viewport is not a pitch, it is the
+  instrument already running with a specimen mounted. One keypress sends a scan
+  line across the specimen. Behind the line the color is corrected; ahead of
+  it, it is not. The line stops at the exact worst point, brackets it, prints
+  the real number, and moves on. In the right rail, the code they need updates
+  itself. They copy it and leave. The next time the problem happens, they know
+  where to go.
+
+  FIRST VIEWPORT
+  48px bar with the wordmark and one sentence of proposition. Below it, edge to
+  edge, the instrument: a 280px left rail of composition controls, the specimen
+  stage, a 320px right rail of measurement and output. Under the stage, a 56px
+  engraved rule carrying the color stops. Zero scroll required to use the
+  product. Zero marketing copy above the tool. The brightest thing on the page
+  is a 1px white hairline around the interpolation-space control, because that
+  is the first action.
+
+  FORM
+  Type: Sora for display and UI, Fragment Mono for every number, color value,
+  and code line. Color: pure black ground, one raised black, white and two grey
+  steps, and hairlines expressed as white alphas. Zero hue in the chrome, no
+  exceptions, including for success, error, and focus. Radius: 0 or 2px,
+  nothing else. Depth: hairlines and negative space only; exactly one element
+  in the product (a stop handle mid-drag) is allowed a shadow, and that shadow
+  has offset and blur. Motion: 90 to 260ms for everything functional,
+  cubic-bezier(0.16, 1, 0.3, 1) as the default ease out from an already-visible
+  state, and exactly one authored moment over one second.
+
+  FINISH
+  unreviewed and undocumented is unfinished; this build ends with the finish
+  review, the verdict, and DESIGN.md
+-->
+
+<a class="gk-skip" href="#rail-left">Skip to gradient controls</a>
+
+<header class="gk-bar">
+  <h1 class="gk-wordmark"><a href="../index.html">GradientKit</a></h1>
+  <p class="gk-proposition">Perceptually even gradients, measured.</p>
+
+  <div class="gk-bar-actions">
+    <div class="gk-seg" role="radiogroup" aria-label="Editing mode" id="mode-group">
+      <button type="button" role="radio" class="gk-seg-cell" data-value="gradient" aria-checked="true" tabindex="0">Gradient</button>
+      <button type="button" role="radio" class="gk-seg-cell" data-value="mesh" aria-checked="false" tabindex="-1">Mesh</button>
+    </div>
+    <button type="button" class="gk-btn" id="btn-reference">
+      <span class="gk-btn-icon"></span><span class="gk-btn-label">Load reference set</span>
+    </button>
+    <button type="button" class="gk-btn" id="btn-copylink">
+      <span class="gk-btn-icon"></span><span class="gk-btn-label">Copy link</span>
+    </button>
+    <button type="button" class="gk-btn gk-btn--arm" id="btn-reset">
+      <span class="gk-btn-label">Reset</span>
+    </button>
+  </div>
+</header>
+
+<main class="gk-work" id="work" data-mtab="stops">
+
+  <nav class="gk-mtabs" aria-label="Panel groups">
+    <button type="button" class="gk-mtab" data-mgroup="stops" aria-current="true">Stops</button>
+    <button type="button" class="gk-mtab" data-mgroup="space">Space</button>
+    <button type="button" class="gk-mtab" data-mgroup="output">Output</button>
+    <button type="button" class="gk-mtab" data-mgroup="measure">Measure</button>
+  </nav>
+
+  <!-- ==================== LEFT RAIL: composition ==================== -->
+  <aside class="gk-rail gk-rail--left" id="rail-left" aria-label="Composition controls">
+
+    <section class="gk-panel" data-mgroup="stops">
+      <h2 class="gk-panel-title">Geometry</h2>
+      <div class="gk-seg gk-seg--full" role="radiogroup" aria-label="Gradient type" id="type-group">
+        <button type="button" role="radio" class="gk-seg-cell" data-value="linear" aria-checked="true" tabindex="0">Linear</button>
+        <button type="button" role="radio" class="gk-seg-cell" data-value="radial" aria-checked="false" tabindex="-1">Radial</button>
+        <button type="button" role="radio" class="gk-seg-cell" data-value="conic" aria-checked="false" tabindex="-1">Conic</button>
+      </div>
+
+      <div class="gk-num" id="field-angle">
+        <label class="gk-num-label" for="in-angle">Angle</label>
+        <input class="gk-num-input" id="in-angle" type="text" inputmode="decimal" value="200"
+               autocomplete="off" spellcheck="false" aria-describedby="msg-angle">
+        <span class="gk-num-unit">deg</span>
+        <p class="gk-num-msg" id="msg-angle" role="status"></p>
+      </div>
+
+      <div class="gk-radial-fields" id="radial-fields" hidden>
+        <div class="gk-num" id="field-cx">
+          <label class="gk-num-label" for="in-cx">Center x</label>
+          <input class="gk-num-input" id="in-cx" type="text" inputmode="decimal" value="50" autocomplete="off" spellcheck="false">
+          <span class="gk-num-unit">%</span>
+          <p class="gk-num-msg" role="status"></p>
+        </div>
+        <div class="gk-num" id="field-cy">
+          <label class="gk-num-label" for="in-cy">Center y</label>
+          <input class="gk-num-input" id="in-cy" type="text" inputmode="decimal" value="50" autocomplete="off" spellcheck="false">
+          <span class="gk-num-unit">%</span>
+          <p class="gk-num-msg" role="status"></p>
+        </div>
+        <div class="gk-num" id="field-radius">
+          <label class="gk-num-label" for="in-radius">Radius</label>
+          <input class="gk-num-input" id="in-radius" type="text" inputmode="decimal" value="75" autocomplete="off" spellcheck="false">
+          <span class="gk-num-unit">%</span>
+          <p class="gk-num-msg" role="status"></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="gk-panel gk-panel--primary" data-mgroup="space">
+      <h2 class="gk-panel-title">Interpolation space</h2>
+      <div class="gk-spaces" role="radiogroup" aria-label="Interpolation space" id="space-group">
+        <button type="button" role="radio" class="gk-space-cell" data-value="srgb" aria-checked="false" tabindex="-1">sRGB</button>
+        <button type="button" role="radio" class="gk-space-cell" data-value="hsl" aria-checked="false" tabindex="-1">HSL</button>
+        <button type="button" role="radio" class="gk-space-cell" data-value="oklab" aria-checked="false" tabindex="-1">OKLab</button>
+        <button type="button" role="radio" class="gk-space-cell" data-value="oklch" aria-checked="true" tabindex="0">OKLCH</button>
+      </div>
+      <p class="gk-group-reason" id="space-reason" role="status"></p>
+      <p class="gk-help">Two colors. Four ways to get from one to the other.</p>
+      <button type="button" class="gk-btn gk-btn--wide" id="btn-compare">
+        <span class="gk-btn-label">Compare against sRGB</span>
+      </button>
+      <p class="gk-help gk-help--tight">Press Space to run it. The seam is draggable once it lands.</p>
+    </section>
+
+    <section class="gk-panel" data-mgroup="stops" id="panel-stops">
+      <h2 class="gk-panel-title">Stops</h2>
+      <ul class="gk-stoplist" id="stop-list"></ul>
+      <div class="gk-panel-actions">
+        <button type="button" class="gk-btn gk-btn--sm" id="btn-add-stop">
+          <span class="gk-btn-icon"></span><span class="gk-btn-label">Add stop</span>
+        </button>
+        <div class="gk-select">
+          <label class="gk-select-label" for="in-easing">Distribution</label>
+          <select class="gk-select-input" id="in-easing">
+            <option value="linear">Even</option>
+            <option value="in">Slow start</option>
+            <option value="out">Slow end</option>
+            <option value="inout">Slow both ends</option>
+          </select>
+        </div>
+      </div>
+      <p class="gk-help">Or drop an image on the Stage to pull four stops out of it.</p>
+    </section>
+
+    <section class="gk-panel" data-mgroup="stops" id="panel-mesh" hidden>
+      <h2 class="gk-panel-title">Mesh points</h2>
+      <ul class="gk-stoplist" id="mesh-list"></ul>
+      <div class="gk-panel-actions">
+        <button type="button" class="gk-btn gk-btn--sm" id="btn-add-point">
+          <span class="gk-btn-icon"></span><span class="gk-btn-label">Add point</span>
+        </button>
+      </div>
+      <p class="gk-help">A mesh field blends every point at once in OKLab, which is why the seams between lobes stay saturated.</p>
+    </section>
+  </aside>
+
+  <!-- ==================== STAGE COLUMN ==================== -->
+  <div class="gk-stagecol">
+    <div class="gk-stage" id="stage-wrap">
+      <canvas class="gk-stage-canvas" id="stage" width="16" height="16"
+              role="img" tabindex="0"
+              aria-label="Linear gradient at 200 degrees, interpolated in OKLCH, three stops."></canvas>
+
+      <div class="gk-stage-overlay" id="stage-overlay">
+        <div class="gk-crosshair" id="crosshair" hidden></div>
+        <div class="gk-guide" id="guide" hidden></div>
+        <div class="gk-mesh-points" id="mesh-points"></div>
+        <span class="gk-probe-marker" id="probe-marker" hidden></span>
+        <span class="gk-probe-sample" id="probe-sample" hidden></span>
+        <p class="gk-stage-readout" id="stage-readout" hidden></p>
+        <div class="gk-drop" id="stage-drop" hidden>
+          <p class="gk-drop-text" id="drop-text">Drop an image to pull four stops from it.</p>
+          <span class="gk-drop-bar" id="drop-bar"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="gk-notice-slot" id="notice-slot"></div>
+
+    <div class="gk-track" id="track" role="group" aria-label="Color stops on a 0 to 100 percent rule">
+      <div class="gk-track-rule" aria-hidden="true"></div>
+      <div class="gk-track-nums" aria-hidden="true">
+        <span style="--at:0%">0</span>
+        <span style="--at:25%">25</span>
+        <span style="--at:50%">50</span>
+        <span style="--at:75%">75</span>
+        <span style="--at:100%">100</span>
+      </div>
+      <div class="gk-track-ghost" hidden></div>
+      <div class="gk-track-handles"></div>
+      <output class="gk-track-readout" id="track-readout"></output>
+    </div>
+  </div>
+
+  <!-- ==================== RIGHT RAIL: measurement and output ==================== -->
+  <aside class="gk-rail gk-rail--right" id="rail-right" aria-label="Measurement and output">
+
+    <section class="gk-panel" data-mgroup="output">
+      <h2 class="gk-panel-title">Output</h2>
+      <div class="gk-tablist" role="tablist" aria-label="Export format" id="out-tabs">
+        <button type="button" role="tab" class="gk-tab" data-tab="css" id="tab-css" aria-controls="out-panel" aria-selected="true" tabindex="0">CSS</button>
+        <button type="button" role="tab" class="gk-tab" data-tab="svg" id="tab-svg" aria-controls="out-panel" aria-selected="false" tabindex="-1">SVG</button>
+        <button type="button" role="tab" class="gk-tab" data-tab="tailwind" id="tab-tailwind" aria-controls="out-panel" aria-selected="false" tabindex="-1">Tailwind</button>
+        <button type="button" role="tab" class="gk-tab" data-tab="png" id="tab-png" aria-controls="out-panel" aria-selected="false" tabindex="-1">PNG</button>
+      </div>
+
+      <div class="gk-outpanel" role="tabpanel" id="out-panel" aria-labelledby="tab-css" tabindex="0">
+        <!-- Copy sits on its own rule above the code rather than floating over
+             line one: long declarations wrap, so nothing may cover the text. -->
+        <div class="gk-codebar">
+          <p class="gk-code-meta" id="code-meta" aria-hidden="true"></p>
+          <button type="button" class="gk-btn gk-btn--copy" id="btn-copy">
+            <span class="gk-btn-icon"></span><span class="gk-btn-label">Copy</span>
+          </button>
+        </div>
+        <div class="gk-codewrap">
+          <pre class="gk-code" id="code-block" tabindex="0" aria-label="Generated output"><code id="code-text"></code></pre>
+          <div class="gk-code-wipe" id="code-wipe" aria-hidden="true"></div>
+        </div>
+        <p class="gk-note" id="out-note" role="status"></p>
+
+        <div class="gk-png" id="png-panel" hidden>
+          <div class="gk-stepper" id="png-sizes" role="group" aria-label="Export size">
+            <button type="button" data-size="1024" aria-pressed="false">1024</button>
+            <button type="button" data-size="2048" aria-pressed="true">2048</button>
+            <button type="button" data-size="4096" aria-pressed="false">4096</button>
+          </div>
+          <button type="button" class="gk-btn gk-btn--wide" id="btn-png">
+            <span class="gk-btn-icon"></span><span class="gk-btn-label">Export PNG</span>
+          </button>
+          <p class="gk-note" id="png-note" role="status"></p>
+        </div>
+      </div>
+
+    </section>
+
+    <section class="gk-panel" data-mgroup="measure">
+      <h2 class="gk-panel-title">Contrast on the gradient</h2>
+      <label class="gk-field-label" for="in-probe">Sample text</label>
+      <input class="gk-text-input" id="in-probe" type="text" placeholder="Type text to measure"
+             autocomplete="off" spellcheck="false">
+      <p class="gk-help" id="probe-empty">Type sample text to measure it against the gradient.</p>
+
+      <div class="gk-probe-controls">
+        <div class="gk-stepper" id="probe-sizes" role="group" aria-label="Text size">
+          <button type="button" data-size="12" aria-pressed="false">12</button>
+          <button type="button" data-size="16" aria-pressed="false">16</button>
+          <button type="button" data-size="20" aria-pressed="false">20</button>
+          <button type="button" data-size="32" aria-pressed="true">32</button>
+          <button type="button" data-size="48" aria-pressed="false">48</button>
+        </div>
+        <button type="button" class="gk-weight" id="probe-weight" aria-pressed="true" aria-label="Text weight">
+          <span class="gk-weight-value">600</span>
+        </button>
+        <div class="gk-stepper gk-stepper--swatch" id="probe-fg" role="group" aria-label="Text color">
+          <button type="button" data-fg="#FFFFFF" aria-pressed="true"><span class="gk-sr">White text</span></button>
+          <button type="button" data-fg="#000000" aria-pressed="false"><span class="gk-sr">Black text</span></button>
+        </div>
+      </div>
+
+      <div class="gk-readout">
+        <p class="gk-readout-num" id="probe-ratio">--.--</p>
+        <p class="gk-readout-verdict" id="probe-verdict"></p>
+        <p class="gk-readout-where" id="probe-where"></p>
+        <p class="gk-help gk-readout-hint">Drag the sample across the Stage. The ratio is the worst point under it, and that point is marked.</p>
+      </div>
+    </section>
+
+    <section class="gk-panel" data-mgroup="measure">
+      <h2 class="gk-panel-title">Vision simulation</h2>
+      <div class="gk-vision" id="vision-strip" role="group" aria-label="Color vision simulation"></div>
+      <p class="gk-help" id="vision-note">Exports are unaffected by this preview.</p>
+    </section>
+
+    <section class="gk-panel" data-mgroup="measure">
+      <h2 class="gk-panel-title">Grain and dither</h2>
+
+      <div class="gk-slider" id="slider-grain">
+        <label class="gk-slider-label" for="in-grain">Grain amplitude</label>
+        <input type="range" id="in-grain" min="0" max="100" step="1" value="0">
+        <output class="gk-slider-value" for="in-grain" id="out-grain">0</output>
+      </div>
+
+      <div class="gk-row">
+        <span class="gk-field-label" id="lbl-grain-size">Grain size</span>
+        <div class="gk-stepper" id="grain-sizes" role="group" aria-labelledby="lbl-grain-size">
+          <button type="button" data-gsize="1" aria-pressed="false">1</button>
+          <button type="button" data-gsize="2" aria-pressed="true">2</button>
+          <button type="button" data-gsize="4" aria-pressed="false">4</button>
+          <button type="button" data-gsize="6" aria-pressed="false">6</button>
+          <button type="button" data-gsize="8" aria-pressed="false">8</button>
+        </div>
+      </div>
+
+      <div class="gk-row">
+        <span class="gk-field-label" id="lbl-dither">Ordered dither</span>
+        <button type="button" class="gk-toggle" id="toggle-dither" aria-pressed="true" aria-labelledby="lbl-dither">
+          <span class="gk-toggle-knob"></span>
+        </button>
+      </div>
+
+      <div class="gk-loupe-wrap">
+        <canvas class="gk-loupe" id="loupe" width="88" height="88" aria-hidden="true"></canvas>
+        <div class="gk-loupe-side">
+          <p class="gk-loupe-hex" id="loupe-hex">#000000</p>
+          <p class="gk-help gk-help--tight">8x magnification of the actual device pixels under the crosshair.</p>
+        </div>
+      </div>
+      <p class="gk-help" id="banding-note"></p>
+    </section>
+
+    <section class="gk-panel" data-mgroup="output">
+      <h2 class="gk-panel-title">Saved on this device</h2>
+      <ul class="gk-lib" id="lib-list" hidden></ul>
+      <div class="gk-lib-empty" id="lib-empty">
+        <span class="gk-spectral" aria-hidden="true"></span>
+        <p class="gk-help">Nothing saved on this device yet.</p>
+      </div>
+      <p class="gk-help" id="lib-blocked" hidden>This browser is blocking local storage, so saving is off. Share links still work.</p>
+      <div class="gk-panel-actions">
+        <button type="button" class="gk-btn gk-btn--sm" id="btn-save" aria-describedby="save-reason">
+          <span class="gk-btn-icon"></span><span class="gk-btn-label">Save current gradient</span>
+        </button>
+      </div>
+      <p class="gk-note" id="save-reason" role="status"></p>
+    </section>
+  </aside>
+</main>
+
+<!-- ==================== B. Four spaces ==================== -->
+<section class="gk-section gk-section--bands" id="spaces" aria-labelledby="h-spaces">
+  <h2 class="gk-display" id="h-spaces">Four ways to cross the same two colors</h2>
+  <p class="gk-lede">Your first and last stop, interpolated four ways. The number on the right is how much chroma each route loses against OKLCH at its worst point.</p>
+  <div class="gk-bands" id="bands"></div>
+</section>
+
+<!-- ==================== C. Reference set ==================== -->
+<section class="gk-section gk-section--shelf" id="reference" aria-labelledby="h-reference">
+  <h2 class="gk-h1" id="h-reference">Reference set</h2>
+  <p class="gk-lede">Twelve gradient specimens and three mesh fields, each one authored to demonstrate a specific behaviour. Load one and it becomes yours to edit.</p>
+  <div class="gk-shelf" id="shelf" role="group" aria-label="Reference set specimens"></div>
+</section>
+
+<!-- ==================== D. Output reference ==================== -->
+<section class="gk-section gk-section--docs" id="output-reference" aria-labelledby="h-docs">
+  <h2 class="gk-h1" id="h-docs">What each export produces</h2>
+
+  <div class="gk-docs-grid">
+    <div class="gk-prose">
+      <h3 class="gk-h2">CSS</h3>
+      <p>Two blocks. The first is a plain sRGB gradient whose stops are resampled from the OKLCH curve at nine positions, so a browser without modern interpolation still gets a visually close result rather than a muddy two-stop guess. The second sits inside an <code>@supports</code> query and carries the real <code>oklch()</code> values. Both are validated with <code>CSS.supports()</code> in your browser before they are offered for copy, and the panel tells you which of the two it was able to check.</p>
+
+      <h3 class="gk-h2">SVG</h3>
+      <p>A real <code>linearGradient</code> or <code>radialGradient</code> in <code>objectBoundingBox</code> units, with the angle carried by <code>gradientTransform</code>. SVG gradients are sRGB only, so the stops are resampled to seventeen positions. A conic gradient has no SVG primitive at all, so that tab embeds a 512px raster of exactly what the Stage shows and says so, rather than silently emitting something that renders differently.</p>
+
+      <h3 class="gk-h2">Tailwind</h3>
+      <p>A v4 <code>@theme</code> block with the gradient plus three derived color tokens, and the utility usage line as a comment. No v3 config object is emitted: v3 config files are the thing v4 replaces, and shipping one would age the output on day one.</p>
+
+      <h3 class="gk-h2">PNG</h3>
+      <p>Rendered by the same shader at the target size, so dither and grain land at full resolution instead of being upscaled from the preview. If the device cannot allocate a 4096px surface, the export retries at 2048px and tells you it did. Vision simulation is never baked into a file.</p>
+    </div>
+
+    <div class="gk-support">
+      <h3 class="gk-h2">Where the fallback matters</h3>
+      <table class="gk-table">
+        <caption class="gk-sr">Browser support for gradient interpolation in OKLCH</caption>
+        <thead>
+          <tr><th scope="col">Engine</th><th scope="col">First shipped</th><th scope="col">Needs fallback</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Chrome and Edge</td><td>111</td><td>110 and earlier</td></tr>
+          <tr><td>Safari</td><td>16.2</td><td>16.1 and earlier</td></tr>
+          <tr><td>Firefox</td><td>128</td><td>127 and earlier</td></tr>
+        </tbody>
+      </table>
+      <p class="gk-note">Versions are for gradient interpolation, written <code>in oklch</code>. The <code>oklch()</code> color function itself landed earlier in every engine. Check the current state at caniuse.com before shipping to a locked-down audience.</p>
+
+      <h3 class="gk-h2">Privacy</h3>
+      <p>Everything runs in this tab. No account, no upload, no analytics. Gradients you save go to this browser's local storage and nowhere else, dropped images are decoded in memory and never leave the page, and a share link carries the whole gradient inside the URL instead of on a server.</p>
+
+      <h3 class="gk-h2">Credits</h3>
+      <p>OKLab and the sRGB gamut mapping follow Bjorn Ottosson's derivation and the CSS Color 4 specification. Color vision matrices are from Machado, Oliveira and Fernandes, 2009. Icons are Lucide, ISC licence. Type is Sora and Fragment Mono.</p>
+    </div>
+  </div>
+</section>
+
+<footer class="gk-foot">
+  <a class="gk-foot-link" href="../index.html">Back to the hub</a>
+  <button type="button" class="gk-foot-link gk-foot-btn" id="btn-shortcuts" aria-expanded="false">
+    <span class="gk-btn-label">Keyboard shortcuts</span>
+  </button>
+  <a class="gk-foot-link" href="./assets/reference-set.json" download>The reference set as JSON</a>
+  <p class="gk-foot-note">Built as a static page. View source, read the color math, take what is useful.</p>
+</footer>
+
+<div class="gk-sr" id="live-polite" aria-live="polite" aria-atomic="true"></div>
+<div class="gk-sr" id="live-assertive" role="alert" aria-live="assertive" aria-atomic="true"></div>
+
+<noscript>
+  <p class="gk-noscript">GradientKit is a live instrument: the gradient is rendered, measured and exported in your browser, so it needs JavaScript. The color math is in <code>js/color.js</code> if you would rather read it than run it.</p>
+</noscript>
+
+<!-- Core only. Nothing on this page is driven by scroll position, so
+     ScrollTrigger would be a request the user pays for and never uses. -->
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script type="module" src="./js/main.js"></script>
+<!-- The animation layer runs after the instrument is already assembled and
+     working, and does nothing if GSAP failed to load. -->
+<script type="module" src="./js/motion.js"></script>
+</body>
+</html>

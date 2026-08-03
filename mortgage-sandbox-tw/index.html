@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>房貸沙盤 - 提前還款、投資、寬限期，三條淨資產曲線對撞</title>
+<meta name="description" content="輸入貸款餘額、利率、剩餘年限，把提前還款、只繳月付投資差額、寬限期加投資三條路徑放在同一張淨資產時間軸上比較。每個假設都能點開看公式、代入值與出處。計算全在你的瀏覽器內完成。">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#F7F9FC">
+<!-- Squared graph paper, a prussian-blue rising line, and the orange crossing
+     dot: the whole product at 16px. Inline so it costs no request and works
+     from file:// too. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23F7F9FC'/%3E%3Cg stroke='%23DCE4EF' stroke-width='1'%3E%3Cpath d='M8 .5v31M16 .5v31M24 .5v31M.5 8h31M.5 16h31M.5 24h31'/%3E%3C/g%3E%3Cpath d='M4 26L14 19L28 5' fill='none' stroke='%2312305C' stroke-width='3' stroke-linecap='square'/%3E%3Ccircle cx='14' cy='19' r='4.5' fill='%23E86A2B'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@400;700&family=Schibsted+Grotesk:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<!--
+DIRECTION CONTRACT / mortgage-sandbox-tw
+
+THESIS
+這個工具唯一的產品是「可被追問的計算」。使用者不是來看漂亮圖表，是來決定一筆七位數的錢往哪走。因此畫面上每一個數字都必須能被點開，看到公式本身、看到代入值、看到出處，或看到「這是假設不是資料」的誠實標示。介面的工作是讓一個沒有財務背景的人，在 20 分鐘內親手把結論翻轉一次，並且相信那個翻轉。競品給答案，這裡給的是「答案對哪些假設敏感」的地圖。可信度來自算式攤開，不來自視覺說服。
+
+OWN-WORLD
+工程製圖圖紙。整頁是一張雙層方格紙（8px 細格 / 40px 粗格，1px hairline），座標軸是 hairline，標註走製圖的引線與標註框，所有金額、利率、年期一律 JetBrains Mono 等寬對齊、tabular-nums。冷白 #F7F9FC 底，普魯士藍 #12305C 三個明度階作為結構與資料，暖橘 #E86A2B 是全站唯一訊號色，只出現在交叉點、結論句與領先標記。三條路徑不用彩虹配色，用同一色相的三個明度階加三種線型分辨，色盲與黑白列印下依然成立。可信度來自「這是被畫出來、被量測過的」，不是「這很漂亮」。
+
+STORY
+首屏是一張已經畫好座標軸但還沒有標註的圖紙：x 軸有完整 30 年刻度，y 軸留白，圖面中央一條製圖尺寸線寫著「這張圖還沒有數字」。按下「載入範例情境」，三條曲線由左往右畫出來（0.9 秒），數字滾進標題欄。抓住時間軸把手往右拖，曲線端點跟著跑、三組讀數同步滾動；拖到投資曲線越過提前還款曲線的那一格，交叉點爆出環形波、往上長出引線、展開標註框逐字打出「第 11 年 3 個月，投資開始領先」，右側區域被橘色淡塊由左往右擦滿。把報酬率滑桿往下拉，整段標註反向收回、交叉點沿曲線滑到更晚的年份重新爆開。結論在你手上翻轉的那一秒，就是這個產品的論點。
+
+FIRST VIEWPORT
+頂部 56px 單行導覽（字標、返回 hyperkit、複製分享連結）。其下 5/7 分割：左側是製圖標題欄（title block），內含標題兩行、副文 18 字一行、主動作「載入範例情境」與次動作「用我自己的數字」，hero 文字元素共 4 個，無 eyebrow、無 trust strip、無 scroll cue；右側 7 欄是淨資產圖的上緣、完整 30 年 x 軸、空狀態的尺寸線標註、時間軸 scrubber 與三條線型的 legend。1280x800 下主動作不需捲動即可按到。<768px 改為標題欄在上、圖表在下（高 320px），主動作仍在首屏。
+
+FORM
+方格紙底 8px 細格 / 40px 粗格 1px hairline。圓角三階且各有其職：資料面與表格 0px、控制項 2px、抽屜與情境卡 4px。陰影一律帶偏移與柔和模糊，色相調成冷藍，零偏移彩色光暈禁止。字型 Schibsted Grotesk（顯示）+ Noto Sans TC（中文）+ JetBrains Mono（所有數值）。間距以 8px 為節拍，標題上方空間永遠大於下方。全頁沒有卡片牆、沒有 eyebrow、沒有漸層文字、沒有玻璃模糊、沒有等寬字當科技感戲服。
+
+FINISH
+unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
+-->
+
+<a class="skiplink" href="#bench">跳到工作台</a>
+
+<!-- Tabler Icons (MIT). Inlined so the page also works from file:// where
+     <use href="assets/icons.svg#id"> would be blocked. Same sprite is kept at
+     assets/icons.svg as the editable source. -->
+<svg class="sprite" aria-hidden="true" focusable="false" width="0" height="0">
+  <defs>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M9 14l-4 -4l4 -4"/><path d="M5 10h11a4 4 0 1 1 0 8h-1"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M9 15l6 -6"/><path d="M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464"/><path d="M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463"/></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24"><path d="M8 9a4 4 0 1 1 5.5 3.7c-.9 .4 -1.5 1.2 -1.5 2.1v.7"/><path d="M12 19h.01"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M4 17v2h16v-2"/><path d="M7 11l5 5l5 -5"/><path d="M12 4v12"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M5 7l1 12h12l1 -12"/><path d="M9 7v-3h6v3"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="M6 9l6 6l6 -6"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3l9 16h-18z"/><path d="M12 9v4"/><path d="M12 16h.01"/></symbol>
+    <symbol id="i-grip" viewBox="0 0 24 24"><path d="M9 5v14"/><path d="M15 5v14"/></symbol>
+  </defs>
+</svg>
+
+<header id="nav" class="nav">
+  <div class="nav__inner">
+    <a class="nav__mark" href="#top"><span class="nav__mark-full">房貸沙盤</span><span class="nav__mark-short">沙盤</span></a>
+    <nav class="nav__side" aria-label="站內">
+      <a class="btn btn--bare nav__back" href="../index.html">
+        <svg class="icon" aria-hidden="true"><use href="#i-back"></use></svg>返回 hyperkit
+      </a>
+      <button class="btn btn--quiet" type="button" id="btn-share">
+        <svg class="icon" aria-hidden="true"><use href="#i-link"></use></svg>複製分享連結
+      </button>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+
+<!-- ============================ 1. 工作台 ============================ -->
+<section id="bench" class="bench" tabindex="-1" aria-labelledby="h-title">
+  <div class="bench__inner">
+
+    <div class="titleblock" id="titleblock">
+      <div class="titleblock__row titleblock__row--title">
+        <h1 class="titleblock__title" id="h-title">年終獎金該還房貸，<span class="brk"></span>還是丟進市場？</h1>
+        <p class="flag" id="scenario-flag" data-state="none">尚未載入</p>
+      </div>
+      <div class="titleblock__row titleblock__row--sub">
+        <p class="titleblock__sub">三條路徑，一張淨資產時間軸，你自己判斷。</p>
+      </div>
+      <div class="titleblock__row titleblock__row--act">
+        <button class="btn btn--primary" type="button" id="btn-sample">載入範例情境</button>
+        <button class="btn btn--quiet" type="button" id="btn-own">用我自己的數字</button>
+      </div>
+      <!-- Appears once a scenario is on the chart. The hero stays (it is the
+           drawing's title block, and the question it asks is the point), so the
+           sheet has to say out loud that the numbers behind the curves are
+           editable and that they are further down the page. -->
+      <div class="titleblock__row titleblock__row--next" id="titleblock-next" hidden>
+        <a class="nextcue" href="#params" id="nextcue">
+          <span class="nextcue__step">下一步</span>
+          <span class="nextcue__text" id="nextcue-text">往下把範例數字換成你的貸款餘額、利率、年期</span>
+          <svg class="icon nextcue__arrow" aria-hidden="true"><use href="#i-chevron"></use></svg>
+        </a>
+      </div>
+    </div>
+
+    <div class="plotwrap">
+      <div class="plothead">
+        <h2 class="plothead__title">淨資產（新台幣）</h2>
+        <details class="drawer drawer--inline" data-drawer="netWorth">
+          <summary class="drawer__trigger" aria-label="淨資產怎麼算的">
+            <svg class="icon" aria-hidden="true"><use href="#i-help"></use></svg>
+          </summary>
+          <div class="drawer__panel"></div>
+        </details>
+        <div class="plothead__spacer"></div>
+        <div class="segment" role="radiogroup" aria-label="投資報酬模式" id="seg-mode">
+          <button class="segment__opt" type="button" role="radio" aria-checked="true" data-value="0">固定報酬</button>
+          <button class="segment__opt" type="button" role="radio" aria-checked="false" data-value="1">蒙地卡羅</button>
+        </div>
+      </div>
+
+      <div class="plot" id="plot">
+        <canvas class="plot__canvas" id="fan-canvas" aria-hidden="true"></canvas>
+        <svg class="plot__svg" id="plot-svg" role="img" aria-labelledby="plot-title plot-desc" preserveAspectRatio="none">
+          <title id="plot-title">三條路徑的淨資產時間軸</title>
+          <desc id="plot-desc">圖表尚未載入資料。座標軸已備妥，x 軸為 0 到 30 年。</desc>
+          <g id="g-grid" class="g-grid"></g>
+          <g id="g-axis" class="g-axis"></g>
+          <g id="g-shortfall" class="g-shortfall"></g>
+          <g id="g-wash" class="g-wash"></g>
+          <g id="g-series" class="g-series">
+            <path id="series-c" class="series series--c" fill="none"></path>
+            <path id="series-b" class="series series--b" fill="none"></path>
+            <path id="series-a" class="series series--a" fill="none"></path>
+          </g>
+          <g id="g-band" class="g-band"></g>
+          <g id="g-cursor" class="g-cursor"></g>
+          <g id="g-cross" class="g-cross"></g>
+          <g id="g-empty" class="g-empty"></g>
+          <g id="g-rowmark" class="g-rowmark"></g>
+        </svg>
+        <p class="plot__progress" id="plot-progress" hidden>模擬 1000 條路徑，已完成 0</p>
+      </div>
+
+      <div class="scrubber" id="scrubber-wrap">
+        <div class="scrubber__track" id="scrubber-track">
+          <div class="scrubber__ticks" id="scrubber-ticks" aria-hidden="true"></div>
+          <div class="scrubber__handle" id="scrubber"
+               role="slider" tabindex="0"
+               aria-label="時間軸游標"
+               aria-valuemin="0" aria-valuemax="359" aria-valuenow="0"
+               aria-valuetext="第 0 年 0 個月"
+               aria-disabled="true">
+            <span class="scrubber__grip" aria-hidden="true"></span>
+          </div>
+        </div>
+        <p class="scrubber__hint" id="scrubber-hint" hidden>← → 一個月　Shift 一年　Home End 兩端　X 跳到標註點</p>
+      </div>
+
+      <div class="legend" id="legend" data-empty="true">
+        <div class="legend__row" data-path="a">
+          <svg class="legend__swatch" viewBox="0 0 24 8" aria-hidden="true"><line x1="0" y1="4" x2="24" y2="4"/></svg>
+          <span class="legend__name">全額提前還款</span>
+          <span class="legend__val" data-role="legend-a">尚無數值</span>
+        </div>
+        <div class="legend__row" data-path="b">
+          <svg class="legend__swatch" viewBox="0 0 24 8" aria-hidden="true"><line x1="0" y1="4" x2="24" y2="4"/></svg>
+          <span class="legend__name">只繳月付，差額投資</span>
+          <span class="legend__val" data-role="legend-b">尚無數值</span>
+        </div>
+        <div class="legend__row" data-path="c">
+          <svg class="legend__swatch" viewBox="0 0 24 8" aria-hidden="true"><line x1="0" y1="4" x2="24" y2="4"/></svg>
+          <span class="legend__name">寬限期 + 投資</span>
+          <span class="legend__val" data-role="legend-c">尚無數值</span>
+        </div>
+      </div>
+
+      <div class="readout" id="readout" aria-live="off">
+        <div class="readout__col" data-path="a">
+          <p class="readout__name">A 全額提前還款</p>
+          <p class="readout__value" data-role="read-a">-</p>
+          <p class="readout__delta" data-role="delta-a">基準</p>
+        </div>
+        <div class="readout__col" data-path="b">
+          <p class="readout__name">B 只繳月付，差額投資</p>
+          <p class="readout__value" data-role="read-b">-</p>
+          <p class="readout__delta" data-role="delta-b">-</p>
+        </div>
+        <div class="readout__col" data-path="c">
+          <p class="readout__name">C 寬限期 + 投資</p>
+          <p class="readout__value" data-role="read-c">-</p>
+          <p class="readout__delta" data-role="delta-c">-</p>
+        </div>
+      </div>
+
+      <p class="sr-only" id="live-cross" role="status" aria-live="polite"></p>
+
+      <!-- The chart is not the only source of this information. The class sits
+           on a wrapping div rather than the table itself, because a table box
+           treats width:1px as a minimum and would drag a scrollbar onto the
+           page from behind the clip. -->
+      <div class="sr-only">
+        <table id="sr-data">
+          <caption>三條路徑的淨資產，每 5 年一列</caption>
+          <thead><tr><th scope="col">年</th><th scope="col">全額提前還款</th><th scope="col">只繳月付投資差額</th><th scope="col">寬限期加投資</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 2. 參數台 ============================ -->
+<section id="params" class="params" aria-labelledby="h-params">
+  <div class="wrap">
+    <h2 class="section-h" id="h-params">你的數字</h2>
+    <p class="section-lede">三個欄位就能出圖：貸款餘額、年利率、剩餘年限。其餘都有預設值，改到哪裡算到哪裡，不需要按計算。</p>
+
+    <div class="bench-row">
+
+      <div class="fieldset" role="group" aria-labelledby="g-loan">
+        <h3 class="fieldset__legend" id="g-loan">貸款</h3>
+
+        <div class="numfield" data-field="balance">
+          <label class="numfield__label" for="f-balance">貸款餘額<span class="numfield__mark" hidden title="已改為你的數值"></span></label>
+          <div class="numfield__box">
+            <input class="numfield__input" id="f-balance" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" aria-describedby="h-balance">
+            <span class="numfield__unit" aria-hidden="true">元</span>
+          </div>
+          <p class="numfield__helper" id="h-balance">預設值，可直接改。可以打「1050萬」。</p>
+        </div>
+        <details class="drawer" data-drawer="balance"><summary class="drawer__trigger" aria-label="貸款餘額怎麼用的"><svg class="icon" aria-hidden="true"><use href="#i-help"></use></svg></summary><div class="drawer__panel"></div></details>
+
+        <div class="numfield" data-field="ratePct">
+          <label class="numfield__label" for="f-rate">年利率<span class="numfield__mark" hidden title="已改為你的數值"></span></label>
+          <div class="numfield__box">
+            <input class="numfield__input" id="f-rate" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" aria-describedby="h-rate">
+            <span class="numfield__unit" aria-hidden="true">%</span>
+          </div>
+          <p class="numfield__helper" id="h-rate">預設值，可直接改。以你的貸款合約為準。</p>
+        </div>
+        <details class="drawer" data-drawer="pmt"><summary class="drawer__trigger" aria-label="月付款怎麼算的"><svg class="icon" aria-hidden="true"><use href="#i-help"></use></svg></summary><div class="drawer__panel"></div></details>
+
+        <div class="numfield" data-field="termYears">
+          <label class="numfield__label" for="f-term">剩餘年限<span class="numfield__mark" hidden title="已改為你的數值"></span></label>
+          <div class="numfield__box">
+            <input class="numfield__input" id="f-term" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" aria-describedby="h-term">
+            <span class="numfield__unit" aria-hidden="true">年</span>
+          </div>
+          <p class="numfield__helper" id="h-term">預設值，可直接改。計算範圍 1 到 40 年。</p>
+        </div>
+        <details class="drawer" data-drawer="schedule"><summary class="drawer__trigger" aria-label="逐月攤還怎麼算的"><svg class="icon" aria-hidden="true"><use href="#i-help"></use></svg></summary><div class="drawer__panel"></div></details>
+
+        <div class="numfield" data-field="graceYears">
+          <label class="numfield__label" for="f-grace">寬限期<span class="numfield__mark" hidden title="已改為你的數值"></span></label>
+          <div class="numfield__box">
+            <input class="numfield__input" id="f-grace" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" aria-describedby="h-grace">
+            <span class="numfield__unit" aria-hidden="true">年</span>
+          </div>
+          <p class="numfield__helper" id="h-grace">只有路徑 C 會用到。填 0 等於不用寬限期。</p>
+        </div>
+        <details class="drawer" data-drawer="grace"><summary class="drawer__trigger" aria-label="寬限期怎麼算的"><svg class="icon" aria-hidden="true"><use href="#i-help"></use></svg></summary><div class="drawer__panel"></div></details>
+
+        <div class="field">
+          <span class="numfield__label" id="l-prepaymode">提前還款方式</span>
+          <div class="segment" role="radiogroup" aria-labelledby="l-prepaymode" id="seg-prepay">
+            <button class="segment__opt" type="button" role="radio" aria-checked="true" data-value="0">縮短年限</button>
+            <button class="segment__opt" type="button" role="radio" aria-checked="false" data-value="1">縮短月付</button>
+          </div>
+        </div>
+        <details class="drawer" data-drawer="prepay"><summary class="drawer__trigger" aria-label="提前還款怎麼重算的"><svg class="icon" aria-hidden="true"><use href="#i-help"></use></svg></summary><div class="drawer__panel"></div></details>
+      </div>
+
+      <div class="fieldset" role="group" aria-labelledby="g-cash">
+        <h3 class="fieldset__legend" id="g-cash">現金流</h3>
+
+        <div class="numfield" data-field="lump">
+          <label class="numfield__label" for="f-lump">期初可動用現金<span class="numfield__mark" hidden title="已改為你的數值"></span></label>
+          <div class="numfield__box">
+            <input class="numfield__input" id="f-lump" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" aria-describedby="h-lump">
+            <span class="numfield__unit" aria-hidden="true">元</span>
+          </div>
+          <p class="numfield__helper" id="h-lump">年終、分紅、解約的定存都算。三條路徑起點都是這筆錢。</p>
+        </div>
+        <details class="drawer" data-drawer="basis"><summary class="drawer__trigger" aria-label="三條路徑的比較基準"><svg class="icon" aria-hidden="true"><use href="#i-help"></use></svg></summary><div class="drawer__panel"></div></details>
+
+        <div class="numfield" data-field="monthly">
+          <label class="numfield__label" for="f-monthly">每月可支配<span class="numfield__mark" hidden title="已改為你的數值"></span></label>
+          <div class="numfield__box">
+            <input class="numfield__input" id="f-monthly" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" aria-describedby="h-monthly">
+            <span class="numfield__unit" aria-hidden="true">元 / 月</span>
+          </div>
+          <p class="numfield__helper" id="h-monthly">能拿去繳房貸或投資的月現金上限，三條路徑相同。</p>
+        </div>
+        <details class="drawer" data-drawer="monthly"><summary class="drawer__trigger" aria-label="每月現金流怎麼分配的"><svg class="icon" aria-hidden="true"><use href="#i-help"></use></svg></summary><div class="drawer__panel"></div></details>
+
+        <div class="slider" data-field="prepayShare">
+          <div class="slider__head">
+            <label class="numfield__label" for="s-prepayshare">路徑 A 拿多少去還</label>
+            <output class="slider__out" id="o-prepayshare" for="s-prepayshare">100%</output>
+          </div>
+          <input class="slider__input" id="s-prepayshare" type="range" min="0" max="100" step="5" value="100">
+          <div class="slider__scale" aria-hidden="true"></div>
+          <p class="numfield__helper">拉到 50% 就是「先還一半，另一半投資」。</p>
+        </div>
+        <details class="drawer" data-drawer="prepayShare"><summary class="drawer__trigger" aria-label="還款比例怎麼算的"><svg class="icon" aria-hidden="true"><use href="#i-help"></use></svg></summary><div class="drawer__panel"></div></details>
+      </div>
+
+      <div class="fieldset" role="group" aria-labelledby="g-invest">
+        <h3 class="fieldset__legend" id="g-invest">投資</h3>
+
+        <div class="slider" data-field="investPct">
+          <div class="slider__head">
+            <label class="numfield__label" for="s-invest">投資年化報酬（名目）</label>
+            <output class="slider__out" id="o-invest" for="s-invest">6.00%</output>
+          </div>
+          <input class="slider__input" id="s-invest" type="range" min="-10" max="20" step="0.1" value="6">
+          <div class="slider__scale" aria-hidden="true"></div>
+          <p class="numfield__helper">這是假設，不是預測。房貸利率也是名目，兩邊同基準才能比。</p>
+        </div>
+        <details class="drawer" data-drawer="investPct"><summary class="drawer__trigger" aria-label="年化報酬怎麼換成月報酬"><svg class="icon" aria-hidden="true"><use href="#i-help"></use></svg></summary><div class="drawer__panel"></div></details>
+
+        <div class="slider" data-field="volPct">
+          <div class="slider__head">
+            <label class="numfield__label" for="s-vol">年化波動</label>
+            <output class="slider__out" id="o-vol" for="s-vol">15.0%</output>
+          </div>
+          <input class="slider__input" id="s-vol" type="range" min="0" max="60" step="0.5" value="15">
+          <div class="slider__scale" aria-hidden="true"></div>
+          <p class="numfield__helper">只有蒙地卡羅模式會用到。</p>
+        </div>
+        <details class="drawer" data-drawer="volPct"><summary class="drawer__trigger" aria-label="波動怎麼進到模擬裡"><svg class="icon" aria-hidden="true"><use href="#i-help"></use></svg></summary><div class="drawer__panel"></div></details>
+
+        <div class="numfield" data-field="seed">
+          <label class="numfield__label" for="f-seed">模擬亂數種子</label>
+          <div class="numfield__box">
+            <input class="numfield__input" id="f-seed" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" aria-describedby="h-seed">
+            <span class="numfield__unit" aria-hidden="true">seed</span>
+          </div>
+          <p class="numfield__helper" id="h-seed">同一個種子永遠畫出同一張圖，分享連結才還原得出來。</p>
+        </div>
+        <details class="drawer" data-drawer="seed"><summary class="drawer__trigger" aria-label="亂數是怎麼產生的"><svg class="icon" aria-hidden="true"><use href="#i-help"></use></svg></summary><div class="drawer__panel"></div></details>
+
+        <div class="numfield" data-field="paths">
+          <label class="numfield__label" for="f-paths">模擬路徑數</label>
+          <div class="numfield__box">
+            <input class="numfield__input" id="f-paths" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" aria-describedby="h-paths">
+            <span class="numfield__unit" aria-hidden="true">條</span>
+          </div>
+          <p class="numfield__helper" id="h-paths">100 到 2000。超過 2000 會拖慢拖曳。</p>
+        </div>
+        <details class="drawer" data-drawer="paths"><summary class="drawer__trigger" aria-label="路徑數怎麼影響結果"><svg class="icon" aria-hidden="true"><use href="#i-help"></use></svg></summary><div class="drawer__panel"></div></details>
+      </div>
+
+      <div class="fieldset" role="group" aria-labelledby="g-house">
+        <h3 class="fieldset__legend" id="g-house">房價與稅</h3>
+
+        <div class="numfield" data-field="homeValue">
+          <label class="numfield__label" for="f-home">房屋現值<span class="numfield__mark" hidden title="已改為你的數值"></span></label>
+          <div class="numfield__box">
+            <input class="numfield__input" id="f-home" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" aria-describedby="h-home">
+            <span class="numfield__unit" aria-hidden="true">元</span>
+          </div>
+          <p class="numfield__helper" id="h-home">房屋在三條路徑裡都一樣，它只是把淨資產墊高。</p>
+        </div>
+        <details class="drawer" data-drawer="homeValue"><summary class="drawer__trigger" aria-label="房屋價值怎麼隨時間變"><svg class="icon" aria-hidden="true"><use href="#i-help"></use></svg></summary><div class="drawer__panel"></div></details>
+
+        <div class="slider" data-field="homeGrowthPct">
+          <div class="slider__head">
+            <label class="numfield__label" for="s-home">房價年漲幅</label>
+            <output class="slider__out" id="o-home" for="s-home">2.0%</output>
+          </div>
+          <input class="slider__input" id="s-home" type="range" min="-10" max="15" step="0.1" value="2">
+          <div class="slider__scale" aria-hidden="true"></div>
+          <p class="numfield__helper">保守假設，不是預測。請換成你標的區域的實際情況。</p>
+        </div>
+        <details class="drawer" data-drawer="homeGrowthPct"><summary class="drawer__trigger" aria-label="房價漲幅的出處"><svg class="icon" aria-hidden="true"><use href="#i-help"></use></svg></summary><div class="drawer__panel"></div></details>
+
+        <div class="slider" data-field="taxPct">
+          <div class="slider__head">
+            <label class="numfield__label" for="s-tax">綜所稅邊際稅率</label>
+            <output class="slider__out" id="o-tax" for="s-tax">12%</output>
+          </div>
+          <input class="slider__input" id="s-tax" type="range" min="0" max="40" step="1" value="12">
+          <div class="slider__scale" aria-hidden="true"></div>
+          <p class="numfield__helper">課稅級距 0 / 5 / 12 / 20 / 30 / 40。</p>
+        </div>
+        <details class="drawer" data-drawer="taxPct"><summary class="drawer__trigger" aria-label="利息扣除額怎麼算的"><svg class="icon" aria-hidden="true"><use href="#i-help"></use></svg></summary><div class="drawer__panel"></div></details>
+
+        <div class="switchrow">
+          <button class="switch" type="button" role="switch" aria-checked="true" id="sw-itemized">
+            <span class="switch__knob" aria-hidden="true"></span>
+          </button>
+          <label class="switch__label" for="sw-itemized">採列舉扣除，計入房貸利息扣除額</label>
+          <details class="drawer" data-drawer="itemized"><summary class="drawer__trigger" aria-label="列舉扣除的規定"><svg class="icon" aria-hidden="true"><use href="#i-help"></use></svg></summary><div class="drawer__panel"></div></details>
+        </div>
+
+        <div class="switchrow">
+          <button class="switch" type="button" role="switch" aria-checked="false" id="sw-refinance">
+            <span class="switch__knob" aria-hidden="true"></span>
+          </button>
+          <label class="switch__label" for="sw-refinance">計入轉貸成本</label>
+          <details class="drawer" data-drawer="refinance"><summary class="drawer__trigger" aria-label="轉貸成本包含什麼"><svg class="icon" aria-hidden="true"><use href="#i-help"></use></svg></summary><div class="drawer__panel"></div></details>
+        </div>
+      </div>
+    </div>
+
+    <div class="params__foot">
+      <button class="btn btn--quiet" type="button" id="btn-reset">重設為預設值</button>
+      <button class="btn btn--quiet" type="button" id="btn-save">存成情境</button>
+      <button class="btn btn--bare" type="button" id="btn-preset-general">套用一般房貸利率</button>
+      <button class="btn btn--bare" type="button" id="btn-preset-youth">套用新青安利率</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 3. 結論列 ============================ -->
+<section id="verdict" class="verdict" aria-labelledby="h-verdict">
+  <div class="wrap verdict__inner">
+    <h2 class="sr-only" id="h-verdict">結論</h2>
+    <p class="verdict__line" id="verdict-line" aria-live="polite">載入情境後，這裡會出現一句你可以念給另一半聽的結論。</p>
+    <div class="verdict__side">
+      <!-- monetization slot: affiliate links land here. When they do, the label
+           below must change to 「推薦連結」and the two links must keep the same
+           size and position regardless of which way the verdict falls. -->
+      <p class="verdict__sidelabel">外部連結</p>
+      <a class="btn btn--bare" href="https://pip.moi.gov.tw/" target="_blank" rel="noopener">內政部住宅價格指數</a>
+      <a class="btn btn--bare" href="https://www.etax.nat.gov.tw/" target="_blank" rel="noopener">財政部稅務入口網</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 4. 假設明細表 ============================ -->
+<section id="ledger" class="ledger" aria-labelledby="h-ledger">
+  <div class="wrap">
+    <h2 class="section-h" id="h-ledger">這張圖用到的每一個假設</h2>
+    <p class="section-lede">值是從你上面的輸入算出來的，來源欄寫的是它從哪裡來。沒有出處的，一律寫「這是假設，不是資料」。</p>
+    <div class="ledger__table" id="ledger-body" role="table" aria-label="假設明細">
+      <div class="ledger__head" role="row">
+        <span role="columnheader">假設</span>
+        <span role="columnheader">值</span>
+        <span role="columnheader">來源</span>
+        <span role="columnheader"><span class="sr-only">追問</span></span>
+      </div>
+    </div>
+
+    <h3 class="sub-h">三條路徑的比較基準</h3>
+    <p class="section-lede">起始資源不同的話，比較就是假的。所以三條路徑的期初現金與每月現金流上限完全相同，差別只在錢流去哪裡。</p>
+    <table class="basis">
+      <thead><tr><th scope="col">路徑</th><th scope="col">期初可動用現金</th><th scope="col">每月現金流的分配</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">A 全額提前還款</th><td>依滑桿比例提前還款，其餘投資</td><td>先付當期月付，剩下的繼續提前還款；貸款清償後才轉入投資</td></tr>
+        <tr><th scope="row">B 只繳月付，差額投資</th><td>全數投入投資</td><td>付當期月付，差額全數投資</td></tr>
+        <tr><th scope="row">C 寬限期 + 投資</th><td>全數投入投資</td><td>寬限期內只付利息，差額投資；期滿後付重算的月付，差額投資</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================ 5. 情境比較欄 ============================ -->
+<section id="tray-section" class="tray-section" aria-labelledby="h-tray">
+  <div class="wrap">
+    <h2 class="section-h" id="h-tray">並排比較</h2>
+    <p class="section-lede">調好一組參數後按「存成情境」，最多三個並排。點卡片就把那組參數載回來。</p>
+    <ol class="tray" id="tray" aria-label="情境比較欄"></ol>
+    <p class="tray__note" id="tray-note" hidden></p>
+  </div>
+</section>
+
+<!-- ============================ 6. 攤還表 ============================ -->
+<section id="sheet" class="sheet" aria-labelledby="h-sheet">
+  <div class="wrap">
+    <h2 class="section-h" id="h-sheet">攤還表</h2>
+    <p class="section-lede">拿去跟銀行的還款試算對帳。對得上，這張圖的其他數字你就可以信。</p>
+
+    <div class="sheet__controls">
+      <div class="segment" role="radiogroup" aria-label="攤還表路徑" id="seg-sheetpath">
+        <button class="segment__opt" type="button" role="radio" aria-checked="true" data-value="a">A 提前還款</button>
+        <button class="segment__opt" type="button" role="radio" aria-checked="false" data-value="b">B 只繳月付</button>
+        <button class="segment__opt" type="button" role="radio" aria-checked="false" data-value="c">C 寬限期</button>
+      </div>
+      <div class="segment" role="radiogroup" aria-label="攤還表粒度" id="seg-sheetgrain">
+        <button class="segment__opt" type="button" role="radio" aria-checked="true" data-value="year">年度摘要</button>
+        <button class="segment__opt" type="button" role="radio" aria-checked="false" data-value="month">逐月</button>
+      </div>
+      <button class="btn btn--quiet" type="button" id="btn-csv">
+        <svg class="icon" aria-hidden="true"><use href="#i-download"></use></svg>匯出 CSV
+      </button>
+    </div>
+
+    <div class="sheet__scroll" id="sheet-scroll" tabindex="0" role="region" aria-label="攤還表內容（可捲動）">
+      <table class="sheet-table" id="sheet-table">
+        <caption id="sheet-caption">尚未載入情境。載入後這裡會列出逐期的本金、利息與餘額。</caption>
+        <thead>
+          <tr>
+            <th scope="col">期</th>
+            <th scope="col">月付</th>
+            <th scope="col">利息</th>
+            <th scope="col">本金</th>
+            <th scope="col">提前還款</th>
+            <th scope="col">餘額</th>
+            <th scope="col">投資部位</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer id="foot" class="foot">
+  <div class="wrap foot__inner">
+    <div class="foot__col">
+      <h2 class="foot__h">淨資產的定義</h2>
+      <pre class="formula formula--foot">淨資產(t) = 房屋價值(t) - 貸款餘額(t) + 投資部位(t) + 現金餘額(t)
+房屋價值(t) = 房屋現值 × (1 + 房價年漲幅)^(t/12)</pre>
+      <p class="foot__note">房屋淨值只是「房屋價值減貸款餘額」的另一種說法，它不是額外的加項。把它再加一次會讓貸款被扣兩次。</p>
+    </div>
+    <div class="foot__col">
+      <h2 class="foot__h">這個工具不知道的事</h2>
+      <p class="foot__note">它不知道你的工作穩不穩、房子會不會賣、市場明年怎麼走。它只知道你填進去的假設，以及那些假設推出來的結果。所有計算都在你的瀏覽器裡完成，沒有任何一個數字被送到伺服器。</p>
+      <p class="foot__links">
+        <a class="btn btn--bare" href="../index.html">返回 hyperkit</a>
+        <button class="btn btn--bare" type="button" id="btn-shortcuts">鍵盤快捷鍵</button>
+      </p>
+    </div>
+  </div>
+</footer>
+
+<div class="toaster" id="toast-region" aria-label="訊息"></div>
+
+<dialog class="dlg" id="dlg-shortcuts" aria-labelledby="dlg-h">
+  <h2 class="dlg__h" id="dlg-h">鍵盤快捷鍵</h2>
+  <dl class="dlg__list">
+    <dt>E</dt><dd>載入範例情境</dd>
+    <dt>R</dt><dd>重設為預設值</dd>
+    <dt>C</dt><dd>複製分享連結</dd>
+    <dt>M</dt><dd>切換固定報酬與蒙地卡羅</dd>
+    <dt>S</dt><dd>存成情境</dd>
+    <dt>1 2 3</dt><dd>單獨高亮一條路徑，再按一次還原</dd>
+    <dt>X</dt><dd>時間軸跳到圖上的標註點</dd>
+    <dt>0</dt><dd>時間軸回到第 0 月</dd>
+    <dt>← →</dt><dd>時間軸移動一個月，加 Shift 為一年</dd>
+    <dt>Home End</dt><dd>時間軸跳到兩端</dd>
+    <dt>Esc</dt><dd>取消拖曳、關閉抽屜、關閉這個面板</dd>
+  </dl>
+  <button class="btn btn--quiet" type="button" id="dlg-close">關閉</button>
+</dialog>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/Draggable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/InertiaPlugin.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/Flip.min.js"></script>
+<script type="module" src="js/main.js"></script>
+<!-- The animation layer runs after the interface, and only reads from it.
+     Deleting this line leaves a page that still computes, draws and answers. -->
+<script type="module" src="js/motion-layer.js"></script>
+</body>
+</html>

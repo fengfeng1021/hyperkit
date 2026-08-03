@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en" data-vault="empty">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ChatVault - search your ChatGPT, Claude and Gemini exports in this tab</title>
+<meta name="description" content="Drop a ChatGPT, Claude or Gemini export into the page. ChatVault parses it in a Web Worker, builds a BM25 index in the browser, and searches every conversation. Nothing uploads.">
+<meta name="color-scheme" content="light">
+<!-- Card-catalogue drawer: paper grey card, amber index tab, ink rules. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23F2F2EF'/%3E%3Crect x='8' y='4' width='10' height='5' fill='%23C8901A'/%3E%3Crect x='4.5' y='8.5' width='23' height='19' fill='none' stroke='%231C1C1A' stroke-width='2.5'/%3E%3Cpath d='M9 15h14M9 20h9' stroke='%231C1C1A' stroke-width='2.5'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400..700;1,7..72,400..600&family=Public+Sans:wght@500;600&family=Spline+Sans+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="./css/tokens.css">
+<link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+<!--
+  DIRECTION CONTRACT - chatvault
+
+  THESIS
+  A card catalogue for the conversations you already had. The product's one job is to
+  prove, in the first three seconds, that a 340 MB export can be opened, indexed, and
+  searched without a single byte leaving this tab. Every design decision serves either
+  legibility of long-form text or the credibility of that claim. The interface is a
+  naming and finding system, not a viewer.
+
+  OWN-WORLD
+  The library card catalogue cabinet. Drawers, index cards, tabs that stand proud of the
+  card edge, hairline rules, cross-references. Cool paper grey ground (#F2F2EF), deep ink
+  text (#1C1C1A), amber index tabs (#C8901A) as the single accent. Literata carries both
+  display and body because this is a long-reading product and the serif is functional
+  here, not decorative. Public Sans carries UI labels; Spline Sans Mono carries code and
+  measured quantities. Corner radius is locked at 2px because a cut card edge is not
+  round. No dark mode: this world is paper under a desk lamp, and the brief pins it light.
+
+  STORY
+  Empty drawer, filling drawer, full catalogue. The visitor arrives at a physical drawer
+  front and drops a file into it. Slivers of card fly in batch by batch, back to front,
+  and the drawer visibly thickens. Amber tabs rise from the stack, each one a real term
+  pulled from the inverted index being built. The drawer closes, its front plate drops
+  away, and the three-column cabinet behind it is revealed. The same stack of card slivers
+  then compresses into a 120px spine strip under the search field, where it stays for the
+  rest of the session as the live readout of every query. The animation is not decoration
+  around the search; it is the search result.
+
+  FIRST VIEWPORT
+  Left 54%: an H1 in two lines, one 17-word subline, one primary action, one secondary
+  action. Nothing else. No eyebrow, no metric strip, no logo wall, no scroll cue.
+  Right 46%: the drop zone rendered as a drawer front, 380px tall, with a 3px ink top
+  edge, a solid pull, and an offset soft shadow. It is a real control, not an illustration.
+  At 1280x800 the first row of the next section shows about 40px, which is the only
+  invitation to scroll the page needs.
+
+  FORM
+  Three columns at desktop: drawer (244px, filters, worded labels), index (372px,
+  virtualised cards), reading pane (fluid, 68ch measure). One hairline system at 1px.
+  One radius at 2px. One accent, amber, used for index tabs, search hits, and the active
+  selection only. Shadows always carry an offset and a soft blur; there are no zero-offset
+  halos. Spacing is tight inside a group and generous between groups, with more space
+  above a heading than below it. Icons are a single drawn SVG set at 1.5px stroke and
+  appear in exactly four places. There are no icon-only buttons and no icon rail, because
+  a catalogue is a system of names.
+
+  FINISH
+  unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
+-->
+
+<svg class="sprite" aria-hidden="true" focusable="false" width="0" height="0">
+  <defs>
+    <g id="ic-src-chatgpt"><path d="M8 2.2 13 5v6L8 13.8 3 11V5Z"/><path d="M8 2.2V8l5 3"/><path d="M8 8 3 11"/></g>
+    <g id="ic-src-claude"><path d="M4 12.6 8 3l4 9.6"/><path d="M5.6 9.2h4.8"/></g>
+    <g id="ic-src-gemini"><path d="M8 2.4c.5 3 2.1 4.6 5.1 5.1-3 .5-4.6 2.1-5.1 5.1C7.5 9.6 5.9 8 2.9 7.5c3-.5 4.6-2.1 5.1-5.1Z"/></g>
+    <g id="ic-src-custom"><path d="M3.2 3.2h9.6v9.6H3.2z"/><path d="M6.2 6.2h3.6v3.6H6.2z"/></g>
+    <g id="ic-chev-left"><path d="M9.8 3.4 5.2 8l4.6 4.6"/></g>
+    <g id="ic-chev-right"><path d="M6.2 3.4 10.8 8l-4.6 4.6"/></g>
+    <g id="ic-copy"><path d="M5.6 5.6h7v7h-7z"/><path d="M10.4 3.4h-7v7"/></g>
+    <g id="ic-close"><path d="M4 4l8 8"/><path d="M12 4l-8 8"/></g>
+  </defs>
+</svg>
+
+<a class="skiplink" href="#dropzone" data-when="empty">Skip to import</a>
+<a class="skiplink" href="#q" data-when="loaded">Skip to search</a>
+
+<header class="rail" id="rail">
+  <a class="rail__mark" href="./index.html">ChatVault</a>
+
+  <div class="rail__search" data-when="loaded">
+    <div class="qfield">
+      <label class="visually-hidden" for="q">Search every conversation</label>
+      <input id="q" class="qfield__input" type="search" autocomplete="off" spellcheck="false"
+             placeholder="Search every conversation" aria-describedby="q-hint">
+      <span class="qfield__hint" id="q-hint">Esc to clear</span>
+      <button type="button" id="syntax-toggle" class="linkbtn qfield__syntax" aria-expanded="false" aria-controls="syntax-panel">Syntax</button>
+    </div>
+    <p class="qfield__error" id="q-error" role="alert" hidden></p>
+  </div>
+
+  <nav class="rail__actions" aria-label="Vault">
+    <span class="rail__badge" id="sample-badge" hidden>Sample vault</span>
+    <button type="button" class="btn btn--line btn--sm" id="filters-toggle" data-when="loaded" aria-expanded="false" aria-controls="filters">Filters</button>
+    <button type="button" class="btn btn--line btn--sm" id="stats-btn" data-when="loaded" aria-pressed="false">Stats</button>
+    <button type="button" class="btn btn--line btn--sm" id="vault-toggle" data-when="loaded" aria-expanded="false" aria-controls="vault-panel">Import</button>
+    <a class="btn btn--line btn--sm" href="../index.html">Hyperkit</a>
+  </nav>
+</header>
+
+<div class="statusline" id="statusline" data-filled="false" role="status">
+  <p class="statusline__text"></p>
+</div>
+
+<section class="syntax" id="syntax-panel" data-when="loaded" hidden aria-label="Query syntax">
+  <dl class="syntax__list">
+    <div><dt>"exact phrase"</dt><dd>words must appear next to each other</dd></div>
+    <div><dt>-word</dt><dd>exclude conversations containing this word</dd></div>
+    <div><dt>+word</dt><dd>this word is required</dd></div>
+    <div><dt>role:human</dt><dd>only your messages. role:assistant for the other side</dd></div>
+    <div><dt>source:chatgpt</dt><dd>also claude, gemini</dd></div>
+    <div><dt>after:2025-03</dt><dd>before:2025-06-01</dd></div>
+    <div><dt>has:code</dt><dd>only conversations containing a code block</dd></div>
+  </dl>
+</section>
+
+<div class="controls" data-when="loaded">
+  <div class="mode" id="mode-toggle" role="group" aria-label="Search mode">
+    <span class="mode__indicator" aria-hidden="true"></span>
+    <button type="button" class="mode__btn" data-mode="exact" aria-pressed="true" tabindex="0">Exact</button>
+    <button type="button" class="mode__btn" data-mode="expanded" aria-pressed="false" tabindex="-1">Expanded</button>
+    <button type="button" class="mode__btn" data-mode="meaning" aria-pressed="false" tabindex="-1" hidden disabled>Meaning</button>
+  </div>
+  <button type="button" class="linkbtn linkbtn--dotted" id="semantic-enable" aria-expanded="false" aria-controls="semantic-panel" hidden>Enable meaning search</button>
+  <div class="chips" id="expansion-chips" hidden></div>
+</div>
+
+<div class="semantic" id="semantic-panel" data-when="loaded" hidden>
+  <p class="semantic__body">This downloads a 23 MB sentence model from huggingface.co, once. It runs in this tab. Your conversations are never sent anywhere.</p>
+  <p class="semantic__state" id="semantic-state"></p>
+  <div class="semantic__actions">
+    <button type="button" class="btn btn--solid btn--sm" id="semantic-go">Download the model</button>
+    <button type="button" class="btn btn--line btn--sm" id="semantic-not-now">Not now</button>
+  </div>
+</div>
+
+<section class="kbhelp" id="keyboard-help" hidden aria-label="Keyboard shortcuts">
+  <dl class="kbhelp__list">
+    <div><dt><kbd>/</kbd> <kbd>Ctrl</kbd>+<kbd>K</kbd></dt><dd>Focus the search field and select what is in it</dd></div>
+    <div><dt><kbd>Esc</kbd></dt><dd>Clear the query, then close whatever is open, one layer at a time</dd></div>
+    <div><dt><kbd>Up</kbd> <kbd>Down</kbd></dt><dd>Move through the index, even while typing</dd></div>
+    <div><dt><kbd>Enter</kbd></dt><dd>Open the selected conversation. <kbd>Shift</kbd>+<kbd>Enter</kbd> keeps focus in the index</dd></div>
+    <div><dt><kbd>j</kbd> <kbd>k</kbd></dt><dd>Next and previous message in the reading pane</dd></div>
+    <div><dt><kbd>[</kbd> <kbd>]</kbd></dt><dd>Previous and next branch at the first branch point</dd></div>
+    <div><dt><kbd>n</kbd> <kbd>Shift</kbd>+<kbd>n</kbd></dt><dd>Next and previous search hit</dd></div>
+    <div><dt><kbd>Ctrl</kbd>+<kbd>Enter</kbd></dt><dd>Search including messages on branches you did not keep</dd></div>
+    <div><dt><kbd>g</kbd> then <kbd>s</kbd></dt><dd>Statistics. <kbd>g</kbd> then <kbd>i</kbd> returns to the index</dd></div>
+    <div><dt><kbd>?</kbd></dt><dd>Open and close this list</dd></div>
+  </dl>
+</section>
+
+<div class="notice-host" id="page-notice" hidden></div>
+
+<!-- ==================================================================== -->
+<!-- EMPTY STATE                                                          -->
+<!-- ==================================================================== -->
+<main class="entry" data-when="empty">
+  <section class="hero">
+    <div class="hero__text">
+      <h1 class="hero__title">Two years of conversations.<br>One search box.</h1>
+      <p class="hero__sub">Drop a ChatGPT, Claude, or Gemini export. Parsed, indexed, and read in this tab. Nothing uploads.</p>
+      <div class="hero__actions">
+        <button type="button" class="btn btn--solid" id="choose-file">Choose export file</button>
+        <button type="button" class="btn btn--line" id="load-sample">Load sample vault</button>
+      </div>
+    </div>
+
+    <div class="hero__drawer">
+      <div class="dropzone" id="dropzone" role="button" tabindex="0" data-state="idle"
+           aria-label="Choose export file. You can also drop a file here.">
+        <div class="dropzone__plate" aria-hidden="true"><span class="dropzone__pull"></span></div>
+        <div class="dropzone__cavity">
+          <canvas class="drawer-canvas" id="drawer-canvas" role="img" aria-label="The drawer fills with one card sliver per conversation as the file is read."></canvas>
+          <div class="tabstrip" id="tabstrip" aria-hidden="true"></div>
+          <div class="dropzone__copy">
+            <p class="dropzone__label">Drop your export here</p>
+            <p class="dropzone__sub">or click to choose a file</p>
+          </div>
+          <div class="dropzone__progress" id="dropzone-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" hidden>
+            <span class="dropzone__bar"></span>
+          </div>
+        </div>
+      </div>
+      <!-- The drop zone above is the labelled control. This input is the file
+           picker it opens, so it stays out of the tab order rather than
+           appearing as a second, unlabelled button. -->
+      <input class="visually-hidden" id="file-input" type="file" tabindex="-1" aria-hidden="true"
+             accept=".json,.zip,.html,application/json,application/zip,text/html">
+      <div class="notice-host" id="dropzone-notice" hidden></div>
+      <div class="wizard-host" id="wizard" hidden></div>
+    </div>
+  </section>
+
+  <section class="formats">
+    <h2 class="section__title">How your export gets read</h2>
+    <ol class="formats__list">
+      <li class="formats__row">
+        <span class="formats__name">ChatGPT</span>
+        <p class="formats__what">A record carrying <code>mapping</code>, an object of nodes with <code>parent</code> and <code>children</code>, plus a <code>current_node</code> leaf. ChatVault walks the parent chain from that leaf to get the conversation you actually had, then indexes the other branches too and marks them.</p>
+      </li>
+      <li class="formats__row">
+        <span class="formats__name">Claude</span>
+        <p class="formats__what">A record carrying <code>chat_messages</code>, whose entries have a <code>sender</code> of human or assistant and text either in <code>text</code> or in a <code>content</code> array of typed blocks. Both shapes are read.</p>
+      </li>
+      <li class="formats__row">
+        <span class="formats__name">Gemini</span>
+        <p class="formats__what">Google Takeout activity, as JSON records with a Gemini <code>header</code> and a <code>time</code>, or as the MyActivity HTML page. Takeout does not group turns into conversations, so ChatVault groups them by a 30 minute gap and says so in the reading pane.</p>
+      </li>
+      <li class="formats__row">
+        <span class="formats__name">Anything else</span>
+        <p class="formats__what">If none of the three structures match, you point at the fields yourself. The mapping is stored under a hash of the file's key shape, so the next export of the same format is read without asking.</p>
+      </li>
+    </ol>
+  </section>
+
+  <section class="guides">
+    <h2 class="section__title">Getting your export</h2>
+    <div class="guides__tabs" id="guide-tabs" role="tablist" aria-label="Export instructions by provider">
+      <button type="button" role="tab" id="guide-tab-chatgpt" aria-selected="true" aria-controls="guide-chatgpt" tabindex="0">ChatGPT</button>
+      <button type="button" role="tab" id="guide-tab-claude" aria-selected="false" aria-controls="guide-claude" tabindex="-1">Claude</button>
+      <button type="button" role="tab" id="guide-tab-gemini" aria-selected="false" aria-controls="guide-gemini" tabindex="-1">Gemini</button>
+    </div>
+    <div class="guides__panel" id="guide-chatgpt" role="tabpanel" aria-labelledby="guide-tab-chatgpt">
+      <ol class="guides__steps">
+        <li>Open Settings, then Data controls, then Export data.</li>
+        <li>Confirm. The link arrives by email, usually within a few minutes, occasionally after some hours on large accounts.</li>
+        <li>The download link expires after 24 hours. Save the zip somewhere before it does.</li>
+        <li>Drop the whole zip here. ChatVault reads <code>conversations.json</code> out of it without unpacking the rest.</li>
+      </ol>
+    </div>
+    <div class="guides__panel" id="guide-claude" role="tabpanel" aria-labelledby="guide-tab-claude" hidden>
+      <ol class="guides__steps">
+        <li>Open Settings, then Privacy, then Export data.</li>
+        <li>Confirm. The link arrives by email, usually within minutes.</li>
+        <li>The zip contains <code>conversations.json</code> along with account files that ChatVault ignores.</li>
+        <li>Drop the zip here. If your browser cannot unzip in the page, unzip it and drop <code>conversations.json</code> instead.</li>
+      </ol>
+    </div>
+    <div class="guides__panel" id="guide-gemini" role="tabpanel" aria-labelledby="guide-tab-gemini" hidden>
+      <ol class="guides__steps">
+        <li>Go to Google Takeout and deselect everything.</li>
+        <li>Select My Activity, then use the format button to choose JSON, then restrict it to the Gemini Apps product.</li>
+        <li>Export. Takeout is slower than the other two: expect anything from minutes to a day depending on account size.</li>
+        <li>Drop the archive here, or drop <code>MyActivity.json</code> or <code>MyActivity.html</code> on its own.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="privacy">
+    <h2 class="section__title">What this page requests from the network</h2>
+    <div class="privacy__grid">
+      <div class="privacy__prose">
+        <p>Four hosts, and you can check every one of them in the Network panel while you use the tool. Your conversations are not on this list because there is no endpoint in this page that could send them. Once the page and its fonts are cached, you can go offline and keep searching.</p>
+        <p>The vault lives in IndexedDB in this browser profile. Removing it removes it: there is no copy anywhere else, which is the trade this design makes on purpose.</p>
+      </div>
+      <dl class="privacy__manifest">
+        <div><dt>fonts.googleapis.com</dt><dd>the stylesheet for Literata, Public Sans and Spline Sans Mono</dd></div>
+        <div><dt>fonts.gstatic.com</dt><dd>the font files themselves</dd></div>
+        <div><dt>cdn.jsdelivr.net</dt><dd>GSAP, used for the drawer animation. Also the sentence-model runtime, but only if you turn meaning search on</dd></div>
+        <div><dt>huggingface.co</dt><dd>the model weights, only after you press Download the model, and never before</dd></div>
+        <div><dt>your conversations</dt><dd>never requested, never posted, never sent</dd></div>
+      </dl>
+    </div>
+  </section>
+</main>
+
+<!-- ==================================================================== -->
+<!-- LOADED STATE                                                         -->
+<!-- ==================================================================== -->
+<div class="spine" id="spine" data-when="loaded">
+  <canvas class="spine__canvas" id="spine-canvas" tabindex="0" role="img"
+          aria-label="One sliver per conversation, oldest at the left. Use the left and right arrow keys to move, Enter to open."></canvas>
+  <p class="spine__label" id="spine-label" aria-live="off"></p>
+</div>
+
+<main class="workspace" id="workspace" data-when="loaded" data-view="index" data-pane="both">
+  <aside class="filters" id="filters" data-open="false" aria-label="Filters">
+    <div class="filtergroup">
+      <h2 class="filters__head">Source</h2>
+      <div class="chips" id="source-chips"></div>
+    </div>
+
+    <div class="filtergroup">
+      <h2 class="filters__head">Who is speaking</h2>
+      <div class="radios">
+        <label><input type="radio" name="role" value="any" checked><span>Anyone</span></label>
+        <label><input type="radio" name="role" value="human"><span>You asked</span></label>
+        <label><input type="radio" name="role" value="assistant"><span>Assistant said</span></label>
+      </div>
+    </div>
+
+    <div class="filtergroup">
+      <h2 class="filters__head">Dates</h2>
+      <div class="daterange">
+        <label class="daterange__field"><span>From</span><input type="month" id="date-from" class="field"></label>
+        <label class="daterange__field"><span>To</span><input type="month" id="date-to" class="field"></label>
+      </div>
+      <p class="daterange__error" id="date-error" hidden>
+        The start month is after the end month.
+        <button type="button" class="linkbtn" id="date-swap">Swap</button>
+      </p>
+      <div class="daterange__quick">
+        <button type="button" class="linkbtn" data-range="30">Last 30 days</button>
+        <button type="button" class="linkbtn" data-range="year">This year</button>
+        <button type="button" class="linkbtn" data-range="all">All time</button>
+      </div>
+    </div>
+
+    <div class="filtergroup">
+      <h2 class="filters__head">Contents</h2>
+      <label class="checkline"><input type="checkbox" id="has-code"><span>Only conversations with code</span></label>
+    </div>
+
+    <button type="button" class="filters__clear" id="clear-filters" hidden>Clear all filters (0)</button>
+  </aside>
+
+  <section class="index" id="index" aria-label="Conversation index">
+    <header class="index__bar">
+      <p class="index__count" aria-hidden="true">0 conversations</p>
+    </header>
+    <div class="index__skeleton" hidden></div>
+    <div class="index__scroll">
+      <div class="index__spacer"></div>
+      <div class="index__track" role="listbox" tabindex="0" aria-label="Conversations"></div>
+      <div class="index__empty" hidden></div>
+    </div>
+  </section>
+
+  <section class="reader" id="reader" data-empty="true" aria-label="Conversation">
+    <header class="reader__header">
+      <button type="button" class="btn btn--line btn--sm reader__back" id="back-to-index">Back to index</button>
+      <h2 class="reader__title">Nothing selected</h2>
+      <p class="reader__meta"></p>
+      <div class="reader__tools">
+        <div class="matchbar" hidden>
+          <span class="matchbar__count">0 matches</span>
+          <button type="button" class="matchbar__prev" aria-label="Previous match"><svg width="10" height="10" viewBox="0 0 16 16" aria-hidden="true" class="ic"><use href="#ic-chev-left"></use></svg></button>
+          <button type="button" class="matchbar__next" aria-label="Next match"><svg width="10" height="10" viewBox="0 0 16 16" aria-hidden="true" class="ic"><use href="#ic-chev-right"></use></svg></button>
+        </div>
+        <div class="export">
+          <button type="button" class="btn btn--line btn--sm" id="export-btn" aria-expanded="false" aria-controls="export-popover">Export</button>
+          <div class="popover" id="export-popover" hidden>
+            <button type="button" data-export="one-markdown">This conversation as Markdown</button>
+            <button type="button" data-export="one-json">This conversation as JSON</button>
+            <hr>
+            <button type="button" data-export="all-markdown">All results as Markdown (.zip)</button>
+            <button type="button" data-export="all-json">All results as JSON</button>
+          </div>
+        </div>
+      </div>
+    </header>
+    <div class="notice-host reader__notice" hidden></div>
+    <p class="reader__empty">Pick a conversation on the left, or type in the search field. Every message on every branch is already indexed.</p>
+    <div class="reader__paging" hidden></div>
+    <div class="reader__scroll">
+      <div class="reader__spacer"></div>
+      <div class="reader__track"></div>
+    </div>
+  </section>
+
+  <section class="stats" id="stats-view" aria-label="Statistics"></section>
+</main>
+
+<div class="vault" id="vault-panel" data-when="loaded" hidden aria-label="Vault">
+  <div class="vault__inner">
+    <h2 class="vault__title">Your vault</h2>
+    <ul class="vault__sources" id="vault-sources"></ul>
+    <p class="vault__usage" id="vault-usage"></p>
+    <div class="vault__row">
+      <button type="button" class="btn btn--line btn--sm" id="persist-btn">Keep this vault when storage runs low</button>
+      <p class="vault__state" id="persist-state"></p>
+    </div>
+    <div class="vault__row">
+      <button type="button" class="btn btn--solid btn--sm" id="import-more">Import another export</button>
+    </div>
+    <div class="vault__danger">
+      <h3 class="vault__danger-title">Clear the whole vault</h3>
+      <p class="vault__danger-body">This cannot be undone. Your original export files are not touched.</p>
+      <label class="vault__confirm">
+        <span>Type <code>delete</code> to confirm</span>
+        <input type="text" id="delete-confirm" class="field" autocomplete="off" spellcheck="false">
+      </label>
+      <button type="button" class="btn btn--alert btn--sm" id="delete-btn" disabled>Clear the whole vault</button>
+    </div>
+    <button type="button" class="btn btn--line btn--sm vault__close" id="vault-close">Close</button>
+  </div>
+</div>
+
+<p class="visually-hidden" id="live" aria-live="polite" aria-atomic="true"></p>
+
+<footer class="foot">
+  <p class="foot__what">ChatVault reads AI conversation exports in the browser, indexes them with BM25, and searches them. It has no server.</p>
+  <nav class="foot__links" aria-label="Elsewhere">
+    <a href="../index.html">Back to Hyperkit</a>
+    <button type="button" class="linkbtn" id="kb-toggle" aria-expanded="false" aria-controls="keyboard-help">Keyboard shortcuts</button>
+  </nav>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
+<script type="module" src="./js/main.js"></script>
+</body>
+</html>

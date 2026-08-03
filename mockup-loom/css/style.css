@@ -1,0 +1,1244 @@
+/* ==========================================================================
+   Mockup Loom - interface
+   Every colour, size, shape and duration comes from css/tokens.css.
+   There are no bare hex values in this file. Fabric colours are content and
+   live in js/templates/colorways.js.
+
+   Rules this file holds itself to:
+     - border-radius is 0 everywhere except the two physical grips
+     - `color:` never uses var(--brick); red text is var(--brick-ink)
+     - no linear-gradient, no backdrop-filter, no filter, no glow
+     - nothing content-bearing starts at opacity 0
+     - uppercase only at --t-display size
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Reset and type helpers
+   -------------------------------------------------------------------------- */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--grey-050);
+  color: var(--ink);
+  font: var(--t-body);
+  font-stretch: var(--wd-body);
+  letter-spacing: var(--tr-body);
+  -webkit-font-smoothing: antialiased;
+  overflow-wrap: break-word;
+}
+
+h1, h2, h3, p, dl, dd, dt, ul, pre, figure { margin: 0; }
+ul { padding: 0; list-style: none; }
+button, input, select, textarea { font: inherit; color: inherit; }
+canvas { display: block; }
+
+/* The UA rule for [hidden] is display:none at the lowest possible weight, so
+   any author rule that names `display` silently defeats it. Several blocks
+   here do exactly that (.overlay is flex, .stage-notice is flex), which is how
+   the keyboard map ended up painted over the stage on first load. Hidden means
+   hidden; this is the one !important in the file. */
+[hidden] { display: none !important; }
+
+.t-display { font: var(--t-display); font-stretch: var(--wd-display); letter-spacing: var(--tr-display); }
+.t-figure  { font: var(--t-figure);  font-stretch: var(--wd-figure);  letter-spacing: var(--tr-figure); }
+.t-title   { font: var(--t-title);   font-stretch: var(--wd-title);   letter-spacing: var(--tr-title); }
+.t-label   { font: var(--t-label);   font-stretch: var(--wd-label);   letter-spacing: var(--tr-label); }
+.t-micro   { font: var(--t-micro);   font-stretch: var(--wd-label);   letter-spacing: var(--tr-micro); }
+
+.num {
+  font: var(--t-num);
+  letter-spacing: 0;
+  font-feature-settings: "tnum" 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.vh {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* --------------------------------------------------------------------------
+   2. Focus. Two tone, because focus can land on a render of any brightness.
+   -------------------------------------------------------------------------- */
+
+:where(a, button, input, select, [tabindex]):focus { outline: none; }
+
+:where(a, button, input, select, [tabindex]):focus-visible {
+  outline: var(--focus-w) solid var(--focus-inner);
+  outline-offset: var(--focus-offset);
+  box-shadow: 0 0 0 calc(var(--focus-offset) + var(--focus-w) * 2) var(--focus-outer);
+  position: relative;
+  z-index: var(--z-frame);
+}
+
+.skip-link {
+  position: absolute;
+  left: var(--sp-2); top: calc(var(--sp-2) * -12);
+  z-index: var(--z-overlay);
+  background: var(--ink);
+  color: var(--grey-000);
+  padding: var(--sp-2) var(--sp-4);
+  text-decoration: none;
+  font: var(--t-label);
+  font-stretch: var(--wd-label);
+  letter-spacing: var(--tr-label);
+}
+.skip-link:focus { top: var(--sp-2); }
+
+/* --------------------------------------------------------------------------
+   3. Buttons, inputs, links
+   -------------------------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  min-height: var(--btn-h);
+  padding: 0 var(--sp-4);
+  border: var(--border-w) solid transparent;
+  border-radius: var(--radius);
+  background: none;
+  font: var(--t-label);
+  font-stretch: var(--wd-label);
+  letter-spacing: var(--tr-label);
+  cursor: pointer;
+  position: relative;
+  white-space: nowrap;
+  text-align: center;
+  transition: background-color var(--dur-ui) var(--ease-out),
+              color var(--dur-ui) var(--ease-out),
+              transform var(--dur-tap) var(--ease-out);
+}
+
+.btn-primary { background: var(--olive); color: var(--grey-000); }
+.btn-primary:hover { background: var(--olive-deep); }
+.btn-primary:active { background: var(--olive-deep); transform: translateY(1px); }
+
+.btn-secondary { border-color: var(--rule-firm); color: var(--ink); background: var(--grey-000); }
+.btn-secondary:hover { border-color: var(--ink); }
+.btn-secondary:active { transform: translateY(1px); }
+
+.btn-text {
+  min-height: 0;
+  padding: var(--sp-1) 0;
+  color: var(--olive);
+  border-bottom: var(--border-w) solid transparent;
+}
+.btn-text:hover { border-bottom-color: var(--olive); }
+.btn-text:active { transform: translateY(1px); }
+
+.btn-block { display: flex; width: 100%; }
+
+.btn[aria-disabled="true"] {
+  background: var(--grey-300);
+  color: var(--grey-500);
+  border-color: transparent;
+  cursor: not-allowed;
+  transform: none;
+}
+.btn-secondary[aria-disabled="true"] { background: var(--grey-200); }
+.btn-text[aria-disabled="true"] { background: none; color: var(--grey-400); }
+
+/* Determinate progress along the bottom edge of a working button. The button
+   is never disabled while it works. */
+.btn .btn-progress {
+  position: absolute;
+  left: 0; bottom: 0;
+  height: 3px;
+  width: 0;
+  background: var(--grey-000);
+  opacity: 0.4;
+  transition: width 120ms linear;
+  pointer-events: none;
+}
+
+.input, .select {
+  width: 100%;
+  height: var(--ctl-h);
+  padding: 0 var(--sp-2);
+  background: var(--grey-000);
+  border: var(--border-w) solid var(--rule-firm);
+  border-radius: var(--radius);
+  color: var(--ink);
+}
+.input:hover, .select:hover { border-color: var(--grey-500); }
+.select { cursor: pointer; }
+.input::placeholder { color: var(--grey-600); }
+
+.link-back {
+  color: var(--olive);
+  text-decoration: none;
+  border-bottom: var(--border-w) solid var(--rule-firm);
+  font: var(--t-label);
+  font-stretch: var(--wd-label);
+  letter-spacing: var(--tr-label);
+  padding-bottom: 1px;
+}
+.link-back:hover { border-bottom-color: var(--olive); }
+
+/* --------------------------------------------------------------------------
+   4. Top bar
+   -------------------------------------------------------------------------- */
+
+.topbar {
+  flex: none;
+  height: var(--bar-h);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-6);
+  padding: 0 var(--sp-4);
+  background: var(--grey-050);
+  border-bottom: var(--border-w) solid var(--rule-firm);
+  position: relative;
+  z-index: var(--z-bar);
+}
+
+.wordmark {
+  font: var(--t-title);
+  font-stretch: var(--wd-title);
+  letter-spacing: var(--tr-title);
+  white-space: nowrap;
+}
+
+.topbar-mode { margin-inline: auto; }
+.topbar-actions { display: flex; align-items: center; gap: var(--sp-4); margin-left: auto; }
+
+.topbar-why {
+  flex: none;
+  margin: 0;
+  padding: var(--sp-1) var(--sp-4);
+  text-align: right;
+  background: var(--grey-050);
+  border-bottom: var(--border-w) solid var(--rule-hair);
+  font: var(--t-micro);
+  font-stretch: var(--wd-label);
+  letter-spacing: var(--tr-micro);
+  color: var(--grey-600);
+}
+
+/* --------------------------------------------------------------------------
+   5. Banner. Degraded mode is not an error, so it is not red.
+   -------------------------------------------------------------------------- */
+
+.banner-host:empty { display: none; }
+.banner-host { flex: none; position: relative; z-index: var(--z-banner); }
+
+.banner {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-height: 32px;
+  padding: var(--sp-1) var(--sp-4);
+  background: var(--grey-800);
+  color: var(--on-dark);
+  font: var(--t-micro);
+  font-stretch: var(--wd-label);
+  letter-spacing: var(--tr-micro);
+}
+.banner.is-error { border-left: 3px solid var(--brick); }
+.banner p { max-width: var(--measure); }
+.banner .btn-text { color: var(--olive-lift); }
+.banner .btn-text:hover { border-bottom-color: var(--olive-lift); }
+.banner-detail { color: var(--on-dark-2); }
+.banner-detail p + p { margin-top: var(--sp-1); }
+
+/* --------------------------------------------------------------------------
+   6. Workbench grid
+   -------------------------------------------------------------------------- */
+
+.workbench {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: var(--rail-l) minmax(0, 1fr) var(--rail-r);
+  /* Two equal rows, not auto-then-rest. An `auto` first row is sized by the
+     tallest control rail in it, which grew the grid past the viewport and
+     pushed the stage - and with it the FLAT / WOVEN switch, the one thing
+     this page exists to show - below the fold. Each panel scrolls inside
+     itself instead. */
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+  max-height: calc(100dvh - var(--bar-h));
+}
+
+.panels { display: contents; }
+.tabstrip { display: none; }
+
+.panel {
+  background: var(--grey-100);
+  padding: var(--sp-5) var(--sp-4);
+  overflow-y: auto;
+  min-width: 0;
+}
+.panel-designs   { grid-column: 1; grid-row: 1; border-right: var(--border-w) solid var(--rule-firm); }
+.panel-templates { grid-column: 1; grid-row: 2; border-right: var(--border-w) solid var(--rule-firm);
+                   border-top: var(--border-w) solid var(--rule-hair); }
+.panel-adjust    { grid-column: 3; grid-row: 1; border-left: var(--border-w) solid var(--rule-firm); }
+.panel-output    { grid-column: 3; grid-row: 2; border-left: var(--border-w) solid var(--rule-firm);
+                   border-top: var(--border-w) solid var(--rule-hair); }
+
+.stagewrap {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: var(--sp-8) var(--sp-8) var(--sp-6);
+  gap: var(--sp-5);
+}
+
+/* Space above a heading is always larger than the space below it. */
+.panel-h {
+  font: var(--t-title);
+  font-stretch: var(--wd-title);
+  letter-spacing: var(--tr-title);
+  margin-top: var(--sp-6);
+  margin-bottom: var(--sp-2);
+  padding-top: var(--sp-6);
+  border-top: var(--border-w) solid var(--rule-hair);
+}
+.panel > .panel-h:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+
+.panel-sub, .panel-note, .hint, .privacy {
+  font: var(--t-micro);
+  font-stretch: var(--wd-label);
+  letter-spacing: var(--tr-micro);
+  color: var(--grey-600);
+  max-width: var(--measure);
+}
+.panel-sub { margin-top: var(--sp-2); }
+.panel-note { margin-bottom: var(--sp-3); }
+.hint { margin-top: var(--sp-2); }
+.privacy { margin-top: var(--sp-2); }
+
+.ctl-label {
+  display: block;
+  font: var(--t-label);
+  font-stretch: var(--wd-label);
+  letter-spacing: var(--tr-label);
+  color: var(--grey-600);
+  margin-top: var(--sp-4);
+  margin-bottom: var(--sp-2);
+}
+
+.inline-error {
+  margin-top: var(--sp-2);
+  padding-bottom: var(--sp-1);
+  border-bottom: var(--border-w) solid var(--brick);
+  color: var(--brick-ink);
+  font: var(--t-micro);
+  font-stretch: var(--wd-label);
+  letter-spacing: var(--tr-micro);
+  max-width: var(--measure);
+}
+
+.row-end { display: flex; justify-content: flex-end; margin-top: var(--sp-2); }
+/* minmax(0, 1fr), not 1fr. A bare `1fr` track cannot go below the item's
+   min-content width, and an <input> reports its twenty-character default size
+   as min-content however hard the flex item inside it is told to shrink - so
+   the Y and Rotation column was pushed clean out of the 320px rail. */
+.grid-2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--sp-2); }
+.grid-2 > * { min-width: 0; }
+
+/* --------------------------------------------------------------------------
+   7. Stage
+   -------------------------------------------------------------------------- */
+
+.stage {
+  flex: 1 1 auto;
+  min-height: 220px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-6);
+  background: var(--stage);
+  border: var(--border-w) solid var(--rule-hard);
+  z-index: var(--z-stage);
+}
+
+.stage-inner {
+  position: relative;
+  box-shadow: var(--shadow-stage);
+  width: 260px;
+  height: 260px;
+}
+
+.stage-canvas { width: 100%; height: 100%; }
+
+.printbox {
+  position: absolute;
+  border: var(--border-w) dashed var(--grey-000);
+  opacity: 0.55;
+  pointer-events: none;
+}
+.printbox-label {
+  position: absolute;
+  left: 50%; bottom: var(--sp-2);
+  transform: translateX(-50%);
+  color: var(--grey-000);
+  font: var(--t-micro);
+  font-stretch: var(--wd-label);
+  letter-spacing: var(--tr-micro);
+  white-space: nowrap;
+}
+
+.guides { position: absolute; inset: 0; pointer-events: none; }
+.guide { position: absolute; background: var(--grey-000); opacity: 0.3; }
+.guide-v1, .guide-v2 { top: 0; bottom: 0; width: 1px; }
+.guide-v1 { left: 33.333%; } .guide-v2 { left: 66.667%; }
+.guide-h1, .guide-h2 { left: 0; right: 0; height: 1px; }
+.guide-h1 { top: 33.333%; } .guide-h2 { top: 66.667%; }
+
+.stage-seed {
+  position: absolute;
+  left: var(--sp-3); bottom: var(--sp-3);
+  padding-top: var(--sp-1);
+  border-top: var(--border-w) solid var(--rule-on-dark);
+  color: var(--grey-000);
+  font: var(--t-micro);
+  font-stretch: var(--wd-label);
+  letter-spacing: var(--tr-micro);
+  max-width: 60%;
+}
+
+.stage-readout {
+  position: absolute;
+  right: var(--sp-3); bottom: var(--sp-3);
+  padding: var(--sp-1) var(--sp-2);
+  background: var(--grey-800);
+  color: var(--on-dark);
+  white-space: pre;
+}
+
+.stage-notice {
+  flex: none;
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-3);
+  color: var(--brick-ink);
+  font: var(--t-micro);
+  font-stretch: var(--wd-label);
+  letter-spacing: var(--tr-micro);
+  border-bottom: var(--border-w) solid var(--brick);
+  padding-bottom: var(--sp-1);
+}
+
+/* Placement frame. Brick, role two of three. */
+.pframe {
+  position: absolute;
+  border: var(--border-w) solid var(--brick);
+  opacity: 0.4;
+  cursor: move;
+  z-index: var(--z-frame);
+  transition: opacity var(--dur-ui) var(--ease-out);
+}
+.pframe:hover, .pframe.is-active, .pframe:focus-visible { opacity: 1; }
+.pframe.is-active { box-shadow: var(--shadow-lift); }
+.pframe-h {
+  position: absolute;
+  width: 8px; height: 8px;
+  background: var(--brick);
+}
+.pframe-nw { left: -4px; top: -4px; cursor: nwse-resize; }
+.pframe-ne { right: -4px; top: -4px; cursor: nesw-resize; }
+.pframe-sw { left: -4px; bottom: -4px; cursor: nesw-resize; }
+.pframe-se { right: -4px; bottom: -4px; cursor: nwse-resize; }
+.pframe-stem {
+  position: absolute;
+  left: 50%; top: -22px;
+  width: 1px; height: 22px;
+  margin-left: -0.5px;
+  background: var(--brick);
+}
+/* One of exactly two circles in this build. It is a grip: a finger turns it. */
+.pframe-rot {
+  position: absolute;
+  left: 50%; top: -32px;
+  width: 10px; height: 10px;
+  margin-left: -5px;
+  background: var(--brick);
+  border-radius: var(--radius-grip);
+  cursor: grab;
+}
+.pframe-rot:active { cursor: grabbing; }
+
+/* --------------------------------------------------------------------------
+   8. Weave switch. The signature control, therefore the largest type here.
+   -------------------------------------------------------------------------- */
+
+.weave { flex: none; display: flex; flex-direction: column; align-items: center; gap: var(--sp-2); }
+
+.weave-row { display: flex; align-items: center; gap: var(--sp-5); }
+
+.weave-label {
+  font: var(--t-display);
+  font-stretch: var(--wd-display);
+  letter-spacing: var(--tr-display);
+  color: var(--grey-500);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  transition: color var(--dur-ui) var(--ease-out);
+}
+.weave-flat.is-on  { color: var(--ink); font-weight: var(--w-display); }
+.weave-woven.is-on { color: var(--brick-ink); font-weight: var(--w-display); }
+.weave-label:not(.is-on) { font-weight: 500; }
+
+.weave-switch {
+  position: relative;
+  flex: none;
+  width: var(--switch-w);
+  height: var(--switch-h);
+  padding: 0;
+  border: var(--border-w) solid var(--rule-hard);
+  border-radius: var(--radius);
+  background: var(--grey-200);
+  cursor: pointer;
+  overflow: hidden;
+}
+/* Travel is a transform, never a width: the fill is a full-width bar scaled
+   from its left edge, so the switch costs one composited layer and no layout.
+   The transitions here are the fallback path. js/motion.js switches them off
+   the moment it takes ownership, because a CSS transition and a GSAP tween on
+   the same property fight each other one frame at a time. */
+.weave-fill {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 100%;
+  background: var(--brick);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform var(--dur-knob) var(--ease-out);
+  pointer-events: none;
+}
+.weave-knob {
+  position: absolute;
+  left: 0; top: 0;
+  width: var(--switch-knob);
+  height: 100%;
+  background: var(--ink);
+  transform: translateX(0);
+  transition: transform var(--dur-knob) var(--ease-out), background-color var(--dur-ui) var(--ease-out);
+  pointer-events: none;
+}
+.weave-switch:hover .weave-knob { box-shadow: inset 0 2px 0 0 var(--olive-lift); }
+/* Press feedback is a ring rather than a scale, so it can never contradict the
+   transform that carries the knob along its travel. */
+.weave-switch:active .weave-knob { box-shadow: inset 0 0 0 3px var(--olive-lift); }
+
+.weave-switch[aria-disabled="true"] { background: var(--grey-300); cursor: not-allowed; }
+.weave-switch[aria-disabled="true"] .weave-knob { background: var(--grey-400); }
+.weave[data-empty="true"] .weave-label { color: var(--grey-400); }
+
+.weave-note {
+  font: var(--t-micro);
+  font-stretch: var(--wd-label);
+  letter-spacing: var(--tr-micro);
+  color: var(--grey-600);
+}
+.weave-verdict {
+  font: var(--t-body);
+  font-stretch: var(--wd-body);
+  letter-spacing: var(--tr-body);
+  color: var(--ink);
+  padding-top: var(--sp-2);
+  border-top: var(--border-w) solid var(--brick);
+  max-width: var(--measure);
+  text-align: center;
+}
+
+/* --------------------------------------------------------------------------
+   9. Segmented control
+   -------------------------------------------------------------------------- */
+
+.seg {
+  position: relative;
+  display: flex;
+  height: var(--ctl-h);
+  border: var(--border-w) solid var(--rule-firm);
+  border-radius: var(--radius);
+  background: var(--grey-000);
+  overflow: hidden;
+}
+.seg-marker {
+  position: absolute;
+  top: 0; left: 0;
+  height: 100%;
+  background: var(--ink);
+  transition: transform var(--dur-ui) var(--ease-out), width var(--dur-ui) var(--ease-out);
+  pointer-events: none;
+}
+.seg-item {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 0 var(--sp-3);
+  border: 0;
+  border-left: var(--border-w) solid var(--rule-hair);
+  background: none;
+  color: var(--grey-600);
+  font: var(--t-label);
+  font-stretch: var(--wd-label);
+  letter-spacing: var(--tr-label);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color var(--dur-ui) var(--ease-out), background-color var(--dur-ui) var(--ease-out);
+}
+.seg-item:first-child { border-left: 0; }
+.seg-item:hover { background: var(--grey-100); color: var(--ink); }
+.seg-item[aria-checked="true"] { color: var(--grey-000); background: none; }
+.seg-item[aria-checked="true"]:hover { background: none; }
+.seg[aria-disabled="true"] { background: var(--grey-200); }
+.seg[aria-disabled="true"] .seg-item { color: var(--grey-400); cursor: not-allowed; }
+
+/* --------------------------------------------------------------------------
+   10. Dropzone and file rows
+   -------------------------------------------------------------------------- */
+
+.dropzone {
+  margin-top: var(--sp-4);
+  min-height: 96px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-1);
+  text-align: center;
+  padding: var(--sp-3);
+  background: none;
+  border: var(--border-w) dashed var(--rule-firm);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: border-color var(--dur-ui) var(--ease-out);
+}
+.dropzone:hover { border-color: var(--olive); }
+.dz-title {
+  font: var(--t-label);
+  font-stretch: var(--wd-label);
+  letter-spacing: var(--tr-label);
+  color: var(--ink);
+}
+.dz-hint {
+  font: var(--t-micro);
+  font-stretch: var(--wd-label);
+  letter-spacing: var(--tr-micro);
+  color: var(--grey-600);
+}
+.dropzone.is-over { border: var(--border-w-emph) solid var(--olive); }
+.dropzone[aria-disabled="true"] { border-color: var(--grey-300); cursor: not-allowed; }
+.dropzone[aria-disabled="true"] .dz-title { color: var(--grey-400); }
+
+body.is-dragging::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: var(--scrim);
+  pointer-events: none;
+  z-index: var(--z-banner);
+}
+
+.file-rows { margin-top: var(--sp-3); }
+.file-rows:empty { display: none; }
+.file-row {
+  padding: var(--sp-2) 0;
+  border-bottom: var(--border-w) solid var(--rule-hair);
+}
+.file-row-top { display: flex; align-items: baseline; gap: var(--sp-2); }
+.file-name {
+  font: var(--t-num);
+  font-feature-settings: "tnum" 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.file-bar { height: 2px; background: var(--grey-200); margin-top: var(--sp-1); }
+.file-bar > span { display: block; height: 100%; width: 0; background: var(--olive); transition: width 120ms linear; }
+.file-row.is-error .file-name { color: var(--brick-ink); }
+.file-row.is-error { border-bottom-color: var(--brick); }
+.file-msg {
+  margin-top: var(--sp-1);
+  font: var(--t-micro);
+  font-stretch: var(--wd-label);
+  letter-spacing: var(--tr-micro);
+  color: var(--brick-ink);
+  max-width: var(--measure);
+}
+.file-row.is-warn .file-msg { color: var(--grey-600); }
+.file-row.is-warn { border-bottom-color: var(--rule-firm); }
+.file-actions { display: flex; gap: var(--sp-3); margin-top: var(--sp-1); }
+
+.skip-summary {
+  margin-top: var(--sp-3);
+  color: var(--brick-ink);
+  font: var(--t-micro);
+  font-stretch: var(--wd-label);
+  letter-spacing: var(--tr-micro);
+}
+
+/* --------------------------------------------------------------------------
+   11. Design list
+   -------------------------------------------------------------------------- */
+
+.design-wrap { margin-top: var(--sp-4); }
+.design-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--thumb), 1fr));
+  gap: var(--sp-3);
+}
+.design-list:focus-visible { outline-offset: var(--sp-1); }
+
+.dthumb {
+  position: relative;
+  padding-left: var(--sp-2);
+  cursor: pointer;
+  transition: transform var(--dur-tap) var(--ease-out);
+}
+.dthumb:active { transform: scale(0.98); }
+.dthumb canvas {
+  width: 100%;
+  aspect-ratio: 1;
+  border: var(--border-w) solid var(--rule-hair);
+}
+.dthumb:hover canvas { border-color: var(--grey-500); }
+.dthumb-name {
+  display: block;
+  margin-top: var(--sp-1);
+  font: var(--t-micro);
+  font-stretch: var(--wd-label);
+  letter-spacing: var(--tr-micro);
+  color: var(--grey-600);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dthumb[aria-selected="true"]::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0;
+  width: 3px;
+  height: calc(100% - 1.35em - var(--sp-1));
+  background: var(--brick);
+}
+.dthumb[aria-selected="true"] .dthumb-name { color: var(--ink); font-weight: 700; }
+.dthumb.is-new canvas { border-color: var(--olive); border-width: var(--border-w-emph); }
+.dthumb.is-soft .dthumb-name::after {
+  content: " soft";
+  color: var(--brick-ink);
+}
+
+.tick {
+  position: absolute;
+  left: var(--sp-2); top: 0;
+  width: 14px; height: 14px;
+  background: var(--grey-000);
+  border: var(--border-w) solid var(--rule-firm);
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+body[data-mode="batch"] .tick { display: flex; }
+.tick[data-on="true"] { background: var(--olive); border-color: var(--olive); }
+.tick svg { width: 10px; height: 10px; display: none; }
+.tick[data-on="true"] svg { display: block; }
+
+.design-list[aria-busy="true"] .dthumb { pointer-events: none; }
+.design-list[aria-busy="true"] { color: var(--grey-400); }
+
+/* --------------------------------------------------------------------------
+   12. Template picker and colourways
+   -------------------------------------------------------------------------- */
+
+.tpl-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-3);
+}
+/* One outline that travels between tiles, added by js/motion.js. Until it
+   exists the per-tile border below carries the selection on its own, so the
+   picker is never ambiguous with scripting off. */
+.tpl-marker {
+  position: absolute;
+  left: 0; top: 0;
+  border: var(--border-w-emph) solid var(--olive);
+  pointer-events: none;
+}
+.tpl-grid.has-marker .tpl[aria-selected="true"] canvas {
+  border: var(--border-w) solid var(--rule-hair);
+}
+.tpl-grid:focus-visible { outline-offset: var(--sp-1); }
+
+.tpl {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-1);
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  transition: transform var(--dur-tap) var(--ease-out);
+}
+.tpl:active { transform: scale(0.98); }
+.tpl canvas {
+  width: 100%;
+  aspect-ratio: 1;
+  background: var(--grey-200);
+  border: var(--border-w) solid var(--rule-hair);
+}
+.tpl:hover canvas { border-color: var(--rule-firm); }
+.tpl-name {
+  font: var(--t-micro);
+  font-stretch: var(--wd-label);
+  letter-spacing: var(--tr-micro);
+  color: var(--grey-600);
+}
+.tpl[aria-selected="true"] canvas { border: var(--border-w-emph) solid var(--olive); }
+.tpl[aria-selected="true"] .tpl-name { color: var(--ink); font-weight: 700; }
+.tpl-progress {
+  position: absolute;
+  left: 0; top: 0;
+  height: var(--border-w-emph);
+  width: 0;
+  background: var(--olive);
+  transition: width 100ms linear;
+}
+.tpl .tick { left: 0; }
+
+.tray { margin-top: var(--sp-4); }
+.swatches { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.swatches:focus-visible { outline-offset: var(--sp-1); }
+.swatch {
+  position: relative;
+  width: var(--swatch); height: var(--swatch);
+  padding: 0;
+  border: var(--border-w) solid var(--rule-firm);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+/* The punch card: a selected swatch is ringed and punched through. */
+.swatch[aria-selected="true"] { border: var(--border-w-emph) solid var(--ink); box-shadow: var(--shadow-lift); }
+.swatch[aria-selected="true"]::after {
+  content: "";
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 8px; height: 8px;
+  margin: -4px 0 0 -4px;
+  background: var(--grey-000);
+}
+
+/* --------------------------------------------------------------------------
+   13. Number field, slider, light dial
+   -------------------------------------------------------------------------- */
+
+.nf { display: flex; flex-direction: column; gap: var(--sp-1); }
+.nf-label {
+  font: var(--t-label);
+  font-stretch: var(--wd-label);
+  letter-spacing: var(--tr-label);
+  color: var(--grey-600);
+}
+.nf-body {
+  display: flex;
+  align-items: stretch;
+  height: var(--ctl-h);
+  border: var(--border-w) solid var(--rule-firm);
+  background: var(--grey-000);
+}
+.nf-body:hover { border-color: var(--grey-500); }
+.nf-step {
+  width: 22px;
+  flex: none;
+  border: 0;
+  background: none;
+  color: var(--grey-600);
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.nf-step:hover { background: var(--grey-100); color: var(--ink); }
+.nf-step svg { width: 12px; height: 12px; }
+.nf-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  background: none;
+  text-align: center;
+  font: var(--t-num);
+  font-feature-settings: "tnum" 1;
+  padding: 0;
+}
+.nf-input:focus-visible { outline-offset: -2px; }
+
+.slider { display: flex; align-items: center; gap: var(--sp-3); margin-top: var(--sp-3); }
+.slider-label {
+  flex: none;
+  width: 62px;
+  font: var(--t-label);
+  font-stretch: var(--wd-label);
+  letter-spacing: var(--tr-label);
+  color: var(--grey-600);
+}
+.slider-track {
+  position: relative;
+  flex: 1 1 auto;
+  height: var(--hit-min);
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  touch-action: none;
+}
+.slider-rail { position: absolute; left: 0; right: 0; height: 4px; background: var(--grey-200); }
+.slider-fill { position: absolute; left: 0; height: 4px; background: var(--olive); }
+/* Square, because it marks a value on a scale. It is not a grip. */
+.slider-knob {
+  position: absolute;
+  width: 14px; height: 14px;
+  margin-left: -7px;
+  background: var(--ink);
+  border-radius: var(--radius);
+}
+.slider-value { flex: none; width: 3.4em; text-align: right; }
+.slider[aria-disabled="true"] .slider-fill { background: var(--grey-300); }
+.slider[aria-disabled="true"] .slider-knob { background: var(--grey-400); }
+
+.light-block { display: flex; flex-direction: column; align-items: center; gap: var(--sp-3); }
+.light-sliders { width: 100%; }
+
+.dial {
+  position: relative;
+  width: var(--dial);
+  height: var(--dial);
+  touch-action: none;
+  cursor: grab;
+}
+.dial:active { cursor: grabbing; }
+.dial svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+/* The second and last circle in this build. A finger turns it.
+   The grip is parked at the centre and carried out to the rim by a transform,
+   so its position and its feedback never compete for the same property. */
+.dial-grip {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 14px; height: 14px;
+  margin: -7px 0 0 -7px;
+  background: var(--olive);
+  border-radius: var(--radius-grip);
+  transition: transform var(--dur-tap) var(--ease-out);
+}
+.dial:hover .dial-grip { box-shadow: 0 0 0 2px var(--olive-lift); }
+.dial.is-dragging .dial-grip { box-shadow: 0 0 0 4px var(--olive-lift); }
+.dial-readout {
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  font: var(--t-num-lg);
+  font-feature-settings: "tnum" 1;
+  color: var(--ink);
+}
+.dial[aria-disabled="true"] { cursor: not-allowed; }
+.dial[aria-disabled="true"] .dial-grip { background: var(--grey-400); }
+
+/* --------------------------------------------------------------------------
+   14. Output panel, ZIP tree
+   -------------------------------------------------------------------------- */
+
+.name-preview {
+  margin-top: var(--sp-2);
+  color: var(--grey-600);
+  overflow-wrap: anywhere;
+}
+.tree-block { margin-top: var(--sp-6); padding-top: var(--sp-6); border-top: var(--border-w) solid var(--rule-hair); }
+.tree {
+  margin-top: var(--sp-3);
+  padding: var(--sp-3);
+  background: var(--grey-000);
+  border: var(--border-w) solid var(--rule-firm);
+  overflow-x: auto;
+  font: var(--t-num);
+  line-height: 1.6;
+  max-height: 300px;
+}
+.tree-line { white-space: pre; }
+.tree-dir { color: var(--ink); font-weight: 600; }
+.tree-file { color: var(--grey-600); }
+
+/* --------------------------------------------------------------------------
+   15. Batch wall
+   -------------------------------------------------------------------------- */
+
+.wall {
+  flex: none;
+  padding: var(--sp-6) var(--sp-8) var(--sp-10);
+  border-top: var(--border-w) solid var(--rule-firm);
+  background: var(--grey-050);
+}
+.wall-head {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--sp-8);
+  flex-wrap: wrap;
+}
+.wall-head .panel-h { margin: 0; padding: 0; border: 0; }
+.wall-figures { margin-right: auto; }
+.figure {
+  font: var(--t-figure);
+  font-stretch: var(--wd-figure);
+  letter-spacing: var(--tr-figure);
+  font-feature-settings: "tnum" 1;
+}
+.wall-sub { color: var(--grey-600); margin-top: var(--sp-1); }
+.wall-actions { display: flex; gap: var(--sp-3); align-items: center; }
+.wall-empty {
+  margin-top: var(--sp-4);
+  color: var(--grey-600);
+  font: var(--t-body);
+  font-stretch: var(--wd-body);
+  max-width: var(--measure);
+}
+
+.wall-grid {
+  margin-top: var(--sp-6);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: var(--sp-3);
+}
+.wall-grid:empty { display: none; }
+.wall-grid:focus-visible { outline-offset: var(--sp-1); }
+
+.wcard {
+  position: relative;
+  border: var(--border-w) solid var(--rule-hair);
+  background: var(--grey-100);
+  background-image: var(--checker-img);
+  background-size: calc(var(--checker-size) * 2) calc(var(--checker-size) * 2);
+  display: flex;
+  flex-direction: column;
+}
+.wcard-shot { position: relative; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; }
+.wcard-img { width: 100%; height: 100%; object-fit: contain; display: block; }
+/* The render summary and the two actions stay out of the way until the card
+   is wanted. focus-within keeps them reachable without a mouse. */
+.wcard-meta, .wcard-actions { display: none; }
+.wcard:hover .wcard-meta, .wcard:focus-within .wcard-meta { display: block; }
+.wcard:hover .wcard-actions, .wcard:focus-within .wcard-actions { display: flex; }
+.wcard-wait { width: 40%; height: 1px; background: var(--rule-hair); }
+.wcard-bar { position: absolute; left: 0; top: 0; height: 2px; width: 0; background: var(--olive); transition: width 120ms linear; }
+.wcard-name {
+  padding: var(--sp-1) var(--sp-2);
+  background: var(--grey-050);
+  border-top: var(--border-w) solid var(--rule-hair);
+  font: var(--t-num);
+  font-feature-settings: "tnum" 1;
+  color: var(--grey-600);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wcard-actions {
+  display: flex;
+  gap: var(--sp-3);
+  padding: 0 var(--sp-2) var(--sp-2);
+  background: var(--grey-050);
+}
+.wcard-meta {
+  padding: 0 var(--sp-2) var(--sp-2);
+  background: var(--grey-050);
+  font: var(--t-micro);
+  font-stretch: var(--wd-label);
+  letter-spacing: var(--tr-micro);
+  color: var(--grey-600);
+}
+.wcard.is-failed .wcard-shot { border: var(--border-w) solid var(--brick); }
+.wcard.is-failed .wcard-name { color: var(--brick-ink); }
+
+/* --------------------------------------------------------------------------
+   16. Toast, overlay
+   -------------------------------------------------------------------------- */
+
+.toast-host {
+  position: fixed;
+  left: var(--sp-4); bottom: var(--sp-4);
+  z-index: var(--z-toast);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.toast {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--grey-800);
+  color: var(--on-dark);
+  font: var(--t-micro);
+  font-stretch: var(--wd-label);
+  letter-spacing: var(--tr-micro);
+  box-shadow: var(--shadow-lift);
+}
+.toast .btn-text { color: var(--olive-lift); }
+.toast .btn-text:hover { border-bottom-color: var(--olive-lift); }
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-4);
+  background: var(--scrim);
+}
+.overlay-panel {
+  width: min(620px, 100%);
+  max-height: 84dvh;
+  overflow-y: auto;
+  padding: var(--sp-6);
+  background: var(--grey-050);
+  border: var(--border-w) solid var(--rule-hard);
+  box-shadow: var(--shadow-stage);
+}
+.keys {
+  margin-top: var(--sp-4);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--sp-2) var(--sp-4);
+  align-items: baseline;
+}
+.keys dt {
+  font: var(--t-num);
+  font-feature-settings: "tnum" 1;
+  border: var(--border-w) solid var(--rule-firm);
+  padding: 2px var(--sp-2);
+  background: var(--grey-000);
+  justify-self: start;
+}
+.keys dd { margin: 0; color: var(--grey-600); }
+.overlay-panel .btn { margin-top: var(--sp-6); }
+
+/* --------------------------------------------------------------------------
+   17. Icons
+   -------------------------------------------------------------------------- */
+
+.icon {
+  width: 16px; height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+  flex: none;
+}
+
+/* --------------------------------------------------------------------------
+   18. 768 to 1279. Rails become one drawer of tabs under the stage.
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 1279px) {
+  /* Below three columns the workbench is a scrolling stack, not a fixed
+     grid, so the viewport cap that keeps the switch above the fold at 1280
+     and up must be lifted here or the weave block overflows into the tabs. */
+  .workbench { display: flex; flex-direction: column; max-height: none; }
+  .stagewrap { padding: var(--sp-5) var(--sp-5) var(--sp-4); }
+  .stage { min-height: 0; height: min(56dvh, 520px); flex: none; }
+  .panels {
+    display: block;
+    border-top: var(--border-w) solid var(--rule-firm);
+    background: var(--grey-100);
+  }
+  .tabstrip {
+    display: flex;
+    border-bottom: var(--border-w) solid var(--rule-firm);
+  }
+  .tabstrip button {
+    flex: 1 1 0;
+    min-height: var(--hit-min);
+    border: 0;
+    border-right: var(--border-w) solid var(--rule-hair);
+    background: none;
+    color: var(--grey-600);
+    font: var(--t-label);
+    font-stretch: var(--wd-label);
+    letter-spacing: var(--tr-label);
+    cursor: pointer;
+  }
+  .tabstrip button:last-child { border-right: 0; }
+  .tabstrip button[aria-selected="true"] {
+    background: var(--grey-000);
+    color: var(--ink);
+    box-shadow: inset 0 -2px 0 0 var(--olive);
+  }
+  .panel { border: 0; overflow: visible; }
+  .panel[hidden] { display: none; }
+  .panel-designs, .panel-templates, .panel-adjust, .panel-output { border: 0; }
+}
+
+/* --------------------------------------------------------------------------
+   19. Under 768. One column, stage first.
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 767px) {
+  :root {
+    --t-display-size: 1.75rem;
+    --switch-w: 132px;
+    --switch-h: 38px;
+    --switch-knob: 38px;
+    --switch-travel: 94px;
+  }
+  .topbar { gap: var(--sp-3); padding: 0 var(--sp-3); }
+  .topbar-mode { display: none; }
+  .topbar-mode.is-mobile {
+    display: block;
+    margin: 0;
+    padding: var(--sp-3) var(--sp-4) 0;
+  }
+  .topbar-actions { gap: var(--sp-3); }
+  .stagewrap { padding: var(--sp-4) var(--sp-4) var(--sp-3); gap: var(--sp-4); }
+  .stage { height: auto; min-height: 42dvh; padding: var(--sp-4); }
+  .weave-row { gap: var(--sp-3); }
+  .wall { padding: var(--sp-5) var(--sp-4) var(--sp-8); }
+  .wall-head { gap: var(--sp-4); }
+  .wall-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+  .grid-2 { grid-template-columns: minmax(0, 1fr); }
+  .panel { padding: var(--sp-4); }
+  .toast-host { left: var(--sp-3); right: var(--sp-3); bottom: var(--sp-3); }
+}
+
+/* Touch targets. Small boxes get transparent padding rather than a bigger box. */
+@media (pointer: coarse) {
+  .nf-step { width: var(--hit-min); }
+  .swatch { margin: calc((var(--hit-min) - var(--swatch)) / 2); }
+  .btn-text { padding: var(--sp-3) 0; }
+}
+
+/* --------------------------------------------------------------------------
+   20. Reduced motion. Transitions collapse; nothing is hidden.
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}
