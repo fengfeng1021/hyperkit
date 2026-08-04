@@ -1,0 +1,356 @@
+/* ==========================================================================
+   Diff Warden - design tokens
+   World: 材料探傷檢測 / non-destructive flaw detection
+   (VISUAL-WORLDS.md #7, pinned brief. Not chosen, assigned.)
+
+   This file is the ONLY source of colour in the project.
+   No bare hex value may appear anywhere else in css/ or js/.
+
+   Contrast ratios in the comments are computed with the WCAG 2.x relative
+   luminance formula and are written as (foreground on background).
+   Every text token was checked against all five surfaces, not just --bed.
+   ========================================================================== */
+
+:root {
+  color-scheme: dark;
+
+  /* ------------------------------------------------------------------
+     SURFACES - warm brown-black. Instrument housing and darkroom.
+     Hue ~20deg, saturation under 12%. Not neutral charcoal (that is
+     cutout-forge), not blue-black (that is invoice-wrapped-tw).
+     ------------------------------------------------------------------ */
+  --well:         #0B0908;  /* recessed readout windows, code excerpts    */
+  --bed:          #14100E;  /* page ground, measurement floor             */
+  --panel:        #1B1613;  /* rails, panels, defect row hover            */
+  --panel-2:      #241C18;  /* second hover step, rule row hover          */
+  --fault-plate:  #2B211B;  /* fault plate ONLY. brightest surface = signal */
+
+  /* ------------------------------------------------------------------
+     INK - cold white (hue ~165, saturation 2%) on a warm ground.
+     The temperature clash is deliberate: a readout is projected onto
+     the housing, it does not belong to it. Never neutral grey.
+     ------------------------------------------------------------------ */
+  --fg:           #F2F4F3;  /* 17.12 bed | 16.24 panel | 17.99 well | 14.23 plate */
+  --fg-2:         #CBCFCE;  /* 12.03 bed | 11.41 panel | 12.64 well | 10.00 plate */
+  --fg-3:         #A5AAA9;  /*  8.04 bed |  7.62 panel |  8.44 well |  6.68 plate */
+  --fg-4:         #888E8D;  /*  5.68 bed |  5.38 panel |  5.96 well |  4.72 plate */
+  /* --fg-4 is the text floor. It is chosen so it still clears 4.5 on the
+     LIGHTEST surface (--fault-plate), which is the worst case, not on the
+     most common one. */
+  --fg-disabled:  #5C6261;  /*  3.04 bed |  2.88 panel. disabled only, WCAG-exempt.
+                               Every disabled control carries a sentence saying why. */
+
+  /* ------------------------------------------------------------------
+     ACCENT - acid yellow-green. The one thing that glows in the dark.
+     THE ONE ACCENT. There is no second hue anywhere in this project,
+     not even for errors (see FAULT below).
+     Discipline: never a large fill. The only filled use is the primary
+     button and the selected segment. Everything else is a 1px to 2.5px
+     line or mark. A large acid fill turns this world into "neon dark
+     mode", which is a different and much worse world.
+     ------------------------------------------------------------------ */
+  --accent:         #C6F24E;  /* 14.60 bed | 13.85 panel | 15.34 well */
+  --accent-hi:      #DBFF7C;  /* 16.76 bed. hover step of the primary button */
+  --accent-dim:     #A8D633;  /* 11.11 bed. history ticks, secondary marks */
+  --ink-on-accent:  #14100E;  /* 14.60 on --accent | 16.76 on --accent-hi */
+
+  /* ------------------------------------------------------------------
+     SEVERITY - four lightness steps of the SAME hue.
+     VISUAL-WORLDS.md bans traffic-light severity, so there is no red,
+     no amber, no green anywhere.
+
+     HONEST LIMIT: adjacent steps only differ by 1.38 to 1.79 in mutual
+     contrast, which is not enough to carry severity on its own at small
+     sizes. Severity is therefore always encoded on THREE redundant
+     channels: this lightness step, the strike-mark geometry, and a text
+     label that is never hidden (and is present in the exported Markdown).
+     ------------------------------------------------------------------ */
+  --sev-1:  #E2FF85;  /* 17.00 bed - 阻斷. filled disc r9 + 2.5px ring + crosshair */
+  --sev-2:  #B4E04A;  /* 12.34 bed - 高.   open circle r7, 2px stroke + crosshair  */
+  --sev-3:  #86A832;  /*  6.90 bed - 中.   open circle r5.5, 1.5px dashed stroke   */
+  --sev-4:  #6B8529;  /*  4.51 bed - 低.   open mark r4, 1px stroke, gap at top    */
+
+  /* ------------------------------------------------------------------
+     LINES - one hairline family, all 1px.
+     Non-text, so the 4.5 floor does not apply, except --field-line which
+     outlines form controls and must clear WCAG 1.4.11's 3:1.
+     ------------------------------------------------------------------ */
+  --grid:         #221A16;  /* 1.11 bed - the 32px measurement grid       */
+  --rule:         #352C26;  /* 1.39 bed - row dividers, in-panel grouping */
+  --rule-strong:  #4A3E36;  /* 1.83 bed - panel outlines, chip borders    */
+  --rule-x:       #63534A;  /* 2.58 bed - hover borders, fault plate edge */
+  --field-line:   #857569;  /* 4.27 bed | 4.05 panel | 3.78 panel-2 - form control borders */
+
+  /* ------------------------------------------------------------------
+     FAULT - there is NO second hue. A fault is signalled by four
+     non-chromatic channels instead:
+       1. surface inversion  (--fault-plate is the brightest surface)
+       2. a 1px --rule-x outline cutting it out of the frameless panels
+       3. a drawn i-warn triangle in --fg
+       4. position: it REPLACES the control that caused it
+     This also keeps the exported report fully legible in black and white.
+     ------------------------------------------------------------------ */
+  --fault-line:   var(--rule-x);
+  --fault-ink:    var(--fg);
+
+  /* ------------------------------------------------------------------
+     FLAW STRIP - the canvas world.
+     The cursor trail is a 24px linear interpolation from --accent to
+     --strip-idle. It is a luminance falloff with a direction and a
+     length, NOT a glow: there is no blurred halo around anything.
+     ------------------------------------------------------------------ */
+  --strip-idle:   #3E3B2A;  /* 1.68 bed - unscanned file column bed */
+  --strip-hit:    #5A6B2E;  /* 3.22 bed - 60ms flash on the struck column */
+  --strip-trail:  24px;     /* cursor trail length */
+
+  /* strike-mark geometry, read by strip.js */
+  --strike-r-1:   9px;
+  --strike-r-2:   7px;
+  --strike-r-3:   5.5px;
+  --strike-r-4:   4px;
+  --strike-w-1:   2.5px;
+  --strike-w-2:   2px;
+  --strike-w-3:   1.5px;
+  --strike-w-4:   1px;
+
+  /* ------------------------------------------------------------------
+     FOCUS - the accent, on every surface, at 12:1 or better.
+     Never removed, never `outline: none`.
+     ------------------------------------------------------------------ */
+  --focus:        var(--accent);
+  --focus-width:  2px;
+  --focus-offset: 2px;
+
+  /* ------------------------------------------------------------------
+     TYPE FAMILIES
+     Chivo and Chivo Mono are the same designer's same skeleton, which is
+     what an instrument needs: the UI voice and the measurement voice are
+     built from one set of bones.
+     Noto Sans TC sits behind BOTH stacks, including the monospace one.
+     Neither Chivo face carries CJK glyphs, so without that layer half a
+     Chinese sentence drops into the platform default. Placing it after
+     the Latin face keeps letters and digits resolving to Chivo.
+
+     All three families must be loaded on their VARIABLE axes, not as
+     static instances. Measured in a real browser: the scale below asks
+     for 720 / 640 / 620 / 450, and with static 400/500/700 instances the
+     Chinese snaps to 700 while the Latin sits at 720, so one line ends up
+     carrying two weights. See docs/DESIGN-DIRECTION.md 3.1 for the link.
+     ------------------------------------------------------------------ */
+  --font-ui:   "Chivo", "Noto Sans TC", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Chivo Mono", ui-monospace, "SF Mono", Menlo, Consolas, "Noto Sans TC", monospace;
+
+  /* ------------------------------------------------------------------
+     TYPE SCALE
+     Display maxes at 56px (cap is 6rem). Tracking floor here is -0.028em
+     (limit is -0.04em). Monospace is used ONLY for addresses and measured
+     quantities: file paths, line numbers, byte counts, token counts,
+     money, code. It is never a costume.
+     ------------------------------------------------------------------ */
+
+  /* display - the specimen bed headline, one place only */
+  --t-display-size: clamp(2.25rem, 5.2vw, 3.5rem);
+  --t-display-lh:   1.06;
+  --t-display-ls:   -0.028em;
+  --t-display-wght: 720;
+
+  /* h2 - list header, the three sections below the bed */
+  --t-h2-size:      clamp(1.375rem, 2.2vw, 1.75rem);
+  --t-h2-lh:        1.16;
+  --t-h2-ls:        -0.018em;
+  --t-h2-wght:      640;
+
+  /* h3 - defect title, export preview title */
+  --t-h3-size:      1.0625rem;
+  --t-h3-lh:        1.32;
+  --t-h3-ls:        -0.008em;
+  --t-h3-wght:      620;
+
+  /* panel - rail panel titles.
+     NOT uppercase, NOT wide-tracked. A trailing 1px --rule runs to the
+     panel edge instead. That is how an instrument panel is labelled, and
+     it also avoids the eyebrow/kicker signature entirely. Zero eyebrows
+     on this page. */
+  --t-panel-size:   0.8125rem;
+  --t-panel-lh:     1.30;
+  --t-panel-ls:     0.01em;
+  --t-panel-wght:   600;
+
+  /* body - the "why it breaks" paragraph, explanatory prose */
+  --t-body-size:    0.9375rem;
+  --t-body-lh:      1.62;
+  --t-body-ls:      0em;
+  --t-body-wght:    400;
+  /* Chivo's "0" advance is about 0.55em, so 64ch at 15px is roughly 528px.
+     MEASURED in a real browser with real mixed zh-TW and English copy: 33
+     Chinese characters per line, which is inside the comfortable 30 to 40
+     band, and about 68 Latin characters, which is inside 65 to 75. Re-check
+     at 1280 / 768 / 375 during the build; if it overflows, change this
+     value, not the copy. */
+  --measure-body:   64ch;
+
+  /* ui - buttons, labels, table cells */
+  --t-ui-size:      0.8125rem;
+  --t-ui-lh:        1.42;
+  --t-ui-ls:        0.004em;
+  --t-ui-wght:      500;
+
+  /* ui-sm - helper text, side notes, timestamps */
+  --t-ui-sm-size:   0.75rem;
+  --t-ui-sm-lh:     1.36;
+  --t-ui-sm-ls:     0.01em;
+  --t-ui-sm-wght:   500;
+
+  /* mono - file paths, line numbers, code excerpts */
+  --t-mono-size:    0.8125rem;
+  --t-mono-lh:      1.55;
+  --t-mono-ls:      0em;
+  --t-mono-wght:    450;
+
+  /* mono-sm - strip axis labels, per-column counts, fingerprint digests */
+  --t-mono-sm-size: 0.6875rem;
+  --t-mono-sm-lh:   1.40;
+  --t-mono-sm-ls:   0.01em;
+  --t-mono-sm-wght: 500;
+
+  /* readout - the token and money figures in the readout window */
+  --t-readout-size: clamp(1.5rem, 2.6vw, 1.75rem);
+  --t-readout-lh:   1.10;
+  --t-readout-ls:   -0.01em;
+  --t-readout-wght: 500;
+
+  /* italic descender reserve. Chivo Italic appears in exactly one place:
+     the "被規則「X」擋下" line inside the suppressed list. */
+  --italic-lh-floor: 1.1;
+  --italic-pb:       0.08em;
+
+  /* ------------------------------------------------------------------
+     SPACING - 4px base.
+     Tight inside a group, generous between groups, and always more space
+     above a heading than below it.
+     ------------------------------------------------------------------ */
+  --s-1:  2px;
+  --s-2:  4px;
+  --s-3:  6px;
+  --s-4:  8px;
+  --s-5:  12px;
+  --s-6:  16px;
+  --s-7:  20px;
+  --s-8:  24px;
+  --s-9:  32px;
+  --s-10: 44px;
+  --s-11: 60px;
+  --s-12: 84px;
+  --s-13: 120px;
+
+  /* deck (dense instrument): 32 above, 12 below. ratio 2.67 */
+  --space-head-above:      var(--s-9);
+  --space-head-below:      var(--s-5);
+  /* bed scroll sections: 84 above, 24 below. ratio 3.5 */
+  --space-head-above-page: var(--s-12);
+  --space-head-below-page: var(--s-8);
+  --space-panel-gap:       var(--s-9);
+  --space-panel-pad:       var(--s-6);
+
+  /* ------------------------------------------------------------------
+     RADIUS - two values, one rule:
+     anything that is a WINDOW is square, anything that is a PART is 2px.
+     No pills, no circular buttons, no 12px cards.
+     ------------------------------------------------------------------ */
+  --r:   2px;  /* controls, panels, chips, buttons, fault plate */
+  --r-0: 0px;  /* canvas, code wells, flaw strip, the grid       */
+
+  /* ------------------------------------------------------------------
+     SHADOW - every shadow carries a real offset and a soft blur, tinted
+     from a brown-black darker than --well so it never reads as dirt on a
+     warm ground. ZERO coloured halos: --accent never appears in a shadow.
+     ------------------------------------------------------------------ */
+  --shadow-panel:  0 1px 2px rgba(6, 4, 3, .40), 0 2px 10px rgba(6, 4, 3, .30);
+  --shadow-raised: 0 2px 5px rgba(6, 4, 3, .44), 0 12px 28px -8px rgba(6, 4, 3, .52);
+  --shadow-drawer: 0 8px 20px -6px rgba(6, 4, 3, .55), 0 28px 64px -20px rgba(6, 4, 3, .62);
+  /* the first inset is a 5% cold-white top edge: a cut window catching
+     light. It is not a glass effect. */
+  --shadow-well:   inset 0 1px 0 rgba(242, 244, 243, .05),
+                   inset 0 10px 18px -12px rgba(6, 4, 3, .70);
+  --shadow-rule-b: inset 0 -1px 0 var(--rule);
+
+  --scrim: rgba(11, 9, 8, .72);  /* keyboard sheet backdrop, the only modal */
+
+  /* ------------------------------------------------------------------
+     MOTION
+     Exponential ease-out from an already-visible default state.
+     LINEAR APPEARS EXACTLY ONCE: the scan cursor's travel. A scan is a
+     constant-rate measurement; easing it would turn the instrument into
+     an ornament. Linear anywhere else is a bug.
+     ------------------------------------------------------------------ */
+  --dur-1:      110ms;  /* hover, active, chip toggle              */
+  --dur-2:      180ms;  /* panel expand, segment swap, excerpt open */
+  --dur-3:      300ms;  /* rail drawer, export preview slide        */
+  --dur-4:      520ms;  /* specimen bed -> workbench                */
+  --dur-strike: 420ms;  /* one full strike timeline                 */
+  --dur-row:    260ms;  /* defect row settling in                   */
+  --dur-cursor: 450ms;  /* gsap.quickTo follow time for the cursor  */
+  --dur-count:  320ms;  /* hit-count and defect-count roll          */
+
+  --ease-out:    cubic-bezier(.16, 1, .3, 1);      /* default, ~power4.out       */
+  --ease-settle: cubic-bezier(.22, 1.10, .36, 1);  /* a part clicking into place */
+  --ease-in-out: cubic-bezier(.65, 0, .35, 1);     /* drawers                    */
+  --ease-in:     cubic-bezier(.55, 0, 1, .45);     /* exits only                 */
+
+  /* ------------------------------------------------------------------
+     LAYOUT
+     ------------------------------------------------------------------ */
+  --masthead-h:     56px;
+  --status-h:       28px;   /* always reserved, prevents CLS */
+  --rail-l:         316px;
+  --rail-l-md:      288px;
+  --rail-r:         320px;
+  --rail-r-md:      264px;
+  --strip-h:        128px;
+  --strip-h-sm:     64px;
+  --export-w:       480px;
+  --sheet-w:        520px;  /* keyboard sheet */
+  --row-h-file:     36px;
+  --field-h:        36px;
+  --btn-h:          40px;
+  --chip-h:         24px;
+  --history-h:      72px;
+  --bed-inset:      24px;   /* the 1px frame inside the specimen bed */
+  --corner-len:     12px;   /* corner mark arm length */
+  --corner-w:       2px;
+  --grid-cell:      32px;
+  --grid-major:     4;      /* every 4th line is the major tick */
+
+  --bp-sm:          768px;
+  --bp-md:          1024px;
+  --bp-lg:          1280px;
+}
+
+/* ==========================================================================
+   REDUCED MOTION
+   Content is visible by default in every case. Nothing in this stylesheet
+   sets opacity: 0 waiting for JavaScript to rescue it. These overrides only
+   collapse durations; the GSAP side is handled with gsap.matchMedia(), and
+   the cross-file arcs that the strike animation draws become permanent
+   static arcs so no information is lost. See docs/INTERACTION.md 5.5.
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-1:      1ms;
+    --dur-2:      1ms;
+    --dur-3:      1ms;
+    --dur-4:      1ms;
+    --dur-strike: 1ms;
+    --dur-row:    1ms;
+    --dur-cursor: 1ms;
+    --dur-count:  1ms;
+  }
+}
+
+/* ==========================================================================
+   NO LIGHT MODE - deliberate.
+   The use scene is a developer at 22:00 with an editor open in the next
+   window, and the world is an instrument housing in a darkroom.
+   VISUAL-WORLDS.md pins this project as dark. A prefers-color-scheme:
+   light block would contradict all three.
+   ========================================================================== */

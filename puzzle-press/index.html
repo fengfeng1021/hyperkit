@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>益智書排版廠 - 貼一份單字清單，產出可以上架 KDP 的內頁 PDF</title>
+<meta name="description" content="字謎、數獨、迷宮三種題型，數獨保證唯一解、迷宮保證唯一路徑，gutter 依總頁數自動套 KDP 級距，字型嵌入並子集化。全部在瀏覽器裡跑完，沒有帳號，沒有上傳。">
+<meta property="og:title" content="益智書排版廠 - 一份清單進去，一本可以上架的內頁 PDF 出來">
+<meta property="og:description" content="數獨保證唯一解，迷宮保證唯一路徑，gutter 依頁數自動套 KDP 級距。驗印單把每一個數字的依據攤開給你看。">
+<meta property="og:type" content="website">
+<meta name="color-scheme" content="light">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23F0F0EE'/%3E%3Crect x='7' y='5' width='18' height='22' fill='%23FFFFFF' stroke='%23111111' stroke-width='1.5'/%3E%3Cpath d='M16 9v14M9 16h14' stroke='%23E5007E' stroke-width='2'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="./css/tokens.css">
+<link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+<!--
+  DIRECTION CONTRACT - puzzle-press
+
+  THESIS
+  This interface argues one thing: the difference between a book that ships and a book that
+  gets rejected is a set of numbers somebody has to get right, and this machine gets them
+  right in front of you. Every surface decision serves that proof. The imposition floor
+  exists so the book is countable page by page before it is a file; the press check exists so
+  the gutter bracket, the bleed arithmetic, the uniqueness verdict and the embedded glyph
+  count are readable side by side; the registration stamp exists so the moment of "this one
+  is clean" has a shape. Nothing here decorates. If an element cannot be traced back to
+  "this proves the file will pass," it is removed.
+
+  OWN-WORLD
+  A print shop. Not a craft bindery, not a calligraphy studio, not paper nostalgia. The
+  reference is the imposition sheet taped to the plate table: trim lines and bleed frames,
+  registration crosses at the sheet edges, page thumbnails laid out in signature order, spec
+  values written in typewriter monospace because they are measurements and not voice.
+  Magenta is the process ink, and it is used the way a press uses it: for register marks, for
+  crop lines, for the one selected item. It is never a mood and never a gradient. Everything
+  else is paper, black, and the neutral grey of machine housing. Corners are square
+  everywhere, because a printed page is a cut edge and a cut edge has no radius.
+
+  STORY
+  The page opens as a bare plate table holding one empty 8.5 by 11 frame, crop marks already
+  at its corners, and a press check on the right that is already doing arithmetic on a book
+  that does not exist yet. That is the argument: before you have spent anything, you can see
+  what this machine measures. The moment you press, the frame is replaced by sheets arriving
+  one at a time, each swept in left to right as if a roller passed over it, each carrying a
+  small solid mark that becomes a registration cross when its puzzle has been verified. For
+  the next minute the surface is a running press: a web ruler climbs in the status bar, the
+  stamp ring draws itself around the edge of the count. When the last sheet lands, the four
+  corner registers fly to the centre, lock into one cross, the ring closes, and the verdict
+  rows on the right turn over one after another. The final state is a document you can hand
+  to somebody.
+
+  FIRST VIEWPORT
+  Full height, no page scroll. A masthead 56 px tall carrying the back link, the product
+  name, the seed field in monospace, and a reroll mark. Below it three columns: setup at
+  336 px, the plate table filling the middle, press check at 308 px. The plate table holds
+  one white 8.5 by 11 sheet at up to 520 px tall, sitting on the paper-grey table with a real
+  offset shadow, magenta crop marks at its four corners and registration crosses at its four
+  edge midpoints. Printed on that sheet, four text elements and nothing else: the headline
+  一份清單進去，一本可以上架的內頁 PDF 出來。 at up to 60 px; one line reading 數獨保證唯一解，
+  迷宮保證唯一路徑，gutter 依頁數自動套 KDP 級距。; a filled magenta primary button beside a
+  hairline secondary; and one honest machine line reading 引擎就緒 · 內頁字型 Atkinson
+  Hyperlegible 尚未下載（54 KB，只下載一次）. The setup column already carries defaults and the
+  press check already carries eight estimated spec rows. There is no eyebrow, no section
+  number, no scroll cue, no logo wall, no statistic block.
+
+  FORM
+  One accent, locked: process magenta. Three tokens carry it and each has a stated job:
+  #E5007E for marks and rules only, never text; #C4006A for anything magenta that carries or
+  sits under text; #8E004C for pressed and stroked states. Everything else is a six-step
+  neutral ramp from #FFFFFF stock through #F0F0EE paper to #2A2A28 machine. Errors introduce
+  no second hue: a row with a problem inverts to the machine colour with magenta hairlines
+  above and below, which is what a print shop does to a bad form. Depth is a real offset
+  shadow tinted from the ink, never a coloured halo. Radius is zero, everywhere, with no
+  exceptions, because this world cuts its edges. Type is Familjen Grotesk for everything the
+  interface says and Courier Prime for everything the press measures, and the split is
+  enforced, not aesthetic: trim sizes, page counts, seeds, gutters, glyph counts and puzzle
+  numbers are monospace; nothing else is. Spacing runs on a 4 px base with tight groups,
+  generous separation, and more space above a heading than below it. Motion is exponential
+  ease-out from an already-visible state, with two deliberate exceptions that are data and
+  not decoration: the web ruler and the font download bar, which are linear because they are
+  bound to real counts.
+
+  FINISH
+  unreviewed and undocumented is unfinished; this build ends with the finish review, the
+  verdict, and DESIGN.md
+-->
+
+<svg xmlns="http://www.w3.org/2000/svg" class="icon-sprite" aria-hidden="true" focusable="false">
+<symbol id="i-crop-mark" viewBox="0 0 24 24"><path d="M3 9V3h6M21 15v6h-6M21 9V3h-6M3 15v6h6"/></symbol>
+<symbol id="i-registration" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5"/><path d="M12 2v20M2 12h20"/></symbol>
+<symbol id="i-reroll" viewBox="0 0 24 24"><path d="M20 7H8.5A4.5 4.5 0 0 0 4 11.5M4 17h11.5a4.5 4.5 0 0 0 4.5-4.5"/><path d="M17 4l3 3-3 3M7 14l-3 3 3 3"/></symbol>
+<symbol id="i-drawer" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="6"/><rect x="3" y="13" width="18" height="6"/><path d="M10 8h4M10 16h4"/></symbol>
+<symbol id="i-sheet" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18"/><path d="M8 8h8M8 12h8M8 16h5"/></symbol>
+<symbol id="i-stack" viewBox="0 0 24 24"><rect x="3" y="7" width="13" height="14"/><path d="M7 4h13v13"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M4 12.5l5.5 5.5L20 6"/></symbol>
+<symbol id="i-slash" viewBox="0 0 24 24"><path d="M5 19L19 5"/><path d="M4 4h4M16 20h4"/></symbol>
+<symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12"/><path d="M16 4H4v12"/></symbol>
+<symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12M7 11l5 5 5-5M4 20h16"/></symbol>
+<symbol id="i-cancel" viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+<symbol id="i-chevron" viewBox="0 0 24 24"><path d="M9 4l8 8-8 8"/></symbol>
+</svg>
+
+<a class="skip-link" href="#plate">跳到落版台</a>
+
+<header class="masthead">
+  <a class="mast-back" href="../index.html">
+    <svg class="ico" aria-hidden="true"><use href="#i-chevron"></use></svg>
+    <span class="mast-back-label">返回 hyperkit</span>
+  </a>
+  <h1 class="wordmark">益智書排版廠</h1>
+
+  <div class="mast-right">
+    <div class="seedfield">
+      <svg class="seed-mark" aria-hidden="true"><use href="#i-registration"></use></svg>
+      <label class="vh" for="seed">亂數種子，格式 XXXX-XXXX</label>
+      <input id="seed" class="seed-input" type="text" value="7F3A-2C91" spellcheck="false"
+             autocomplete="off" maxlength="9" aria-describedby="seed-hint">
+      <span class="seed-hint" id="seed-hint"></span>
+      <button type="button" class="icon-btn" id="seed-copy" aria-label="複製種子">
+        <svg class="ico" aria-hidden="true"><use href="#i-copy"></use></svg>
+      </button>
+      <button type="button" class="icon-btn" id="seed-reroll" aria-label="重擲種子，換一本書">
+        <svg class="ico" aria-hidden="true"><use href="#i-reroll"></use></svg>
+      </button>
+    </div>
+    <button type="button" class="keys-btn" id="keys-toggle" aria-expanded="false" aria-controls="keys-panel">快捷鍵 ?</button>
+  </div>
+</header>
+
+<div class="keys-panel" id="keys-panel" hidden>
+  <dl>
+    <div><dt>1 2 3</dt><dd>切換題型</dd></div>
+    <div><dt>G</dt><dd>開印</dd></div>
+    <div><dt>R</dt><dd>重擲種子</dd></div>
+    <div><dt>L</dt><dd>開關我的清單庫</dd></div>
+    <div><dt>E</dt><dd>匯出 PDF</dd></div>
+    <div><dt>← →</dt><dd>Inspector 內翻頁</dd></div>
+    <div><dt>Esc</dt><dd>依序關閉 Inspector、抽屜、確認列</dd></div>
+  </dl>
+</div>
+
+<main class="press">
+
+  <!-- ============================ 備料台 ============================ -->
+  <section class="rail" aria-labelledby="rail-h">
+    <h2 id="rail-h" class="vh">備料台</h2>
+    <div class="rail-scroll">
+
+      <details class="fset" id="fs-type" open>
+        <summary><span class="fset-title">題型與數量</span></summary>
+        <div class="fset-body">
+
+          <div class="seg" role="radiogroup" aria-label="題型">
+            <label class="seg-item"><input type="radio" name="ptype" value="wordsearch" checked><span>字謎</span></label>
+            <label class="seg-item"><input type="radio" name="ptype" value="sudoku"><span>數獨</span></label>
+            <label class="seg-item"><input type="radio" name="ptype" value="maze"><span>迷宮</span></label>
+          </div>
+
+          <div class="field">
+            <label class="lbl" for="count">題數</label>
+            <div class="stepper">
+              <button type="button" class="step-btn" id="count-down" aria-label="減少 1 題">
+                <svg class="ico" aria-hidden="true"><use href="#i-minus"></use></svg>
+              </button>
+              <input id="count" class="step-input" type="number" min="10" max="300" step="1" value="100" inputmode="numeric">
+              <button type="button" class="step-btn" id="count-up" aria-label="增加 1 題">
+                <svg class="ico" aria-hidden="true"><use href="#i-plus"></use></svg>
+              </button>
+            </div>
+            <p class="readout" id="count-readout">約 130 頁 · gutter 0.375 in</p>
+            <p class="note" id="count-note" hidden></p>
+          </div>
+
+          <div class="field" id="grid-field">
+            <span class="lbl">字謎網格</span>
+            <div class="seg seg-sm" role="radiogroup" aria-label="字謎網格尺寸">
+              <label class="seg-item"><input type="radio" name="gridsize" value="13"><span>13 × 13</span></label>
+              <label class="seg-item"><input type="radio" name="gridsize" value="15" checked><span>15 × 15</span></label>
+              <label class="seg-item"><input type="radio" name="gridsize" value="17"><span>17 × 17</span></label>
+            </div>
+            <p class="note" id="grid-note" hidden></p>
+          </div>
+        </div>
+      </details>
+
+      <details class="fset" id="fs-source" open>
+        <summary><span class="fset-title">內容來源</span></summary>
+        <div class="fset-body">
+          <p class="note" id="db-note" hidden></p>
+
+          <div id="source-words">
+            <div class="lbl-row">
+              <label class="lbl" for="wordlist">貼上單字清單</label>
+              <span class="lbl-meta" id="wordlist-origin"></span>
+            </div>
+            <textarea id="wordlist" class="textarea" rows="8" spellcheck="false"
+                      placeholder="每行一個字，貼上就好&#10;carrot&#10;saucepan&#10;colander"></textarea>
+            <p class="readout" id="wordlist-stats">還沒有字。可以貼上清單，或從內建主題清單挑一份。</p>
+            <div class="row-actions">
+              <button type="button" class="btn-hair" id="open-drawer">
+                <svg class="ico" aria-hidden="true"><use href="#i-drawer"></use></svg>
+                我的清單庫
+              </button>
+              <button type="button" class="btn-hair" id="save-list" disabled>存進我的清單庫</button>
+            </div>
+            <div id="wordlist-alerts"></div>
+          </div>
+
+          <p class="note" id="source-note" hidden>數獨與迷宮不需要單字清單。題目由種子直接推導，換種子就是換一本。</p>
+        </div>
+      </details>
+
+      <details class="fset" id="fs-trim" open>
+        <summary><span class="fset-title">開本與版面</span></summary>
+        <div class="fset-body">
+          <div class="field">
+            <label class="lbl" for="preset">版面設定</label>
+            <select id="preset" class="select">
+              <option value="">目前的設定</option>
+            </select>
+          </div>
+
+          <div class="trim-pair" role="radiogroup" aria-label="開本 trim size">
+            <label class="trim">
+              <input type="radio" name="trim" value="letter" checked>
+              <span class="trim-frame" data-ratio="letter" aria-hidden="true"></span>
+              <span class="trim-label">8.5 × 11 in</span>
+            </label>
+            <label class="trim">
+              <input type="radio" name="trim" value="digest">
+              <span class="trim-frame" data-ratio="digest" aria-hidden="true"></span>
+              <span class="trim-label">6 × 9 in</span>
+            </label>
+          </div>
+
+          <label class="switch">
+            <input type="checkbox" id="bleed" checked>
+            <span class="switch-track" aria-hidden="true"><span class="switch-knob"></span></span>
+            <span class="switch-text">出血 0.125 in（bleed）</span>
+          </label>
+          <p class="note">關掉出血時外緣最小邊界由 0.375 降為 0.25 in。</p>
+
+          <label class="switch">
+            <input type="checkbox" id="largeprint" checked>
+            <span class="switch-track" aria-hidden="true"><span class="switch-knob"></span></span>
+            <span class="switch-text">大字版</span>
+          </label>
+          <p class="note">大字版是 KDP 上銷量最好的一類，也讓每題多佔一點頁數。</p>
+
+          <div class="field">
+            <label class="lbl" for="booktitle">書名</label>
+            <input id="booktitle" class="input" type="text" value="Kitchen Puzzles" maxlength="48">
+            <p class="note" id="title-note" hidden></p>
+          </div>
+        </div>
+      </details>
+
+      <details class="fset" id="fs-font" open>
+        <summary><span class="fset-title">字型與難度</span></summary>
+        <div class="fset-body">
+          <div class="field">
+            <div class="lbl-row">
+              <label class="lbl" for="difficulty">難度</label>
+              <span class="lbl-meta" id="difficulty-label">L3 中等</span>
+            </div>
+            <div class="slider">
+              <input id="difficulty" type="range" min="1" max="5" step="1" value="3"
+                     aria-describedby="difficulty-desc">
+              <div class="slider-ticks" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+            </div>
+            <p class="tech" id="difficulty-desc">需要 locked candidates 或 naked pair。</p>
+            <p class="note">難度以解題所需的最高階技巧判定，不是以挖空數判定。需要用猜的題目會被丟棄重生。</p>
+          </div>
+
+          <div class="field">
+            <span class="lbl" id="font-lbl">內頁字型</span>
+            <div class="fontlist" role="radiogroup" aria-labelledby="font-lbl" id="fontlist"></div>
+            <p class="note">字型檔存在這個瀏覽器裡，只下載一次。</p>
+          </div>
+        </div>
+      </details>
+
+    </div>
+
+    <div class="rail-cta">
+      <button type="button" class="press-btn" id="press-btn">開　印</button>
+      <p class="press-note" id="press-note">100 題字謎 · 15 × 15 · L3 · 約 130 頁</p>
+    </div>
+  </section>
+
+  <!-- ============================ 落版台 ============================ -->
+  <section class="plate" id="plate" aria-labelledby="plate-h">
+    <h2 id="plate-h" class="vh">落版台</h2>
+
+    <div class="plate-bar" id="plate-bar" hidden></div>
+    <div class="plate-inline" id="plate-inline"></div>
+
+    <div class="plate-body" id="plate-body">
+      <div class="frame-wrap" id="frame-wrap">
+        <div class="frame" id="frame">
+          <span class="crop c-tl" aria-hidden="true"></span>
+          <span class="crop c-tr" aria-hidden="true"></span>
+          <span class="crop c-bl" aria-hidden="true"></span>
+          <span class="crop c-br" aria-hidden="true"></span>
+          <svg class="reg reg-t" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-registration"></use></svg>
+          <svg class="reg reg-b" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-registration"></use></svg>
+          <svg class="reg reg-l" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-registration"></use></svg>
+          <svg class="reg reg-r" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-registration"></use></svg>
+
+          <div class="hero">
+            <p class="hero-head">一份清單進去，一本可以上架的內頁 PDF 出來。</p>
+            <p class="hero-sub">數獨保證唯一解，迷宮保證唯一路徑，gutter 依頁數自動套 KDP 級距。</p>
+            <div class="hero-actions">
+              <button type="button" class="btn-primary" id="hero-primary">載入範例落版單</button>
+              <button type="button" class="btn-hair" id="hero-secondary">貼上我的單字清單</button>
+            </div>
+            <p class="hero-machine" id="hero-machine">引擎就緒 · 內頁字型 Atkinson Hyperlegible 尚未下載（108 KB，只下載一次）</p>
+            <p class="hero-last" id="hero-last" hidden></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ 驗印單 ============================ -->
+  <aside class="check" aria-labelledby="check-h">
+    <div class="check-scroll">
+      <div class="stamp-row">
+        <svg class="stamp" id="stamp" viewBox="0 0 56 56" aria-hidden="true">
+          <circle class="stamp-ring" cx="28" cy="28" r="25"/>
+          <path class="stamp-cross" d="M28 3v13M28 40v13M3 28h13M40 28h13"/>
+          <text class="stamp-count" id="stamp-count" x="28" y="31" text-anchor="middle"></text>
+        </svg>
+        <div>
+          <h2 id="check-h">驗印單</h2>
+          <p class="check-state" id="check-state">全部為預估值。開印之後逐列翻成實測。</p>
+        </div>
+      </div>
+
+      <div id="check-download"></div>
+
+      <h3 class="check-h3">規格</h3>
+      <dl class="specs" id="spec-rows"></dl>
+
+      <h3 class="check-h3">驗證</h3>
+      <dl class="specs" id="verdict-rows"></dl>
+
+      <div id="check-alerts"></div>
+
+      <div class="check-actions">
+        <button type="button" class="btn-primary" id="export-pdf" disabled aria-describedby="export-note">匯出內頁 PDF</button>
+        <p class="note" id="export-note">先開印，才有東西可以匯出。</p>
+        <button type="button" class="btn-hair" id="export-check">存驗印單</button>
+      </div>
+
+      <details class="ledger" id="ledger">
+        <summary><span id="ledger-title">落版紀錄</span></summary>
+        <div id="ledger-body"></div>
+      </details>
+    </div>
+  </aside>
+</main>
+
+<footer class="statusbar">
+  <div class="ruler" id="ruler">
+    <div class="ruler-track" aria-hidden="true">
+      <div class="ruler-fill" id="ruler-fill"></div>
+      <div class="ruler-ticks"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    </div>
+    <span class="ruler-count" id="ruler-count">0 / 0</span>
+  </div>
+  <p class="stage" id="stage">就緒</p>
+  <p class="tally" id="tally">還沒有落版紀錄。第一本印完之後這裡會開始累積。</p>
+  <button type="button" class="btn-cancel" id="cancel-btn" hidden>
+    <svg class="ico" aria-hidden="true"><use href="#i-cancel"></use></svg>
+    取消
+  </button>
+</footer>
+
+<!-- ============================ 我的清單庫 ============================ -->
+<div class="drawer" id="drawer" hidden aria-labelledby="drawer-h">
+  <div class="drawer-head">
+    <h2 id="drawer-h" class="vh">我的清單庫</h2>
+    <div class="tabs" role="tablist">
+      <button type="button" class="tab" role="tab" id="tab-mine" aria-selected="true" aria-controls="pane-mine">我的清單</button>
+      <button type="button" class="tab" role="tab" id="tab-themes" aria-selected="false" aria-controls="pane-themes">內建主題</button>
+    </div>
+    <button type="button" class="icon-btn" id="drawer-close" aria-label="關閉清單庫">
+      <svg class="ico" aria-hidden="true"><use href="#i-cancel"></use></svg>
+    </button>
+  </div>
+  <div class="drawer-body">
+    <div id="pane-mine" role="tabpanel" aria-labelledby="tab-mine"></div>
+    <div id="pane-themes" role="tabpanel" aria-labelledby="tab-themes" hidden></div>
+  </div>
+  <div class="drawer-foot">
+    <button type="button" class="btn-hair" id="import-lists">匯入 JSON</button>
+    <button type="button" class="btn-hair" id="export-lists">
+      <svg class="ico" aria-hidden="true"><use href="#i-download"></use></svg>
+      匯出清單庫 JSON
+    </button>
+    <input type="file" id="import-file" accept="application/json,.json" hidden>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+<p class="vh" id="live" role="status" aria-live="polite"></p>
+<p class="vh" id="live-assertive" role="alert" aria-live="assertive"></p>
+
+<!-- GSAP core only. There is no scroll telling on a single-screen work bench,
+     and the stamp ring draws itself with strokeDasharray, so no plugin is
+     loaded. The classic script runs before the deferred modules below it. -->
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script type="module" src="./js/main.js"></script>
+<script type="module" src="./js/motion.js"></script>
+</body>
+</html>

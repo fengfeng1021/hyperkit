@@ -172,7 +172,9 @@ body {
 
 .row-en {
   display: block;
-  font-size: clamp(1.65rem, 4.1vw, 3.4rem);
+  /* 八行要在一屏內排完，所以上限比六行時低。行高與 meta 的 margin 一起算：
+     55px 大字 + 20px meta + 5px 間距 ≈ 80px，八行在 780px 的可用高度內還有餘裕。 */
+  font-size: clamp(1.45rem, 3.5vw, 3rem);
   line-height: 1.02;
   letter-spacing: -0.035em;
   color: var(--fg);
@@ -187,8 +189,8 @@ body {
   grid-column: 2;
   display: flex;
   align-items: baseline;
-  gap: .75rem;
-  margin-top: .3rem;
+  gap: .7rem;
+  margin-top: .22rem;
   font-family: 'Noto Sans TC', system-ui, sans-serif;
   min-width: 0;
 }

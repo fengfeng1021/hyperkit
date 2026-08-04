@@ -1,0 +1,325 @@
+/* ==========================================================================
+   Puzzle Press - design tokens
+   World: print shop / imposition table (VISUAL-WORLDS.md #8, pinned).
+
+   This file is the ONLY source of colour in the project.
+   No bare hex values are allowed anywhere else in css/ or js/.
+
+   Contrast ratios in the comments are computed with the WCAG 2.x relative
+   luminance formula and are stated as (foreground on background).
+   Measured luminances used throughout:
+     stock  #FFFFFF  L = 1.000000
+     paper  #F0F0EE  L = 0.870260
+     panel  #E4E4E2  L = 0.774750
+     slot   #D6D6D3  L = 0.670910
+     machine#2A2A28  L = 0.023026
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+
+  /* ------------------------------------------------------------------
+     SURFACES - six neutral steps.
+     Cold neutral paper. Not cream, not kraft, not warm craft beige.
+     ------------------------------------------------------------------ */
+  --stock:        #FFFFFF;  /* sheet face; every input control sits on this.
+                               The only pure white in the system, because the
+                               user judges a printed page against it. */
+  --paper:        #F0F0EE;  /* page ground and plate table */
+  --panel:        #E4E4E2;  /* setup rail and press check housing */
+  --slot:         #D6D6D3;  /* recessed: progress track, slider rail,
+                               not-yet-generated page silhouettes */
+  --rule:         #C9C9C5;  /* 1px dividers and leader dots. 1.46 on paper.
+                               A line, not text, so no 4.5 floor. */
+  --rule-strong:  #8A8A85;  /* control borders.
+                               3.47 on stock | 3.04 on paper - both meet
+                               WCAG 1.4.11 (UI component boundary >= 3).
+                               On --panel it is only 2.72, which is why every
+                               input control sits on --stock and never directly
+                               on the panel housing. That rule is structural,
+                               not stylistic. */
+  --machine:      #2A2A28;  /* status bar, selected segment, inverted alert row */
+
+  /* ------------------------------------------------------------------
+     INK - three text steps plus a disabled step.
+     Every step is a neutral lightening of --ink; the hue does not drift.
+     ------------------------------------------------------------------ */
+  --ink:           #111111;  /* 18.88 stock | 16.55 paper | 14.83 panel | 12.96 slot */
+  --ink-2:         #3A3A38;  /* 11.40 stock |  9.99 paper |  8.96 panel |  7.83 slot */
+  --ink-3:         #5C5C58;  /*  6.72 stock |  5.89 paper |  5.27 panel |  4.61 slot
+                                also the placeholder colour: 6.72 on --stock */
+  --ink-disabled:  #8C8C87;  /*  2.96 paper - DISABLED ONLY (WCAG 1.4.3 exempt).
+                                Must always be paired with the 45deg hatch below,
+                                so state is never carried by colour alone. */
+
+  /* text on the dark machine surface, tinted from the paper step */
+  --paper-fg:      #F0F0EE;  /* 12.60 on machine */
+  --paper-2:       #B9B9B5;  /*  7.31 on machine - secondary text and ruler ticks */
+
+  /* ------------------------------------------------------------------
+     ACCENT - process magenta. The only accent, locked for the whole page.
+     Three tokens, three jobs. --magenta never carries text.
+     ------------------------------------------------------------------ */
+  --magenta:       #E5007E;  /* MARKS AND RULES ONLY, 1 to 3px: registration
+                                crosses, crop lines, selection indicator, web
+                                ruler fill, stamp ring.
+                                3.97 on paper | 4.53 on stock | 3.86 on machine
+                                (graphic, 1.4.11 floor is 3) */
+  --magenta-ink:   #C4006A;  /* magenta that CARRIES text, and the primary
+                                button fill.
+                                5.18 on paper | 5.91 on stock
+                                --stock on it: 5.91 */
+  --magenta-deep:  #8E004C;  /* :active press, 1px strokes.
+                                8.16 on paper | --stock on it: 9.31 */
+  --magenta-wash:  #FBE0EF;  /* selected row ground, gutter annotation band,
+                                turn-over flash.
+                                --ink on it 15.30 | --magenta-ink on it 4.79 */
+  --magenta-lift:  #FF4FA8;  /* magenta text ON --machine ONLY.
+                                4.75 on machine. Never used on paper (2.65). */
+
+  /* ------------------------------------------------------------------
+     ALERT - no second hue is introduced.
+     A print shop marks a bad form by inverting the whole row.
+     Ground = --machine, text = --paper-fg (12.60), hairlines = --magenta.
+     Success is a registration cross, not a green tick. Total hues on the
+     page: 1.
+     ------------------------------------------------------------------ */
+  --alert-ground:  #2A2A28;  /* = --machine, named separately so intent reads */
+  --alert-rule:    #E5007E;  /* = --magenta, 3.86 on alert-ground */
+
+  /* the hatch that carries disabled state without relying on colour */
+  --hatch-disabled: repeating-linear-gradient(
+                      45deg,
+                      rgb(17 17 17 / .07) 0 2px,
+                      rgb(17 17 17 / 0)   2px 6px
+                    );
+
+  /* the only translucent colours in the system, tinted from the ink */
+  --scrim:         rgb(17 17 17 / .22);
+  --sheet-veil:    rgb(240 240 238 / .70);  /* over thumbnails while re-imposing */
+
+  /* ------------------------------------------------------------------
+     FOCUS
+     ------------------------------------------------------------------ */
+  --focus:          #C4006A;  /* = --magenta-ink, 5.18 on paper */
+  --focus-inverse:  #FF4FA8;  /* = --magenta-lift, for the machine surface */
+  --focus-width:    2px;
+  --focus-offset:   2px;
+
+  /* ------------------------------------------------------------------
+     TYPE FAMILIES
+     Noto Sans TC sits behind BOTH stacks, including the monospace one:
+     neither Familjen Grotesk nor Courier Prime carries CJK glyphs, and a
+     fall-through to the system sans would put half a sentence in another
+     face. Latin and digits still resolve to the family in front of it.
+     ------------------------------------------------------------------ */
+  --font-ui:   "Familjen Grotesk", "Noto Sans TC", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Courier Prime", "Noto Sans TC", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* ------------------------------------------------------------------
+     TYPE SCALE
+     --font-mono is for what the press MEASURES only: trim sizes, point
+     values, page counts, gutters, seeds, puzzle numbers, glyph counts,
+     byte counts. Never headings, buttons, labels or prose.
+     Courier Prime has a smaller x-height than Familjen Grotesk, so each
+     mono step is one notch larger to sit optically level with its UI pair.
+     Tracking floor used here is -0.025em (the standard's limit is -0.04em).
+     ------------------------------------------------------------------ */
+
+  /* display - the headline printed on the sheet.
+     The ceiling is set by the sheet, not by the viewport: the hero sits inside
+     a real 8.5:11 frame that is at most 620px tall, so its column is about
+     480px wide. A 60px ceiling would break that headline into five lines, so
+     the ceiling here is 40px, which holds it to two. */
+  --t-display-size: clamp(1.625rem, 2.7vw, 2.5rem);
+  --t-display-lh:   1.05;
+  --t-display-ls:   -0.025em;
+  --t-display-wght: 600;
+
+  /* h2 - press check section headings */
+  --t-h2-size:      clamp(1.375rem, 2.4vw, 1.75rem);
+  --t-h2-lh:        1.16;
+  --t-h2-ls:        -0.015em;
+  --t-h2-wght:      600;
+
+  /* h3 - fieldset legends, inspector page counter, font specimens */
+  --t-h3-size:      1.0625rem;
+  --t-h3-lh:        1.28;
+  --t-h3-ls:        -0.01em;
+  --t-h3-wght:      600;
+
+  /* body - explanatory prose */
+  --t-body-size:    0.9375rem;
+  --t-body-lh:      1.58;
+  --t-body-ls:      0em;
+  --t-body-wght:    400;
+
+  /* ui - buttons, control labels, list names */
+  --t-ui-size:      0.8125rem;
+  --t-ui-lh:        1.40;
+  --t-ui-ls:        0.005em;
+  --t-ui-wght:      500;
+
+  /* ui-sm - meta, provenance notes, statistics line */
+  --t-ui-sm-size:   0.75rem;
+  --t-ui-sm-lh:     1.35;
+  --t-ui-sm-ls:     0.01em;
+  --t-ui-sm-wght:   500;
+
+  /* mono - spec values, page counts, puzzle numbers */
+  --t-mono-size:    0.875rem;
+  --t-mono-lh:      1.50;
+  --t-mono-ls:      0em;
+  --t-mono-wght:    400;
+
+  /* mono-sm - page folios on thumbnails, ruler tick numbers */
+  --t-mono-sm-size: 0.75rem;
+  --t-mono-sm-lh:   1.40;
+  --t-mono-sm-ls:   0.01em;
+
+  /* mono-lg - the seed in the masthead */
+  --t-mono-lg-size: 1.0625rem;
+  --t-mono-lg-lh:   1.30;
+  --t-mono-lg-ls:   0.02em;
+
+  /* italic descender reserve - used only for technique names in the
+     "why not 100?" disclosure */
+  --italic-lh-floor: 1.15;
+  --italic-pb:       0.08em;
+
+  /* MEASURE
+     `ch` is the advance of "0", not the average glyph width, so these are
+     starting values to be checked against real copy at 1280 / 768 / 375
+     before they are final. Target is a rendered 65 to 75 characters. */
+  --measure:      66ch;
+  --measure-cjk:  34em;   /* CJK is one em per character, so this is literal */
+
+  /* ------------------------------------------------------------------
+     SPACING - 4px base.
+     Tight inside a group, generous between groups, and 2.75x as much
+     space above a heading as below it.
+     ------------------------------------------------------------------ */
+  --s-1:  2px;
+  --s-2:  4px;
+  --s-3:  6px;
+  --s-4:  8px;
+  --s-5:  12px;
+  --s-6:  16px;
+  --s-7:  20px;
+  --s-8:  24px;
+  --s-9:  32px;
+  --s-10: 44px;
+  --s-11: 60px;
+  --s-12: 84px;
+
+  --space-heading-above: var(--s-10);  /* 44px */
+  --space-heading-below: var(--s-6);   /* 16px */
+  --space-group:         var(--s-9);   /* 32px between fieldsets */
+  --space-pad-panel:     var(--s-7);   /* 20px panel padding */
+
+  /* ------------------------------------------------------------------
+     RADIUS - one value, zero exceptions.
+     A printed page is a cut edge, and a cut edge has no radius.
+     The only circle in the product is the registration stamp, which is an
+     SVG mark, not a UI corner.
+     ------------------------------------------------------------------ */
+  --r: 0;
+
+  /* ------------------------------------------------------------------
+     SHADOW - every shadow carries an offset and a soft blur, tinted from
+     the press black. No zero-offset colour halos. No hard block shadows:
+     this world is not neobrutalist.
+     ------------------------------------------------------------------ */
+  --shadow-sheet:        0 1px 2px rgb(17 17 17 / .10), 0 3px 10px -2px rgb(17 17 17 / .10);
+  --shadow-sheet-hover:  0 2px 4px rgb(17 17 17 / .12), 0 8px 20px -4px rgb(17 17 17 / .16);
+  --shadow-lift:         0 2px 6px rgb(17 17 17 / .14), 0 12px 32px -8px rgb(17 17 17 / .20);
+  --shadow-panel:        inset 0 1px 0 rgb(255 255 255 / .55), inset 0 -1px 0 rgb(17 17 17 / .06);
+  --shadow-slot:         inset 0 1px 2px rgb(17 17 17 / .10);
+
+  /* ------------------------------------------------------------------
+     MOTION
+     Exponential ease-out from an already-visible default state.
+     Linear is never a default. `none` is used in exactly two places and
+     both are data rather than motion: the web ruler and the font download
+     bar, each bound to a real count.
+     ------------------------------------------------------------------ */
+  --dur-1:      120ms;  /* hover, :active, verification mark flash */
+  --dur-2:      200ms;  /* panel swap, inline confirm, mark shape change */
+  --dur-3:      320ms;  /* list library drawer */
+  --dur-roll:   240ms;  /* one sheet swept by the roller (signature beat 1) */
+  --dur-reg:    640ms;  /* registration marks converging (beat 3) */
+  --dur-stamp:  560ms;  /* stamp ring drawing itself */
+
+  --ease-out:   cubic-bezier(.16, 1, .3, 1);    /* default, ~ power4.out */
+  --ease-roll:  cubic-bezier(.22, .61, .36, 1); /* ~ power2.out, a roller is
+                                                   mechanically even; a strong
+                                                   exponential tail would turn
+                                                   an instrument into an ornament */
+  --ease-stamp: cubic-bezier(.34, 1.4, .5, 1);  /* small overshoot on landing */
+  --ease-in:    cubic-bezier(.55, 0, 1, .45);   /* exits only */
+
+  /* ------------------------------------------------------------------
+     LAYOUT
+     ------------------------------------------------------------------ */
+  --masthead-h:      56px;
+  --status-h:        40px;   /* always reserved, prevents CLS */
+  --rail-w:          336px;
+  --rail-w-md:       312px;
+  --rail-w-sm:       296px;
+  --check-w:         308px;
+  --check-w-md:      288px;
+  --drawer-w:        380px;
+  --row-h-list:      68px;
+  --row-h-theme:     52px;
+  --row-h-font:      64px;
+  --row-h-ledger:    44px;
+  --press-btn-h:     52px;
+  --frame-max-h:     min(74vh, 620px);
+  --thumb-min:       132px;
+  --thumb-min-md:    116px;
+  --thumb-min-sm:    96px;
+  --thumb-min-xs:    88px;
+  --bp-sm:           768px;
+  --bp-md:           1024px;
+  --bp-lg:           1280px;
+  --bp-xl:           1440px;
+
+  /* print marks geometry, shared by the empty frame and every thumbnail */
+  --crop-len:        16px;   /* L arm length */
+  --crop-inset:      8px;    /* distance from the corner */
+  --reg-size:        12px;   /* edge-midpoint registration cross */
+  --stamp-size:      56px;
+  --mark-unverified: 3px;    /* solid square */
+  --mark-verified:   8px;    /* registration cross */
+
+  /* web ruler */
+  --ruler-w:         240px;
+  --ruler-h:         6px;
+  --ruler-ticks:     10;
+}
+
+/* ==========================================================================
+   REDUCED MOTION
+   Content is visible by default in every case. Nothing in this stylesheet
+   sets opacity: 0 or an initial clip-path waiting to be rescued by
+   JavaScript. These overrides only collapse durations; the GSAP side is
+   handled with gsap.matchMedia() and skips the whole timeline.
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-1:     1ms;
+    --dur-2:     1ms;
+    --dur-3:     1ms;
+    --dur-roll:  1ms;
+    --dur-reg:   1ms;
+    --dur-stamp: 1ms;
+  }
+}
+
+/* ==========================================================================
+   NO DARK MODE - deliberate.
+   The use scene is judging a page that is about to be printed on white
+   paper. A dark surface would change how the sheet reads and make the
+   user's colour and weight judgement wrong. VISUAL-WORLDS.md pins this
+   project as light for the same reason.
+   ========================================================================== */

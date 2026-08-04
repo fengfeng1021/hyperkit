@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="zh-Hant" data-stage="bed" data-demo="false">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>產碼審查台 - 把 agent 寫的那批程式碼架上去掃一遍</title>
+<meta name="description" content="選一個本機資料夾，用你自己的 API key 審查 agent 剛寫進去的那批程式碼。輸出是一份有檔案、行號、嚴重度的缺陷清單，不是一段聊天回覆。原始碼不上傳給任何第三方。">
+<meta name="color-scheme" content="dark">
+<meta property="og:title" content="產碼審查台 - 產碼缺陷檢測台">
+<meta property="og:description" content="本機資料夾 → 你的瀏覽器 → 你自己的 API key → 供應商。沒有第四個節點。誤報標一次就永遠不再出現。">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2314100E'/%3E%3Cpath d='M4 4h6M4 4v6M28 4h-6M28 4v6M4 28h6M4 28v-6M28 28h-6M28 28v-6' stroke='%23C6F24E' stroke-width='2.5' fill='none'/%3E%3Ccircle cx='16' cy='16' r='5' fill='none' stroke='%23C6F24E' stroke-width='2.5'/%3E%3Cpath d='M16 8v3M16 21v3M8 16h3M21 16h3' stroke='%23C6F24E' stroke-width='2'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chivo:ital,wght@0,300..900;1,400&family=Chivo+Mono:wght@400..600&family=Noto+Sans+TC:wght@100..900&display=swap">
+<link rel="stylesheet" href="./css/tokens.css">
+<link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+<!--
+  DIRECTION CONTRACT - diff-warden / 產碼審查台
+
+  THESIS
+  這個介面主張一件事：agent 寫出來的三千行程式碼，是一個可以被架上檢測台、掃過一遍、
+  然後在座標上標出裂紋的物件，不是一段需要跟人討論的話。
+  每一個表面決定都在服務這個主張。缺陷是列不是段落，因為這份東西要能被第三個人讀。
+  探傷帶存在是為了把「哪個檔案的哪一行」變成一個座標而不是一句描述。
+  判讀規則庫佔掉整條右軌，因為使用者累積下來的判斷是這台儀器唯一比 agent 強的地方。
+  畫面上任何無法回推到「這是一份可以交出去的檢測報告」的元素都被移除。
+
+  OWN-WORLD
+  材料探傷檢測。參考物是超音波探傷儀的讀數窗、應力測試機的曲線紙、
+  非破壞檢測報告上的缺陷標註、X 光片上被圈起來的裂紋。
+  機殼是深棕黑，因為那是暗房與儀器外殼的顏色，不是「深色模式」。
+  螢光讀數是酸黃綠，那是儀器在暗處唯一發亮的東西，所以它是唯一的 accent，
+  而且它從不當背景大面積出現，只當線、標記、與一個填色按鈕。
+  文字是冷白，刻意與暖底衝突，因為讀數是外加上去的資訊，不屬於機殼。
+  等寬字在這裡是合法的：檔案路徑與行號是位址與量測值，不是科技感戲服。
+  明確不是：聊天泡泡、對話介面、機器人吉祥物、任何 AI 產品的紫藍光暈。
+
+  STORY
+  頁面開場是一張空的檢測台：一張量測網格、四個角標圈出試件範圍、一句話、兩顆按鈕、
+  以及一行誠實的硬體能力讀數。它是空的，因為儀器在裝上東西之前本來就是空的。
+  使用者選了資料夾，網格不重繪，角標飛到工作台四角，兩條軌從左右進來。
+  同一台儀器，現在裝上了東西。接下來的九十秒畫面是一台正在工作的機器：
+  掃描游標依真實批次進度前進，每解析出一條缺陷就在座標上敲一個圈記、
+  垂一條引線、讓缺陷列在引線末端落定。跨檔案的缺陷會先拉一條弧線把兩個檔案接起來，
+  那兩百毫秒是整個介面最重要的一段。掃完，游標消失，圈記留在原位，
+  右軌的歷史刻度尺長出今天這一根，而它比上一根矮。房間安靜下來，
+  畫面剩下一份可以按下匯出的報告。
+
+  FIRST VIEWPORT
+  滿版高度，不捲動。masthead 56px，左邊返回 hyperkit，中間站名，
+  右邊三顆真實狀態晶片（瀏覽器支援、金鑰、本機資產）。
+  底下是檢測台：#14100E 上的 32px 量測網格，內縮 24px 一條 1px 細線，
+  四個 12px 酸黃綠角標同時是試件範圍的邊界。
+  內容靠左，垂直位置在中線上方 4vh，只有四個文字元素：
+  標題「這批程式碼哪裡會爆，先架上去掃一遍」（兩行，最大 56px，不帶句末句號）、
+  一行 30 字的說明、一顆酸黃綠填色主按鈕與一顆 hairline 次按鈕、
+  以及一行真實的能力讀數「File System Access API 可用，授權可續用」。
+  沒有 eyebrow、沒有捲動提示、沒有統計數字、沒有 logo 牆、沒有版本標籤。
+
+  FORM
+  一個 accent，鎖定：酸黃綠 #C6F24E。沒有第二個色相，連錯誤警示都沒有。
+  警示靠表面明度反轉、1px 外框與一個畫出來的三角圖示，
+  因為一台只有一個螢光色的儀器不會為了報錯突然長出紅燈。
+  嚴重度是同一色相的四階明度，並且永遠搭配圈記幾何與文字標籤這兩個冗餘通道，
+  所以在灰階、在色盲、在一張列印出來的報告上都讀得出來。
+  其餘是五階暖棕黑表面（#0B0908 到 #2B211B）與五階冷白文字階。
+  深度來自有偏移、有柔和模糊、色相取自機殼的黑色陰影；零彩色光暈。
+  圓角只有兩個值：2px 給所有控制項與面板，0 給 canvas 與程式碼讀數窗（那是切出來的窗口）。
+  字型 Chivo 講介面的話，Chivo Mono 講機器量到的數，中文接 Noto Sans TC，分工是強制的不是美感的。
+  間距 4px 基底，群組內緊、群組間鬆，標題上方永遠比下方多。
+  動效從已經可見的狀態出發、指數型 ease-out；唯一的線性是掃描游標，
+  因為掃描是等速量測，給它緩動會把儀器變成裝飾。
+
+  FINISH
+  unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
+-->
+
+<svg class="sprite" aria-hidden="true" focusable="false" width="0" height="0"><defs>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 5h6.5l2.5 3H21v11H3z"/></symbol>
+  <symbol id="i-caliper" viewBox="0 0 24 24"><path d="M4 4h4v16H4zM16 4h4v16h-4zM8 12h8M12 4v4"/></symbol>
+  <symbol id="i-datum" viewBox="0 0 24 24"><path d="M2 18h20M6 18v-5M11 18V6M16 18v-8M21 18v-3"/></symbol>
+  <symbol id="i-strike" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></symbol>
+  <symbol id="i-crosshair" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v5M12 16v5M3 12h5M16 12h5"/></symbol>
+  <symbol id="i-dismiss" viewBox="0 0 24 24"><path d="M4 5h16v14H4zM8 12h8"/></symbol>
+  <symbol id="i-restore" viewBox="0 0 24 24"><path d="M4 11a8 8 0 1 1 1.6 6.4M3 5v6h6"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12M7 11l5 5 5-5M4 20h16"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><path d="M9 9h11v11H9zM4 15V4h11"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path d="M9 4l8 8-8 8"/></symbol>
+  <symbol id="i-leader" viewBox="0 0 24 24"><path d="M5 4v11h11M12 11l4 4-4 4"/></symbol>
+  <symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 3l10 18H2zM12 10v5M12 17.6v.8"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M4 12l5 5L20 6"/></symbol>
+  <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="8" r="4.5"/><path d="M11.3 11.3L21 21M18 18l2-2M15 15l2-2"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6-10-6-10-6z"/><circle cx="12" cy="12" r="2.5"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9.5 7V4h5v3M6.5 7l1 13h9l1-13"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+</defs></svg>
+
+<a class="skip" href="#defect-list">跳到缺陷清單</a>
+
+<header class="masthead">
+  <a class="mast-back" href="../index.html"><svg class="ic ic-flip" aria-hidden="true"><use href="#i-chevron"/></svg>返回 hyperkit</a>
+  <span class="mast-title">產碼審查台</span>
+  <div class="mast-chips">
+    <button type="button" class="chip" id="chip-support" aria-expanded="false">偵測中</button>
+    <button type="button" class="chip" id="chip-key">未設定 API key</button>
+    <button type="button" class="chip" id="chip-assets">規則 0</button>
+    <button type="button" class="chip chip-sq" id="chip-help" aria-label="快捷鍵表">?</button>
+  </div>
+</header>
+
+<!-- ============================ BED ============================ -->
+<main class="bed" id="stage-bed">
+  <section class="bed-frame" aria-labelledby="bed-title">
+    <span class="corner c-tl" aria-hidden="true"></span>
+    <span class="corner c-tr" aria-hidden="true"></span>
+    <span class="corner c-bl" aria-hidden="true"></span>
+    <span class="corner c-br" aria-hidden="true"></span>
+    <div class="bed-copy">
+      <h1 id="bed-title">這批程式碼哪裡會爆<br>先架上去掃一遍</h1>
+      <p class="bed-sub">選一個本機資料夾。原始碼不離開這台電腦，審查走你自己的 API key。</p>
+      <div class="bed-actions">
+        <button type="button" class="btn btn-primary" id="bed-pick">
+          <svg class="ic" aria-hidden="true"><use href="#i-folder"/></svg>選擇資料夾
+        </button>
+        <button type="button" class="btn btn-ghost" id="bed-sample">看範例報告</button>
+      </div>
+      <p class="bed-cap" id="bed-cap">正在偵測這個瀏覽器的檔案存取能力</p>
+    </div>
+  </section>
+
+  <div class="bed-scroll">
+    <section class="page-sec" aria-labelledby="flow-h">
+      <h2 id="flow-h">資料流向</h2>
+      <ol class="flow">
+        <li class="flow-node"><span class="flow-k">1</span><span class="flow-t">本機資料夾</span><span class="flow-d">瀏覽器授權後直接讀檔</span></li>
+        <li class="flow-node"><span class="flow-k">2</span><span class="flow-t">你的瀏覽器</span><span class="flow-d">雜湊、比對、挑檔、估算都在這一頁</span></li>
+        <li class="flow-node"><span class="flow-k">3</span><span class="flow-t">你自己的 API key</span><span class="flow-d">存在 localStorage，只放進送往供應商的標頭</span></li>
+        <li class="flow-node"><span class="flow-k">4</span><span class="flow-t">供應商</span><span class="flow-d">api.anthropic.com 或 api.openai.com</span></li>
+      </ol>
+      <p class="page-note">沒有第五個節點。這個站沒有後端、沒有分析、沒有錯誤回報服務。你可以打開 Network 分頁自己驗。</p>
+    </section>
+
+    <section class="page-sec" aria-labelledby="cmp-h">
+      <h2 id="cmp-h">跟「叫 agent 審查一下」的差別</h2>
+      <table class="cmp">
+        <thead><tr><th scope="col">叫 agent 審查一下</th><th scope="col">這台儀器</th></tr></thead>
+        <tbody>
+          <tr><td>回你一段散文，要自己讀完</td><td>一份有檔案、行號、嚴重度的清單</td></tr>
+          <tr><td>每次從零開始，誤報講一百遍</td><td>你標記過的，之後自動不顯示</td></tr>
+          <tr><td>聊天記錄不能寄給客戶</td><td>一份 Markdown 報告，含審查範圍聲明</td></tr>
+        </tbody>
+      </table>
+      <p class="page-note">這張表是誠實的：agent 也能審查，只是輸出形式不同。承認對手的能力比假裝對手不存在有說服力。</p>
+    </section>
+
+    <section class="page-sec" aria-labelledby="sup-h">
+      <h2 id="sup-h">瀏覽器支援</h2>
+      <ul class="sup-list">
+        <li><span class="sup-b">Chrome / Edge / Opera</span><span class="sup-d">完整。File System Access API 可用，資料夾授權存在本機，回訪時一鍵續用。</span></li>
+        <li><span class="sup-b">Firefox / Safari</span><span class="sup-d">可用，但沒有持久授權。走 <code>webkitdirectory</code> 一次選整個資料夾，功能完整，只是每次回來都要重選一次。基準線與判讀規則仍然保留在本機。</span></li>
+        <li><span class="sup-b">全部瀏覽器</span><span class="sup-d">SHA-256 雜湊需要 secure context。用 https 或 localhost 開啟即可，本站兩者皆符合。</span></li>
+      </ul>
+    </section>
+  </div>
+</main>
+
+<!-- ============================ DECK ============================ -->
+<div class="deck" id="stage-deck">
+  <nav class="deck-tabs" role="tablist" aria-label="工作台分頁">
+    <button type="button" role="tab" class="dtab" data-pane="rail-left" aria-selected="true">試件</button>
+    <button type="button" role="tab" class="dtab" data-pane="stage-main" aria-selected="false">缺陷</button>
+    <button type="button" role="tab" class="dtab" data-pane="rail-right" aria-selected="false">資產</button>
+  </nav>
+
+  <!-- LEFT RAIL -->
+  <section class="rail rail-l" id="rail-left" aria-label="試件與掃描設定">
+    <div class="panel" id="panel-specimen">
+      <h2 class="ptitle">試件</h2>
+      <div class="pbody" id="specimen-body">
+        <p class="specimen-name mono" id="specimen-name">未架設試件</p>
+        <p class="specimen-meta" id="specimen-meta">選一個本機資料夾，或載入範例</p>
+        <div class="row-btns">
+          <button type="button" class="btn btn-sm btn-primary" id="deck-pick">
+            <svg class="ic" aria-hidden="true"><use href="#i-folder"/></svg>選擇資料夾
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-baseline">
+      <h2 class="ptitle">基準線</h2>
+      <div class="pbody">
+        <p class="readline"><svg class="ic" aria-hidden="true"><use href="#i-datum"/></svg><span id="baseline-when">尚未標記</span></p>
+        <div class="row-btns">
+          <button type="button" class="btn btn-sm btn-ghost" id="btn-baseline">標記基準線</button>
+          <button type="button" class="btn btn-sm btn-ghost" id="btn-diff" aria-disabled="true">掃描變動</button>
+        </div>
+        <p class="note" id="baseline-note">尚未標記基準線，掃描變動不能按</p>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-excludes">
+      <h2 class="ptitle">排除規則</h2>
+      <div class="pbody">
+        <div class="chips" id="exclude-chips"></div>
+        <p class="note" id="exclude-note">改動後檔案計數會立刻重算</p>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-scan">
+      <h2 class="ptitle">掃描設定</h2>
+      <div class="pbody" id="scan-body">
+        <div class="field">
+          <span class="label" id="lbl-provider">供應商</span>
+          <div class="seg" role="radiogroup" aria-labelledby="lbl-provider" id="seg-provider">
+            <button type="button" role="radio" class="seg-b" data-provider="anthropic" aria-checked="true">Anthropic</button>
+            <button type="button" role="radio" class="seg-b" data-provider="openai" aria-checked="false">OpenAI</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="in-key">API key</label>
+          <div class="key-wrap">
+            <input type="password" id="in-key" class="input mono" autocomplete="off" spellcheck="false">
+            <button type="button" class="icon-btn" id="btn-eye" aria-label="顯示 API key"><svg class="ic" aria-hidden="true"><use href="#i-eye"/></svg></button>
+          </div>
+          <p class="note" id="key-note">存在這台電腦的 localStorage，只會送到 api.anthropic.com</p>
+          <div class="row-btns"><button type="button" class="btn btn-sm btn-ghost" id="btn-testkey">測試連線</button></div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="in-model">模型</label>
+          <select class="input" id="in-model"></select>
+          <p class="note" id="price-note"></p>
+        </div>
+
+        <div class="field">
+          <label class="label" for="in-budget">單次審查預算上限</label>
+          <div class="scale" id="budget-scale">
+            <input type="range" id="in-budget" min="20000" max="200000" step="5000" value="60000" aria-describedby="budget-read">
+            <div class="scale-axis" aria-hidden="true">
+              <span class="scale-cursor" id="budget-cursor"></span>
+            </div>
+            <div class="scale-ticks" aria-hidden="true">
+              <span style="left:0%">20k</span><span style="left:22.2%">60k</span><span style="left:55.6%">120k</span><span style="left:100%">200k</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="well readout" id="budget-read" aria-live="off">
+          <div class="ro-row"><span class="ro-n mono" id="ro-tokens">0</span><span class="ro-l">估算 token（輸入＋輸出）</span></div>
+          <div class="ro-row"><span class="ro-n mono" id="ro-cost">$0.00</span><span class="ro-l">估算花費</span></div>
+          <div class="ro-row"><span class="ro-n mono" id="ro-batch">0</span><span class="ro-l">批次 / 送出檔案數 <span id="ro-files" class="mono">0</span></span></div>
+        </div>
+        <details class="disclose">
+          <summary>估算方式</summary>
+          <div class="disclose-body">
+            <p class="mono sm">輸入 ≈ 檔案 UTF-8 位元組 / 3.6 + 系統提示 1150 + 關聯圖(檔數 × 24)</p>
+            <p class="mono sm">輸出 ≈ 檔案數 × 420，上限 8000</p>
+            <p class="note" id="price-src"></p>
+          </div>
+        </details>
+
+        <details class="disclose" id="filepick">
+          <summary>檔案挑選 <span class="mono sm" id="filepick-sum"></span></summary>
+          <div class="disclose-body">
+            <table class="ftable" id="ftable">
+              <thead><tr>
+                <th scope="col" class="c-chk"><span class="vh">送出</span></th>
+                <th scope="col">檔案</th><th scope="col" class="c-num">變動</th>
+                <th scope="col">為什麼被選</th><th scope="col" class="c-num">token</th>
+              </tr></thead>
+              <tbody id="ftbody"></tbody>
+            </table>
+            <p class="note" id="ftable-foot"></p>
+          </div>
+        </details>
+
+        <div class="go">
+          <button type="button" class="btn btn-primary btn-wide" id="btn-review" aria-disabled="true">開始審查</button>
+          <p class="note" id="review-note">尚未選擇資料夾</p>
+          <button type="button" class="linkish" id="btn-payload">檢視送出內容</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAIN -->
+  <section class="stage" id="stage-main" aria-label="探傷帶與缺陷清單">
+    <div class="demo-band" id="demo-band" hidden>
+      <span>這是範例報告。專案 <b class="mono">nabe-orders</b> 是虛構的。</span>
+      <span class="demo-acts">
+        <button type="button" class="btn btn-xs btn-ghost" id="demo-pick">選擇你自己的資料夾</button>
+        <button type="button" class="btn btn-xs btn-ghost" id="demo-exit">離開範例</button>
+      </span>
+    </div>
+
+    <div class="prep well" id="prep-panel" hidden></div>
+
+    <div class="strip-wrap">
+      <canvas id="strip" class="strip" role="img" aria-label="探傷帶：尚未掃描" tabindex="0"></canvas>
+      <div class="strip-empty" id="strip-empty">尚未掃描</div>
+    </div>
+
+    <div class="list-bar">
+      <h2 class="list-h">缺陷 <span class="mono" id="defect-count">0</span></h2>
+      <div class="list-tools">
+        <label class="vh" for="in-filter">篩選缺陷</label>
+        <input type="search" class="input input-sm" id="in-filter" placeholder="篩選檔案或關鍵字">
+        <button type="button" class="btn btn-sm btn-ghost" id="btn-cross" aria-pressed="false">只看跨檔案</button>
+        <label class="vh" for="in-sort">排序</label>
+        <select class="input input-sm" id="in-sort">
+          <option value="default">跨檔案優先</option>
+          <option value="severity">依嚴重度</option>
+          <option value="file">依檔案路徑</option>
+        </select>
+        <button type="button" class="btn btn-sm btn-ghost" id="btn-export" aria-disabled="true">
+          <svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>匯出 Markdown
+        </button>
+      </div>
+    </div>
+
+    <div class="suppressed" id="suppressed" hidden>
+      <button type="button" class="sup-toggle" id="sup-toggle" aria-expanded="false">
+        <svg class="ic ic-chev" aria-hidden="true"><use href="#i-chevron"/></svg>
+        已依你的 <span class="mono acc" id="sup-rules">0</span> 條判讀規則自動略過 <span class="mono acc" id="sup-count">0</span> 條
+      </button>
+      <ul class="sup-body" id="sup-body" hidden></ul>
+    </div>
+
+    <div id="main-fault" role="alert" hidden></div>
+
+    <ol class="defects" id="defect-list" tabindex="-1"></ol>
+    <div class="empty" id="defect-empty">
+      <p class="empty-h">還沒有掃描結果</p>
+      <p class="empty-b">左邊架上一個資料夾、標記基準線、按「開始審查」。<br>沒有 API key 的話，先按上方的「看範例報告」。</p>
+    </div>
+  </section>
+
+  <!-- RIGHT RAIL -->
+  <aside class="rail rail-r" id="rail-right" aria-label="本機資產">
+    <div class="panel">
+      <h2 class="ptitle">判讀規則 <span class="mono acc" id="rules-count">0</span></h2>
+      <div class="pbody">
+        <div id="rules-list"></div>
+        <div class="rules-empty" id="rules-empty">
+          <p>這裡會累積你的判讀。</p>
+          <p>第一次審查後，對任何一條缺陷按「這類我不管」，同一類的東西之後就不會再出現。</p>
+          <p class="mono acc" id="rules-nth">現在是第 1 次。</p>
+        </div>
+        <div class="row-btns">
+          <button type="button" class="btn btn-xs btn-ghost" id="btn-rules-export">匯出 JSON</button>
+          <button type="button" class="btn btn-xs btn-ghost" id="btn-rules-import">匯入 JSON</button>
+          <input type="file" id="rules-file" accept="application/json,.json" hidden>
+        </div>
+        <p class="note" id="rules-note"></p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2 class="ptitle">審查歷史</h2>
+      <div class="pbody">
+        <div class="hist" id="hist"></div>
+        <p class="note" id="hist-note">第一次審查後，這裡會開始記錄</p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2 class="ptitle">試件記錄</h2>
+      <div class="pbody">
+        <dl class="kv" id="specimen-record"></dl>
+      </div>
+    </div>
+
+    <div id="storage-fault" role="alert" hidden></div>
+  </aside>
+</div>
+
+<footer class="statusbar">
+  <span class="sb-assets">本機資產<span class="mono" id="sb-assets"> 基準線 0　判讀規則 0　歷史 0</span></span>
+  <span class="sb-live" id="sb-live" aria-live="polite">閒置</span>
+  <span class="sb-lic">開放版本</span>
+</footer>
+
+<!-- export drawer -->
+<div class="drawer" id="export-drawer" hidden aria-labelledby="export-h">
+  <div class="drawer-head">
+    <h2 id="export-h">匯出預覽</h2>
+    <button type="button" class="icon-btn" id="export-close" aria-label="關閉匯出預覽"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button>
+  </div>
+  <pre class="drawer-body mono" id="export-body"></pre>
+  <div class="drawer-foot">
+    <button type="button" class="btn btn-sm btn-primary" id="export-dl"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>下載 .md</button>
+    <button type="button" class="btn btn-sm btn-ghost" id="export-copy"><svg class="ic" aria-hidden="true"><use href="#i-copy"/></svg>複製全文</button>
+  </div>
+</div>
+
+<!-- payload drawer -->
+<div class="drawer" id="payload-drawer" hidden aria-labelledby="payload-h">
+  <div class="drawer-head">
+    <h2 id="payload-h">送出內容</h2>
+    <button type="button" class="icon-btn" id="payload-close" aria-label="關閉送出內容"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button>
+  </div>
+  <pre class="drawer-body mono" id="payload-body"></pre>
+  <div class="drawer-foot">
+    <button type="button" class="btn btn-sm btn-ghost" id="payload-copy"><svg class="ic" aria-hidden="true"><use href="#i-copy"/></svg>複製全文</button>
+  </div>
+</div>
+
+<!-- keyboard sheet: the only modal -->
+<div class="scrim" id="sheet-scrim" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-h" id="sheet">
+    <div class="drawer-head">
+      <h2 id="sheet-h">快捷鍵</h2>
+      <button type="button" class="icon-btn" id="sheet-close" aria-label="關閉快捷鍵表"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="sheet-body">
+      <dl class="keys">
+        <dt><kbd>o</kbd></dt><dd>選擇資料夾</dd>
+        <dt><kbd>b</kbd></dt><dd>標記基準線</dd>
+        <dt><kbd>d</kbd></dt><dd>掃描變動</dd>
+        <dt><kbd>r</kbd></dt><dd>開始審查</dd>
+        <dt><kbd>/</kbd></dt><dd>focus 篩選欄</dd>
+        <dt><kbd>f</kbd></dt><dd>切換「只看跨檔案」</dd>
+        <dt><kbd>s</kbd></dt><dd>展開／收合略過條</dd>
+        <dt><kbd>m</kbd></dt><dd>開啟匯出預覽</dd>
+        <dt><kbd>?</kbd></dt><dd>這張表</dd>
+        <dt><kbd>Esc</kbd></dt><dd>由內而外關閉一層</dd>
+      </dl>
+      <p class="note">在缺陷清單內：<kbd>↑</kbd><kbd>↓</kbd> 移動、<kbd>Enter</kbd> 展開節錄、<kbd>x</kbd> 這類我不管、<kbd>c</kbd> 複製。</p>
+    </div>
+  </div>
+</div>
+
+<!-- GSAP 是普通 script，會在下面的 module 之前執行完，所以 motion.js 讀得到 window.gsap。
+     只引 core：這一頁不捲動，沒有任何捲動觸發的動效，ScrollTrigger 沒有存在的理由。 -->
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script type="module" src="./js/main.js"></script>
+<script type="module" src="./js/motion.js"></script>
+</body>
+</html>

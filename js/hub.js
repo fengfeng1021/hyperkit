@@ -42,10 +42,20 @@ const WORLDS = [
     line: '把 ChatGPT、Claude、Gemini 的匯出檔拖進來，幾萬則訊息秒開並可全文搜尋。對話不離開你的電腦。',
     bg: '#F2F2EF', fg: '#1C1C1A', dim: '#45453F', accent: '#8A5F06',
   },
+  {
+    slug: 'diff-warden', zh: '產碼審查台',
+    line: '選一個本機資料夾，用你自己的 API key 審查 agent 剛寫進去的那批程式碼。誤報標一次，之後就不再出現。',
+    bg: '#14100E', fg: '#F2F4F3', dim: '#A5AAA9', accent: '#C6F24E',
+  },
+  {
+    slug: 'puzzle-press', zh: '益智書排版廠',
+    line: '貼一份單字清單，生出題目與答案頁。數獨保證唯一解，迷宮保證唯一路徑，gutter 依頁數自動套 KDP 級距。',
+    bg: '#F0F0EE', fg: '#111111', dim: '#5C5C58', accent: '#C4006A',
+  },
 ]
 
 const NEUTRAL = {
-  slug: null, zh: '六個工具',
+  slug: null, zh: '八個工具',
   line: '把游標移到任一行，整個頁面會變成那個工具的世界',
   bg: '#0A0A0B', fg: '#E8E8E6', dim: '#8E8E8C', accent: '#E8E8E6',
 }
