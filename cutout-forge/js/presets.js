@@ -16,31 +16,31 @@ const FACTORY = [
     id: 'shopify', name: 'Shopify', size: 2048, fill: 0.90,
     formats: ['png', 'jpg'], jpegQuality: 0.92, template: '{name}_shopify_01',
     reframe: true, on: true,
-    note: 'Square 2048 px, product at 90% of the frame, transparent PNG plus a white JPEG.',
+    note: '正方形 2048 px，商品佔畫面 90%，一張透明 PNG 加一張白底 JPEG。',
   },
   {
-    id: 'amazon', name: 'Amazon main image', size: 1600, fill: 0.85,
+    id: 'amazon', name: 'Amazon 主圖', size: 1600, fill: 0.85,
     formats: ['jpg'], jpegQuality: 0.95, template: '{name}_amazon_MAIN',
     reframe: true, on: false, pureWhite: true,
-    note: 'Square 1600 px, product at 85%, background written as pure white 255, 255, 255.',
+    note: '正方形 1600 px，商品佔 85%，背景寫成純白 255, 255, 255。',
   },
   {
     id: 'etsy', name: 'Etsy', size: 2000, fill: 0.92,
     formats: ['png', 'jpg'], jpegQuality: 0.92, template: '{name}_etsy_01',
     reframe: true, on: false,
-    note: 'Square 2000 px, product at 92%, transparent PNG plus a white JPEG.',
+    note: '正方形 2000 px，商品佔 92%，一張透明 PNG 加一張白底 JPEG。',
   },
   {
     id: 'shopee', name: 'Shopee', size: 1024, fill: 0.88,
     formats: ['jpg'], jpegQuality: 0.90, template: '{name}_shopee_01',
     reframe: true, on: false,
-    note: 'Square 1024 px, product at 88%, white JPEG.',
+    note: '正方形 1024 px，商品佔 88%，白底 JPEG。',
   },
   {
-    id: 'transparent', name: 'Transparent only', size: 0, fill: 1,
+    id: 'transparent', name: '只要去背圖', size: 0, fill: 1,
     formats: ['png'], jpegQuality: 0.92, template: '{name}_cutout',
     reframe: false, on: false,
-    note: 'Original pixel size, nothing recomposed, alpha kept as cut.',
+    note: '維持原始像素尺寸，不重新構圖，去背後的 alpha 原樣保留。',
   },
 ];
 
@@ -123,7 +123,7 @@ export function renderPresets(mount, onChange) {
         const t = presets.find(x => x.id === 'transparent');
         t.on = true;
         mount.querySelector('#pset-transparent').checked = true;
-        onChange({ guard: 'At least one output is required. Transparent PNG is back on.' });
+        onChange({ guard: '至少要留一種輸出，已經把「只要去背圖」重新打開。' });
       } else {
         onChange({});
       }
@@ -139,13 +139,13 @@ export function renderPresets(mount, onChange) {
 
     const editBtn = el('button', {
       type: 'button', class: 'preset__edit', 'aria-expanded': 'false', 'aria-controls': panelId,
-      text: 'Edit',
+      text: '調整',
     });
 
     const row = el('div', { class: 'preset__row' }, [label, editBtn]);
     const source = el('p', { class: 'preset__source' }, [
       spec,
-      el('span', { class: 'preset__checked', text: `Checked ${CHECKED_ON}. Edit if yours differs.` }),
+      el('span', { class: 'preset__checked', text: `${CHECKED_ON} 查核。不一樣就自己改。` }),
     ]);
 
     const panel = el('div', { class: 'preset__panel', id: panelId, hidden: true });
@@ -155,7 +155,7 @@ export function renderPresets(mount, onChange) {
       const open = editBtn.getAttribute('aria-expanded') === 'true';
       editBtn.setAttribute('aria-expanded', String(!open));
       panel.hidden = open;
-      editBtn.textContent = open ? 'Edit' : 'Done';
+      editBtn.textContent = open ? '調整' : '收合';
     });
 
     mount.append(el('li', { class: 'preset', 'data-preset': p.id }, [row, source, panel]));
@@ -163,7 +163,7 @@ export function renderPresets(mount, onChange) {
 }
 
 function specLabel(p) {
-  const dims = p.size ? `${p.size}px` : 'native';
+  const dims = p.size ? `${p.size}px` : '原尺寸';
   const pct = p.reframe ? ` ${Math.round(p.fill * 100)}%` : '';
   return `${dims}${pct} ${p.formats.join('+')}`;
 }
@@ -177,22 +177,22 @@ function buildPanel(panel, p, changed) {
       const v = clamp(Math.round(Number(size.value) || p.size), 200, 6000);
       size.value = v; p.size = v; changed();
     });
-    rows.push(field(`sz-${p.id}`, 'Size', size, 'px'));
+    rows.push(field(`sz-${p.id}`, '尺寸', size, 'px'));
 
     const fill = el('input', { class: 'range', type: 'range', min: 60, max: 100, step: 1, value: Math.round(p.fill * 100), id: `fl-${p.id}` });
     const out = el('output', { class: 'field__out mono', text: `${Math.round(p.fill * 100)}%` });
     const syncFill = () => {
       fill.style.setProperty('--fill', `${((fill.value - 60) / 40) * 100}%`);
-      fill.setAttribute('aria-valuetext', `${fill.value} percent of the frame`);
+      fill.setAttribute('aria-valuetext', `佔畫面 ${fill.value}%`);
     };
     fill.addEventListener('input', () => { out.textContent = `${fill.value}%`; syncFill(); });
     fill.addEventListener('change', () => { p.fill = Number(fill.value) / 100; changed(); });
     syncFill();
-    rows.push(el('div', { class: 'field' }, [el('label', { class: 'field__label', for: `fl-${p.id}`, text: 'Product fills' }), fill, out]));
+    rows.push(el('div', { class: 'field' }, [el('label', { class: 'field__label', for: `fl-${p.id}`, text: '商品佔畫面' }), fill, out]));
   }
 
   if (!p.pureWhite) {
-    const wrap = el('div', { class: 'field field--radios' }, [el('span', { class: 'field__label', text: 'Files' })]);
+    const wrap = el('div', { class: 'field field--radios' }, [el('span', { class: 'field__label', text: '檔案格式' })]);
     for (const fmt of ['png', 'jpg']) {
       const cb = el('input', { type: 'checkbox', checked: p.formats.includes(fmt) });
       cb.addEventListener('change', () => {
@@ -212,12 +212,12 @@ function buildPanel(panel, p, changed) {
     const qo = el('output', { class: 'field__out mono', text: `${Math.round(p.jpegQuality * 100)}` });
     const syncQ = () => {
       q.style.setProperty('--fill', `${((q.value - 60) / 40) * 100}%`);
-      q.setAttribute('aria-valuetext', `JPEG quality ${q.value}`);
+      q.setAttribute('aria-valuetext', `JPEG 品質 ${q.value}`);
     };
     q.addEventListener('input', () => { qo.textContent = q.value; syncQ(); });
     q.addEventListener('change', () => { p.jpegQuality = Number(q.value) / 100; changed(); });
     syncQ();
-    rows.push(el('div', { class: 'field' }, [el('label', { class: 'field__label', for: `q-${p.id}`, text: 'JPEG quality' }), q, qo]));
+    rows.push(el('div', { class: 'field' }, [el('label', { class: 'field__label', for: `q-${p.id}`, text: 'JPEG 品質' }), q, qo]));
   }
 
   const tpl = el('input', { class: 'input', type: 'text', value: p.template, id: `tp-${p.id}`, spellcheck: 'false' });
@@ -231,7 +231,7 @@ function buildPanel(panel, p, changed) {
     p.template = tpl.value.trim();
     changed();
   });
-  rows.push(field(`tp-${p.id}`, 'Name', tpl, ''));
+  rows.push(field(`tp-${p.id}`, '檔名', tpl, ''));
 
   panel.append(...rows, el('p', { class: 'preset__source', text: p.note }));
 }

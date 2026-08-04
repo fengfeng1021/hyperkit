@@ -29,12 +29,12 @@ export async function runExport(queue, hooks = {}) {
   const specs = outputSpecs();
   const items = queue.deliverable;
 
-  if (!specs.length) throw new Error('Pick at least one output preset before exporting.');
-  if (!items.length) throw new Error('Nothing is done yet.');
+  if (!specs.length) throw new Error('匯出前至少要勾一種輸出規格。');
+  if (!items.length) throw new Error('還沒有跑完的照片。');
 
   const total = items.length * specs.length;
   let written = 0;
-  const manifest = [['original', 'output', 'platform', 'size', 'mode', 'needs a look', 'note']];
+  const manifest = [['原始檔', '輸出檔', '平台', '尺寸', '模式', '要看一下', '備註']];
   const unreadable = [];
 
   const volumes = [];
@@ -55,7 +55,7 @@ export async function runExport(queue, hooks = {}) {
       bitmap = await queue.openFullSize(item, targetEdge);
     } catch {
       unreadable.push(item.name);
-      manifest.push([item.name, '', '', '', item.mode || '', '', 'could not be re-opened at full size']);
+      manifest.push([item.name, '', '', '', item.mode || '', '', '沒辦法用原尺寸重新開啟']);
       written += specs.length;
       onProgress(written, total);
       continue;
@@ -88,8 +88,8 @@ export async function runExport(queue, hooks = {}) {
           spec.presetName,
           spec.reframe ? `${spec.size}x${spec.size}` : `${canvas.width}x${canvas.height}`,
           item.mode || 'chroma-key',
-          item.flagReason ? 'yes' : 'no',
-          item.flagReason || (item.downscaled ? 'downscaled for export' : ''),
+          item.flagReason ? '是' : '否',
+          item.flagReason || (item.downscaled ? '匯出時已縮圖' : ''),
         ]);
 
         if (canvas !== cut.canvas) { canvas.width = 1; canvas.height = 1; }
@@ -100,7 +100,7 @@ export async function runExport(queue, hooks = {}) {
       cut.canvas.width = 1; cut.canvas.height = 1;
     } catch (err) {
       unreadable.push(item.name);
-      manifest.push([item.name, '', '', '', item.mode || '', '', 'failed while compositing']);
+      manifest.push([item.name, '', '', '', item.mode || '', '', '合成時失敗']);
       written += specs.length;
       onProgress(written, total);
     } finally {
@@ -142,7 +142,9 @@ function newVolume(onFolder, specs) {
    auditable from whichever part you happen to open. */
 function finishVolume(writer, manifest, volumes) {
   const csv = manifest.map(row => row.map(csvCell).join(',')).join('\r\n');
-  writer.addText(`${ROOT}/_manifest.csv`, csv);
+  /* BOM first: the manifest carries Chinese labels and reasons, and Excel
+     reads a bare UTF-8 CSV as the system codepage without it. */
+  writer.addText(`${ROOT}/_manifest.csv`, '﻿' + csv);
   volumes.push(writer.close());
 }
 

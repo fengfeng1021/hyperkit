@@ -13,9 +13,9 @@ import { el, storage, fmtMoney } from './util.js';
 const KEY = 'cutout-forge.rate.v1';
 
 const RATES = [
-  { id: 'plan200', label: 'Subscription, $29 / 200', value: 0.145 },
-  { id: 'payg', label: 'Pay as you go', value: null },
-  { id: 'custom', label: 'Custom rate', value: null },
+  { id: 'plan200', label: '訂閱制，$29 / 200 張', value: 0.145 },
+  { id: 'payg', label: '單張計費', value: null },
+  { id: 'custom', label: '自訂單價', value: null },
 ];
 
 export class Ledger {
@@ -56,12 +56,12 @@ export class Ledger {
     const amount = el('strong', { class: 'ledger__amount mono', id: 'ledgerAmount' }, ['$0.00']);
     const basis = el('p', { class: 'ledger__basis', id: 'ledgerBasis' });
 
-    const select = el('select', { class: 'select', id: 'ledgerRate', 'aria-label': 'Rate you are comparing against' });
+    const select = el('select', { class: 'select', id: 'ledgerRate', 'aria-label': '拿來對照的單價' });
     for (const r of RATES) select.append(el('option', { value: r.id, text: r.label, selected: r.id === this.rateId }));
 
     const custom = el('input', {
       class: 'input', type: 'number', step: '0.005', min: '0', id: 'ledgerCustom',
-      placeholder: '0.145', 'aria-label': 'Your rate per photo in dollars',
+      placeholder: '0.145', 'aria-label': '你每張照片付多少美金',
     });
     const customWrap = el('div', { class: 'ledger__custom' }, [custom]);
 
@@ -92,14 +92,14 @@ export class Ledger {
     }
 
     const why = el('details', { class: 'ledger__why' }, [
-      el('summary', { text: 'Where does this number come from?' }),
+      el('summary', { text: '這個數字怎麼算出來的？' }),
       el('p', {
-        text: 'We do not track competitor pricing. Set the rate you actually pay. The count is your photo count times your rate.',
+        text: '我們不去追蹤別家的定價。這裡填你實際在付的價錢，數字就是你的張數乘上你的單價。',
       }),
     ]);
 
     this.node = el('section', { class: 'rail__section ledger', 'aria-labelledby': 'ledgerLabel' }, [
-      el('h2', { class: 'ledger__label', id: 'ledgerLabel', text: 'You have not spent' }),
+      el('h2', { class: 'ledger__label', id: 'ledgerLabel', text: '你沒有花掉' }),
       amount,
       basis,
       el('div', { class: 'ledger__rate' }, [select]),
@@ -118,9 +118,9 @@ export class Ledger {
     const { amount, basis } = this.els;
 
     if (!this.rateSet) {
-      amount.textContent = 'Set your rate';
+      amount.textContent = '先填單價';
       amount.classList.add('is-unset');
-      basis.textContent = `${this.count} photo${this.count === 1 ? '' : 's'} done. Enter what you pay per photo.`;
+      basis.textContent = `已經完成 ${this.count} 張。填一下你每張付多少錢。`;
       return;
     }
 
@@ -137,7 +137,7 @@ export class Ledger {
     /* The rate keeps three decimals: 0.145 rounded to 0.15 would misstate the
        basis of a number this whole page is asking to be trusted on. */
     const rateText = '$' + this.rate.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 3 });
-    basis.textContent = `${this.count} photo${this.count === 1 ? '' : 's'} at ${rateText} each`;
+    basis.textContent = `${this.count} 張 × 每張 ${rateText}`;
 
     const hundreds = Math.floor(target / 100);
     if (hundreds > this.milestone) {

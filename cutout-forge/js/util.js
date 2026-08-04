@@ -52,18 +52,18 @@ export function fmtMB(n) { return (n / 1048576).toFixed(1); }
 
 export function fmtSeconds(ms) {
   const s = ms / 1000;
-  if (s < 10) return `${s.toFixed(2)} s`;
-  if (s < 60) return `${s.toFixed(1)} s`;
+  if (s < 10) return `${s.toFixed(2)} 秒`;
+  if (s < 60) return `${s.toFixed(1)} 秒`;
   const m = Math.floor(s / 60);
-  return `${m} min ${Math.round(s - m * 60)} s`;
+  return `${m} 分 ${Math.round(s - m * 60)} 秒`;
 }
 
 export function fmtEta(ms) {
   const s = Math.round(ms / 1000);
-  if (s < 60) return `~${s} s left`;
+  if (s < 60) return `大約還要 ${s} 秒`;
   const m = Math.floor(s / 60);
   const r = s - m * 60;
-  return r ? `~${m} min ${r} s left` : `~${m} min left`;
+  return r ? `大約還要 ${m} 分 ${r} 秒` : `大約還要 ${m} 分`;
 }
 
 export function fmtMoney(n) {
@@ -192,19 +192,19 @@ export async function readImageSize(file) {
 export function unsupportedMessage(name) {
   const ext = extOf(name);
   const table = {
-    heic: 'HEIC is not supported by this browser. Convert to JPEG first.',
-    heif: 'HEIF is not supported by this browser. Convert to JPEG first.',
-    psd: 'PSD is a layered document, not a photo. Export a JPEG or PNG first.',
-    tif: 'TIFF is not supported by this browser. Convert to JPEG first.',
-    tiff: 'TIFF is not supported by this browser. Convert to JPEG first.',
-    svg: 'SVG has no pixels to cut out. Use the raster export instead.',
-    raw: 'Camera RAW is not supported by this browser. Export a JPEG first.',
-    cr2: 'Camera RAW is not supported by this browser. Export a JPEG first.',
-    nef: 'Camera RAW is not supported by this browser. Export a JPEG first.',
-    arw: 'Camera RAW is not supported by this browser. Export a JPEG first.',
-    dng: 'Camera RAW is not supported by this browser. Export a JPEG first.',
+    heic: '這個瀏覽器讀不了 HEIC，先轉成 JPEG。',
+    heif: '這個瀏覽器讀不了 HEIF，先轉成 JPEG。',
+    psd: 'PSD 是分層檔，不是照片。先輸出成 JPEG 或 PNG。',
+    tif: '這個瀏覽器讀不了 TIFF，先轉成 JPEG。',
+    tiff: '這個瀏覽器讀不了 TIFF，先轉成 JPEG。',
+    svg: 'SVG 沒有像素可以去背。改用點陣圖輸出。',
+    raw: '這個瀏覽器讀不了相機 RAW，先在相機軟體裡輸出 JPEG。',
+    cr2: '這個瀏覽器讀不了相機 RAW，先在相機軟體裡輸出 JPEG。',
+    nef: '這個瀏覽器讀不了相機 RAW，先在相機軟體裡輸出 JPEG。',
+    arw: '這個瀏覽器讀不了相機 RAW，先在相機軟體裡輸出 JPEG。',
+    dng: '這個瀏覽器讀不了相機 RAW，先在相機軟體裡輸出 JPEG。',
   };
-  return table[ext] || `This browser could not decode ${name}. Convert it to JPEG or PNG first.`;
+  return table[ext] || `這個瀏覽器解不開 ${name}，先轉成 JPEG 或 PNG。`;
 }
 
 export const sleep = ms => new Promise(r => setTimeout(r, ms));

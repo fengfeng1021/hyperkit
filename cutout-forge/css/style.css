@@ -534,6 +534,10 @@ canvas { display: block; }
   max-width: 72ch;
   margin: var(--sp-7) auto 0;
   text-align: center;
+  /* Chinese breaks between any two characters, so an unbalanced last line
+     strands two or three of them under a full one. Progressive: browsers
+     without it wrap exactly as before. */
+  text-wrap: balance;
   font-size: var(--fs-meta);
   line-height: var(--lh-body);
   letter-spacing: var(--tr-meta);
@@ -1214,6 +1218,17 @@ canvas { display: block; }
   .statusrail { gap: var(--sp-4); padding-inline: var(--sp-4); }
   .statusrail__readouts { overflow-x: auto; gap: var(--sp-4); }
   #stMemory { display: none; }
+  /* The bar is one line tall by declaration. A Chinese alert is dense enough
+     to reach a second line here, which then spilled over the top edge and
+     sat on the readouts. Truncate the tail instead: the assertive live
+     region still carries the whole sentence to a screen reader. */
+  .statusrail__alert {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+  }
+  .statusrail__alert.is-warn::before { display: none; }
 
   .shortcuts__cols { grid-template-columns: minmax(0, 1fr); gap: var(--sp-5); }
   .kv__row { grid-template-columns: minmax(0, 1fr) auto; }

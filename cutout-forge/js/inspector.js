@@ -86,7 +86,7 @@ export class Inspector {
     this.feather.addEventListener('input', () => {
       const v = Number(this.feather.value);
       this.featherOut.textContent = `${v} px`;
-      this.feather.setAttribute('aria-valuetext', `${v} pixel${v === 1 ? '' : 's'}`);
+      this.feather.setAttribute('aria-valuetext', `${v} 像素`);
       this.feather.style.setProperty('--fill', `${(v / 6) * 100}%`);
       if (this.item) { this.item.feather = v; this.repaint(); }
     });
@@ -95,7 +95,7 @@ export class Inspector {
     this.despill.addEventListener('input', () => {
       const v = Number(this.despill.value);
       this.despillOut.textContent = `${v}%`;
-      this.despill.setAttribute('aria-valuetext', `${v} percent`);
+      this.despill.setAttribute('aria-valuetext', `${v}%`);
       this.despill.style.setProperty('--fill', `${v}%`);
       if (this.item) { this.item.despill = v / 100; this.repaint(); }
     });
@@ -119,7 +119,7 @@ export class Inspector {
     if (this.splitTo) this.splitTo(this.split);
     else this.stage.style.setProperty('--split', `${this.split}%`);
     this.handle.setAttribute('aria-valuenow', String(Math.round(this.split)));
-    this.handle.setAttribute('aria-valuetext', `${Math.round(this.split)} percent`);
+    this.handle.setAttribute('aria-valuetext', `${Math.round(this.split)}%`);
   }
 
   setMatte(value) {
@@ -161,7 +161,7 @@ export class Inspector {
     this.despill.value = String(Math.round(item.despill * 100));
     this.despill.dispatchEvent(new Event('input'));
 
-    this.retryBtn.textContent = item.mode === 'chroma-key' ? 'Retry with the model' : 'Retry with chroma-key';
+    this.retryBtn.textContent = item.mode === 'chroma-key' ? '改用模型重跑' : '改用 chroma-key 重跑';
     this.setSplit(50);
     this.paintMeasure();
 
@@ -180,7 +180,7 @@ export class Inspector {
     } catch {
       this.viewW = 0; this.viewH = 0;
       this.nameEl.textContent = item.name;
-      this.dimsEl.textContent = 'This photo could not be re-opened for inspection.';
+      this.dimsEl.textContent = '這張照片沒辦法重新開起來檢視。';
     }
   }
 
@@ -217,15 +217,15 @@ export class Inspector {
     const it = this.item;
     if (!it) return;
     const rows = [
-      ['Mode', it.mode || 'not run yet', false],
-      ['Time', it.ms ? fmtSeconds(it.ms) : 'not run yet', false],
-      ['Coverage', `${(it.coverage * 100).toFixed(1)}%`, false],
-      ['Soft pixels', `${(it.soft * 100).toFixed(1)}%`, it.soft > 0.06],
-      ['Background', it.bgHex || 'not sampled', false],
+      ['模式', it.mode || '還沒跑', false],
+      ['耗時', it.ms ? fmtSeconds(it.ms) : '還沒跑', false],
+      ['商品佔比', `${(it.coverage * 100).toFixed(1)}%`, false],
+      ['柔邊像素', `${(it.soft * 100).toFixed(1)}%`, it.soft > 0.06],
+      ['背景色', it.bgHex || '沒取樣', false],
     ];
-    if (it.spread) rows.push(['Bg spread', it.spread.toFixed(1), it.spread > 12]);
-    if (it.flagReason) rows.push(['Needs a look', it.flagReason, true]);
-    if (it.error) rows.push(['Error', it.error, true]);
+    if (it.spread) rows.push(['背景色差', it.spread.toFixed(1), it.spread > 12]);
+    if (it.flagReason) rows.push(['要看一下', it.flagReason, true]);
+    if (it.error) rows.push(['錯誤', it.error, true]);
 
     this.measure.textContent = '';
     for (const [k, v, fault] of rows) {

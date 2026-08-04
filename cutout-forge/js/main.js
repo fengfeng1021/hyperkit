@@ -136,8 +136,8 @@ function drainAlerts() {
 /* --------------------------------------------------------------- tiles */
 
 const STATUS_TEXT = {
-  queued: 'waiting', decoding: 'reading', running: 'running', done: 'done',
-  flagged: 'needs a look', failed: 'failed', skipped: 'skipped', paused: 'held',
+  queued: '等待中', decoding: '讀取中', running: '處理中', done: '完成',
+  flagged: '要看一下', failed: '失敗', skipped: '已跳過', paused: '暫停中',
 };
 
 const LAMP = {
@@ -147,14 +147,14 @@ const LAMP = {
 };
 
 function buildTile(item) {
-  const result = el('canvas', { class: 'tile__layer tile__result', role: 'img', 'aria-label': `Cutout of ${item.name}` });
+  const result = el('canvas', { class: 'tile__layer tile__result', role: 'img', 'aria-label': `${item.name} 的去背結果` });
   const original = el('canvas', { class: 'tile__layer tile__original', role: 'presentation' });
   const slot = el('div', { class: 'tile__slot' });
   const scan = el('div', { class: 'tile__scan' });
   const runline = el('div', { class: 'tile__runline' });
   const flag = el('span', { class: 'tile__flag', hidden: true });
   const msg = el('p', { class: 'tile__msg', hidden: true });
-  const hold = el('span', { class: 'tile__hold', hidden: true, text: 'Hold' });
+  const hold = el('span', { class: 'tile__hold', hidden: true, text: '暫停' });
   const check = el('span', { class: 'tile__check' });
 
   const lamp = el('span', { class: 'lamp lamp--hollow' });
@@ -163,9 +163,9 @@ function buildTile(item) {
   const chrome = el('div', { class: 'tile__chrome' }, [lamp, name, dim]);
 
   const ops = el('div', { class: 'tile__ops' }, [
-    el('button', { type: 'button', class: 'tile__op', 'data-op': 'open', text: 'Open', tabindex: '-1' }),
-    el('button', { type: 'button', class: 'tile__op', 'data-op': 'retry', text: 'Retry', tabindex: '-1' }),
-    el('button', { type: 'button', class: 'tile__op', 'data-op': 'remove', text: 'Remove', tabindex: '-1' }),
+    el('button', { type: 'button', class: 'tile__op', 'data-op': 'open', text: '開啟', tabindex: '-1' }),
+    el('button', { type: 'button', class: 'tile__op', 'data-op': 'retry', text: '重跑', tabindex: '-1' }),
+    el('button', { type: 'button', class: 'tile__op', 'data-op': 'remove', text: '移除', tabindex: '-1' }),
   ]);
 
   const li = el('li', {
@@ -186,7 +186,7 @@ function updateTile(item) {
   t.flag.hidden = item.status !== 'flagged';
   t.hold.hidden = item.status !== 'paused';
 
-  if (item.status === 'decoding') t.name.textContent = 'Reading…';
+  if (item.status === 'decoding') t.name.textContent = '讀取中…';
   else t.name.textContent = item.name;
 
   if (item.width) t.dim.textContent = `${item.width}×${item.height}`;
@@ -196,8 +196,8 @@ function updateTile(item) {
   t.msg.hidden = !failing;
   if (failing) t.msg.textContent = item.error || item.skipReason;
 
-  const label = `${item.name}, ${STATUS_TEXT[item.status] || item.status}` +
-    (item.width ? `, ${item.width} by ${item.height}` : '');
+  const label = `${item.name}，${STATUS_TEXT[item.status] || item.status}` +
+    (item.width ? `，${item.width} × ${item.height}` : '');
   t.li.setAttribute('aria-label', label);
 }
 
@@ -369,14 +369,14 @@ function refreshWallNote() {
   note.textContent = '';
   if (c.pending > 0) {
     note.append(
-      'Each cyan band is one photo being measured, top edge to bottom. ',
+      '每一道青色光帶，是一張照片正在從上緣往下被量測。已經跑完 ',
       el('span', { class: 'mono', text: `${c.finished} / ${c.total}` }),
-      ' resolved. Nothing has left this tab.',
+      ' 張。沒有任何東西離開過這個分頁。',
     );
   } else {
     note.append(
-      'The checkerboard is real transparency, not a white background. ',
-      'Open any photo to check its edge against the original, then export the whole wall at your platform sizes.',
+      '棋盤格是真的透明，不是白底。',
+      '點任一張跟原圖比對邊緣，沒問題就整面牆一次匯出成各平台尺寸。',
     );
   }
   note.hidden = false;
@@ -418,7 +418,7 @@ function applyBands() {
   }
   if (!groups[1].length && !groups[2].length && !groups[3].length) return false;
 
-  const titles = ['Ready', 'Needs a look', 'Failed', 'Skipped'];
+  const titles = ['可以匯出', '要看一下', '失敗', '已跳過'];
   const cls = ['', 'band-label--flagged', 'band-label--failed', ''];
   dom.matrix.textContent = '';
   groups.forEach((group, i) => {
@@ -445,7 +445,7 @@ async function intake(files) {
   if (!images.length) {
     dom.floor.classList.add('is-reject');
     setTimeout(() => dom.floor.classList.remove('is-reject'), 2400);
-    notify('warn', 'No images in this drop. Supported: JPEG, PNG, WebP, AVIF.');
+    notify('warn', '這次丟進來的沒有圖片。這裡吃 JPEG、PNG、WebP、AVIF。');
     return;
   }
   const added = queue.add(images);
@@ -464,7 +464,7 @@ async function loadSamples() {
   btn.setAttribute('aria-busy', 'true');
   btn.classList.add('btn--scanning');
   const label = btn.textContent;
-  btn.textContent = 'Drawing samples…';
+  btn.textContent = '正在畫範例…';
   try {
     const files = await buildSamples((done, total) => {
       btn.style.setProperty('--meter', `${(done / total) * 100}%`);
@@ -474,13 +474,13 @@ async function loadSamples() {
        answer arrives now, and we say so out loud. */
     if (engine.cached !== 'yes' && engine.modelStatus !== 'ready') {
       engine.useChroma('sample run');
-      notify('info', `${SAMPLE_COUNT} samples loaded. Running chroma-key: no download, exact on these flat backdrops. The 44 MB model handles fur, hair and glass — engine chip, top right.`);
+      notify('info', `載入 ${SAMPLE_COUNT} 張範例。現在跑的是 chroma-key：不用下載，在這種純色背景上很準。毛料、頭髮、玻璃要靠那個 44 MB 的模型，從右上角的引擎標籤切過去。`);
     } else {
-      notify('info', `${SAMPLE_COUNT} sample products loaded. They run through the same pipeline as your own photos.`);
+      notify('info', `載入 ${SAMPLE_COUNT} 張範例商品。它們走的流程跟你自己的照片一模一樣。`);
     }
     await intake(files);
   } catch (err) {
-    notify('error', 'The sample photos could not be drawn in this browser. Choose your own photos instead.');
+    notify('error', '這個瀏覽器畫不出範例照片。直接選你自己的照片試試看。');
   } finally {
     /* Restored even on success: clearing the queue brings the bed back and
        the button has to be usable again. */
@@ -506,7 +506,7 @@ async function beginRun() {
 async function warmUp() {
   dom.warmup.hidden = false;
   dom.warmup.classList.remove('is-failed');
-  dom.warmupSub.textContent = `Downloading the cutout model, ${engine.weightsMB} MB. This happens once.`;
+  dom.warmupSub.textContent = `正在下載去背模型，${engine.weightsMB} MB。只會下載這一次。`;
   dom.warmupReadout.textContent = `0% · 0.0 / ${engine.weightsMB}.0 MB`;
   dom.warmupFill.style.width = '0%';
   resetWarmupActions();
@@ -520,15 +520,15 @@ async function warmUp() {
       } else {
         dom.warmupBar.classList.add('bar--indeterminate');
         dom.warmupBar.removeAttribute('aria-valuenow');
-        dom.warmupReadout.textContent = `${fmtMB(w.loaded)} MB downloaded · Size unknown`;
+        dom.warmupReadout.textContent = `已下載 ${fmtMB(w.loaded)} MB · 總大小未知`;
       }
     },
     onStall: () => {
-      dom.warmupSub.textContent = 'Download stalled.';
+      dom.warmupSub.textContent = '下載卡住了。';
       dom.warmupActions.textContent = '';
-      const retry = el('button', { type: 'button', class: 'btn btn--ghost btn--sm', text: 'Retry' });
+      const retry = el('button', { type: 'button', class: 'btn btn--ghost btn--sm', text: '重試' });
       retry.addEventListener('click', () => { dom.warmup.hidden = true; warmUp().then(() => queue.start()); });
-      const now = el('button', { type: 'button', class: 'btn btn--primary btn--sm', text: 'Use chroma-key now' });
+      const now = el('button', { type: 'button', class: 'btn btn--primary btn--sm', text: '現在改用 chroma-key' });
       now.addEventListener('click', skipWarmup);
       dom.warmupActions.append(retry, now);
     },
@@ -536,8 +536,8 @@ async function warmUp() {
 
   if (!ok) {
     dom.warmup.classList.add('is-failed');
-    dom.warmupSub.textContent = 'Could not reach the model host. Chroma-key mode is on and the queue is running.';
-    notify('warn', 'Could not reach the model host. Chroma-key mode is on and the queue is running.');
+    dom.warmupSub.textContent = '連不上模型主機。已經切到 chroma-key 模式，佇列照跑。';
+    notify('warn', '連不上模型主機。已經切到 chroma-key 模式，佇列照跑。');
     setTimeout(() => { dom.warmup.hidden = true; }, 6000);
     queue.start();
     return false;
@@ -549,7 +549,7 @@ async function warmUp() {
 
 function resetWarmupActions() {
   dom.warmupActions.textContent = '';
-  const skip = el('button', { type: 'button', class: 'btn btn--ghost btn--sm', id: 'btnSkipWarmup', text: 'Skip and use chroma-key' });
+  const skip = el('button', { type: 'button', class: 'btn btn--ghost btn--sm', id: 'btnSkipWarmup', text: '跳過，直接用 chroma-key' });
   skip.addEventListener('click', skipWarmup);
   dom.warmupActions.append(skip);
 }
@@ -557,7 +557,7 @@ function resetWarmupActions() {
 function skipWarmup() {
   engine.useChroma('skipped by the operator');
   dom.warmup.hidden = true;
-  notify('info', 'Chroma-key mode. Instant and exact on flat studio backdrops; it cannot follow fur, hair or glass. Switch back to the model any time from the engine chip.');
+  notify('info', '已切到 chroma-key 模式。按下去馬上跑，純色棚拍背景很乾淨；毛料、頭髮、玻璃它跟不了。想換回模型，隨時從引擎標籤切。');
   queue.start();
   refreshTransport();
 }
@@ -577,13 +577,13 @@ async function retryOne(item, mode) {
 
 function refreshSources() {
   const c = queue.counts;
-  dom.sourcesCount.textContent = `${c.total} photo${c.total === 1 ? '' : 's'} loaded`;
+  dom.sourcesCount.textContent = `已載入 ${c.total} 張`;
   const skipped = queue.items.filter(i => i.status === 'skipped');
   dom.skippedBox.hidden = skipped.length === 0;
-  dom.skippedSummary.textContent = `${skipped.length} file${skipped.length === 1 ? '' : 's'} skipped`;
+  dom.skippedSummary.textContent = `跳過 ${skipped.length} 個檔案`;
   dom.skippedList.textContent = '';
   for (const s of skipped) dom.skippedList.append(el('li', { text: `${s.name} · ${s.skipReason}` }));
-  dom.btnClearAll.textContent = clearArmed ? `Discard ${c.total} photos` : 'Clear the queue';
+  dom.btnClearAll.textContent = clearArmed ? `再按一次，丟掉 ${c.total} 張` : '清空佇列';
   dom.btnClearAll.classList.toggle('btn--fault', clearArmed);
 }
 
@@ -592,30 +592,30 @@ function refreshTransport() {
   const st = queue.state();
 
   if (queue.running) {
-    dom.btnRunLabel.textContent = 'Pause';
+    dom.btnRunLabel.textContent = '暫停';
     dom.btnRun.firstElementChild.replaceWith(svgIcon('i-pause'));
   } else if (c.paused > 0) {
-    dom.btnRunLabel.textContent = `Resume (${c.paused} left)`;
+    dom.btnRunLabel.textContent = `繼續（還有 ${c.paused} 張）`;
     dom.btnRun.firstElementChild.replaceWith(svgIcon('i-play'));
   } else {
-    dom.btnRunLabel.textContent = 'Start';
+    dom.btnRunLabel.textContent = '開始';
     dom.btnRun.firstElementChild.replaceWith(svgIcon('i-play'));
   }
   dom.btnRun.disabled = c.pending === 0 && !queue.running;
 
   dom.btnRetryFailed.hidden = c.failed === 0;
-  dom.btnRetryLabel.textContent = `Retry ${c.failed} failed`;
+  dom.btnRetryLabel.textContent = `重跑 ${c.failed} 張失敗的`;
 
   const pct = c.total ? (c.finished / c.total) * 100 : 0;
   dom.queueFill.style.width = `${pct}%`;
   dom.queueBar.setAttribute('aria-valuenow', String(Math.round(pct)));
   dom.queueCounts.textContent =
-    `${c.finished} / ${c.total}` + (c.failed ? ` · ${c.failed} failed` : '') + (c.flagged ? ` · ${c.flagged} flagged` : '');
+    `${c.finished} / ${c.total}` + (c.failed ? ` · ${c.failed} 張失敗` : '') + (c.flagged ? ` · ${c.flagged} 張要看` : '');
 
   const eta = st.eta;
   dom.queueEta.textContent = c.pending === 0
-    ? (c.total ? 'Batch complete' : 'Nothing queued')
-    : (eta === null ? 'Measuring…' : fmtEta(eta));
+    ? (c.total ? '這批跑完了' : '佇列是空的')
+    : (eta === null ? '量測中…' : fmtEta(eta));
 
   refreshWall();
 }
@@ -623,11 +623,11 @@ function refreshTransport() {
 function refreshStatus() {
   const c = queue.counts;
   dom.stEngine.textContent = engine.mode === 'chroma'
-    ? 'engine chroma-key'
-    : `engine ${engine.device}${engine.modelStatus === 'ready' ? '' : ' (model not loaded)'}`;
-  dom.stConcurrency.textContent = `concurrency ${queue.concurrency} of ${engine.cores || '?'} cores`;
-  dom.stMemory.textContent = memoryEased ? 'memory eased' : 'memory nominal';
-  dom.stQueue.textContent = c.total ? `queue ${c.finished} / ${c.total}` : 'queue empty';
+    ? '引擎 chroma-key'
+    : `引擎 ${engine.device}${engine.modelStatus === 'ready' ? '' : '（模型未載入）'}`;
+  dom.stConcurrency.textContent = `並行 ${queue.concurrency} / ${engine.cores || '?'} 核`;
+  dom.stMemory.textContent = memoryEased ? '記憶體已降載' : '記憶體正常';
+  dom.stQueue.textContent = c.total ? `佇列 ${c.finished} / ${c.total}` : '佇列是空的';
 }
 
 function refreshExportButton() {
@@ -638,12 +638,12 @@ function refreshExportButton() {
   dom.btnExport.classList.remove('is-done', 'is-error');
   if (!ready || !presetCount) {
     dom.btnExport.disabled = true;
-    dom.btnExportLabel.textContent = 'Export';
-    dom.exportHint.textContent = ready ? 'Pick at least one output preset.' : 'Nothing is done yet.';
+    dom.btnExportLabel.textContent = '匯出';
+    dom.exportHint.textContent = ready ? '至少勾一種輸出規格。' : '還沒有跑完的照片。';
   } else {
     dom.btnExport.disabled = false;
-    dom.btnExportLabel.textContent = `Export ${ready} photo${ready === 1 ? '' : 's'} · ${presetCount} preset${presetCount === 1 ? '' : 's'}`;
-    dom.exportHint.textContent = `${plannedFileCount(queue)} files, packed in folders by platform, plus _manifest.csv.`;
+    dom.btnExportLabel.textContent = `匯出 ${ready} 張 · ${presetCount} 種規格`;
+    dom.exportHint.textContent = `${plannedFileCount(queue)} 個檔案，依平台分好資料夾，另附 _manifest.csv。`;
   }
 }
 
@@ -685,32 +685,32 @@ async function doExport() {
         dom.exportTree.scrollTop = dom.exportTree.scrollHeight;
       },
       onProgress: (done, total) => {
-        dom.btnExportLabel.textContent = `Packing ${done} / ${total} files`;
+        dom.btnExportLabel.textContent = `打包中 ${done} / ${total} 個檔案`;
         dom.btnExport.style.setProperty('--meter', `${(done / total) * 100}%`);
       },
       onStage: (stage) => {
-        if (stage === 'writing') dom.btnExportLabel.textContent = 'Writing forge-export.zip';
+        if (stage === 'writing') dom.btnExportLabel.textContent = '正在寫入 forge-export.zip';
       },
     });
 
     result.blobs.forEach((blob, i) => saveBlob(blob, result.names[i]));
 
     if (result.blobs.length > 1) {
-      notify('info', `This export is over 1.9 GB. Split into ${result.blobs.length} files.`);
+      notify('info', `這次匯出超過 1.9 GB，拆成 ${result.blobs.length} 個檔案。`);
     }
     if (result.unreadable.length) {
-      notify('warn', `${result.unreadable.length} photos could not be re-opened at full size and were left out. They are listed in _manifest.csv.`);
+      notify('warn', `有 ${result.unreadable.length} 張沒辦法用原尺寸重新開啟，這次沒有匯出。名單在 _manifest.csv 裡。`);
     }
 
     dom.btnExport.classList.add('is-done');
-    dom.btnExportLabel.textContent = 'Saved · Export again';
+    dom.btnExportLabel.textContent = '已存檔 · 再匯出一次';
     dom.nextStep.hidden = false;
     hooks.onExportDone(result);
     setTimeout(() => { exporting = false; refreshExportButton(); }, 3000);
   } catch (err) {
     dom.btnExport.classList.add('is-error');
-    dom.btnExportLabel.textContent = 'Export failed. Try fewer presets.';
-    notify('error', String((err && err.message) || 'Export failed.') + ' Nothing was lost, the queue is untouched.');
+    dom.btnExportLabel.textContent = '匯出失敗，少勾幾種規格再試';
+    notify('error', String((err && err.message) || '匯出失敗。') + '東西都還在，佇列沒有被動到。');
     dom.btnExport.addEventListener('click', () => { exporting = false; refreshExportButton(); }, { once: true });
   } finally {
     dom.btnExport.removeAttribute('aria-busy');
@@ -730,9 +730,9 @@ function removeItems(ids) {
   if (!queue.items.length) { setView('bed'); return; }
 
   clearTimeout(undoTimer);
-  const label = undo.removed.length === 1 ? undo.removed[0].name : `${undo.removed.length} photos`;
-  notify('info', `Removed ${label}.`, {
-    label: 'Undo',
+  const label = undo.removed.length === 1 ? undo.removed[0].name : `${undo.removed.length} 張照片`;
+  notify('info', `已移除 ${label}。`, {
+    label: '復原',
     run: () => { if (queue.undoRemove()) { rebuildMatrix(); setView('matrix'); refreshAll(); } },
   });
   undoTimer = setTimeout(() => { queue._undo = null; }, 8000);
@@ -885,46 +885,46 @@ dom.shortcuts.addEventListener('click', (ev) => {
 /* ------------------------------------------------------------ engine chip */
 
 const MODEL_RUNNING_NOTE =
-  'Running now. Your photos are decoded, cut out and resized in this tab — only the model weights were ever downloaded.';
+  '現在跑的就是它。你的照片在這個分頁裡解碼、去背、縮放 — 從頭到尾只有模型權重是下載進來的。';
 
 /* Why the reduced path is the one running. engine.lastError carries the
    reason a switch was made; each one gets a sentence a seller can act on. */
 const CHROMA_REASONS = {
   'sample run':
-    'Running now because the sample products are drawn on a flat backdrop, so you get results in seconds instead of after a 44 MB download. Your own photos can use either path.',
+    '現在跑這個，是因為範例商品畫在純色背景上，幾秒就有結果，不用先等 44 MB 下載完。你自己的照片兩條路都能走。',
   'skipped by the operator':
-    'Running now because you skipped the download. Switch below whenever you want the model.',
+    '現在跑這個，是因為你跳過了下載。想要模型的時候，從下面切回去。',
   'chosen by the operator':
-    'Running now because you picked it. Switch back below at any time.',
+    '現在跑這個，是因為你自己選的。想換回來隨時從下面切。',
 };
 
 function chromaReason() {
   return CHROMA_REASONS[engine.lastError]
-    || 'Running now because the model could not be downloaded, so the queue took the path that needs no download. Every photo still gets cut out — try the model again below when you are back online.';
+    || '現在跑這個，是因為模型下載不下來，佇列改走不需要下載的那條路。每張照片還是會去背 — 網路回來以後，從下面再試一次模型。';
 }
 
 function paintEngine() {
   const s = engine.chipState();
   const text = {
-    probing: 'Checking hardware',
+    probing: '正在確認硬體',
     webgpu: 'WebGPU',
-    wasm: 'WASM (slower)',
-    chroma: 'Chroma-key mode',
-    warming: engine.warm.knownTotal ? `Warming ${Math.round(engine.warm.pct)}%` : 'Warming',
-    'offline-ready': 'WebGPU · offline',
-  }[s] || 'Checking hardware';
+    wasm: 'WASM（較慢）',
+    chroma: 'Chroma-key 模式',
+    warming: engine.warm.knownTotal ? `暖機 ${Math.round(engine.warm.pct)}%` : '暖機中',
+    'offline-ready': 'WebGPU · 可離線',
+  }[s] || '正在確認硬體';
 
   dom.engineChip.className = `chip chip--${s}`;
-  dom.engineChipText.textContent = s === 'offline-ready' && engine.device !== 'webgpu' ? 'WASM · offline' : text;
+  dom.engineChipText.textContent = s === 'offline-ready' && engine.device !== 'webgpu' ? 'WASM · 可離線' : text;
   if (s === 'warming') dom.engineChip.style.setProperty('--warm', `${engine.warm.pct}%`);
 
   dom.engEngine.textContent = engine.mode === 'chroma'
-    ? 'chroma-key (no download)'
-    : `${engine.device} (${engine.device === 'webgpu' ? 'fp16' : 'q8'}, ${engine.weightsMB} MB)`;
+    ? 'chroma-key（不用下載）'
+    : `${engine.device}（${engine.device === 'webgpu' ? 'fp16' : 'q8'}，${engine.weightsMB} MB）`;
   dom.engCached.textContent = {
-    yes: 'yes, in Cache Storage', no: 'not yet', unavailable: 'cache unavailable in this browser', unknown: 'checking',
+    yes: '有，在 Cache Storage 裡', no: '還沒有', unavailable: '這個瀏覽器不給用快取', unknown: '確認中',
   }[engine.cached];
-  dom.engConcurrency.textContent = `${queue.concurrency} of ${engine.cores || '?'} cores`;
+  dom.engConcurrency.textContent = `${queue.concurrency} / ${engine.cores || '?'} 核`;
   /* Both paths are always described in the popover; this marks the live one
      and says why it is live. A fallback that arrives without a reason is
      indistinguishable from a fault, and this one is not a fault. */
@@ -933,7 +933,7 @@ function paintEngine() {
   dom.modeModel.classList.toggle('is-active', !chroma);
   dom.engineModeWhy.textContent = chroma ? chromaReason() : MODEL_RUNNING_NOTE;
 
-  dom.btnModeToggle.textContent = chroma ? 'Download the model instead (44 MB)' : 'Switch to chroma-key mode';
+  dom.btnModeToggle.textContent = chroma ? `改成下載模型（${engine.weightsMB} MB）` : '改用 chroma-key 模式';
   dom.bedEngine.textContent = engine.bedLine();
   dom.bedEngine.classList.toggle('is-fault', !engine.caps.bitmap);
   refreshStatus();
@@ -948,8 +948,8 @@ dom.fileInput.addEventListener('change', () => {
   const files = Array.from(dom.fileInput.files || []);
   dom.fileInput.value = '';
   if (files.length) {
-    dom.btnChoose.textContent = `Reading ${files.length} file${files.length === 1 ? '' : 's'}…`;
-    intake(files).finally(() => { dom.btnChoose.textContent = 'Choose photos'; });
+    dom.btnChoose.textContent = `讀取 ${files.length} 個檔案…`;
+    intake(files).finally(() => { dom.btnChoose.textContent = '選擇照片'; });
   }
 });
 
@@ -994,7 +994,7 @@ dom.btnModeToggle.addEventListener('click', async () => {
     else if (engine.modelStatus !== 'ready') warmUp();
   } else {
     engine.useChroma('chosen by the operator');
-    notify('info', 'Chroma-key mode. Instant and exact on flat studio backdrops; it cannot follow fur, hair or glass. Switch back to the model any time from the engine chip.');
+    notify('info', '已切到 chroma-key 模式。按下去馬上跑，純色棚拍背景很乾淨；毛料、頭髮、玻璃它跟不了。想換回模型，隨時從引擎標籤切。');
   }
   paintEngine();
 });
@@ -1003,8 +1003,8 @@ dom.btnClearCache.addEventListener('click', async () => {
   dom.engineDetails.open = false;
   const ok = await engine.clearCache();
   notify(ok ? 'info' : 'warn', ok
-    ? 'Cached model cleared. It will download again the next time you run the model.'
-    : 'This browser does not expose Cache Storage, so there was nothing to clear.');
+    ? '已清掉快取的模型。下次要用模型時會重新下載一次。'
+    : '這個瀏覽器沒開放 Cache Storage，本來就沒有東西可以清。');
   paintEngine();
 });
 
@@ -1051,7 +1051,7 @@ window.addEventListener('dragenter', (ev) => {
   dom.floor.classList.add('is-dragover');
   if (view === 'bed') {
     const n = ev.dataTransfer.items?.length || 0;
-    dom.bedLead.textContent = n ? `Release to load ${n} file${n === 1 ? '' : 's'}.` : 'Release to load these files.';
+    dom.bedLead.textContent = n ? `放手就載入 ${n} 個檔案。` : '放手就載入這些檔案。';
   }
 });
 window.addEventListener('dragover', (ev) => {
@@ -1072,7 +1072,7 @@ window.addEventListener('drop', (ev) => {
 });
 function endDrag() {
   dom.floor.classList.remove('is-dragover');
-  dom.bedLead.textContent = 'Everything runs in this browser tab. No account, no credits, no upload limit.';
+  dom.bedLead.textContent = '全部在這個瀏覽器分頁裡跑完。不用註冊、不扣點數、不限張數。';
 }
 
 /* Eight minutes of work does not disappear to a stray tab close. */
@@ -1093,7 +1093,7 @@ queue.on('transport', () => { refreshTransport(); refreshStatus(); });
 queue.on('alert', ({ kind, text }) => notify(kind, text));
 queue.on('pressure', ({ concurrency, reason }) => {
   memoryEased = true;
-  notify('info', `Concurrency lowered to ${concurrency} to keep memory stable.`);
+  notify('info', `並行數降到 ${concurrency}，讓記憶體穩一點。`);
   void reason;
   refreshStatus();
   paintEngine();
@@ -1102,11 +1102,11 @@ queue.on('complete', () => {
   const c = queue.counts;
   refreshAll();
   const banded = applyBands();
-  const parts = [`All ${c.total} photos done.`];
-  if (c.flagged) parts.push(`${c.flagged} need a look.`);
-  if (c.failed) parts.push(`${c.failed} failed.`);
-  parts.push('Ready to export.');
-  notify(c.failed || c.flagged ? 'warn' : 'info', parts.join(' '));
+  const parts = [`${c.total} 張全部跑完。`];
+  if (c.flagged) parts.push(`${c.flagged} 張要看一下。`);
+  if (c.failed) parts.push(`${c.failed} 張失敗。`);
+  parts.push('可以匯出了。');
+  notify(c.failed || c.flagged ? 'warn' : 'info', parts.join(''));
   hooks.onBatchComplete({ counts: c, banded });
 });
 
@@ -1123,7 +1123,7 @@ async function boot() {
   savePresets();
 
   if (storage.broken) {
-    notify('warn', 'Settings could not be saved in this browser. They will reset when you close the tab.');
+    notify('warn', '這個瀏覽器沒辦法存設定，關掉分頁後會回到預設值。');
   }
 
   await engine.probe();
@@ -1134,10 +1134,10 @@ async function boot() {
   if (!engine.caps.bitmap) {
     dom.btnChoose.disabled = true;
     dom.btnSamples.disabled = true;
-    notify('error', 'This browser cannot decode images off the main thread. Try Chrome, Edge, or Firefox 110+.');
+    notify('error', '這個瀏覽器沒辦法在背景解碼圖片。換 Chrome、Edge，或 Firefox 110 以上。');
   }
   if (engine.cached === 'unavailable' && engine.caps.bitmap) {
-    notify('info', 'Private mode: the model will download again next time. Everything else works.');
+    notify('info', '無痕模式：下次開還是要重新下載一次模型。其他功能都正常。');
   }
 
   setView('bed');

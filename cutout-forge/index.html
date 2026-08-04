@@ -113,8 +113,8 @@ unreviewed and undocumented is unfinished; this build ends with the finish revie
     <!-- warm-up bar: pushes the grid down, never covers it -->
     <section class="warmup" id="warmup" hidden aria-labelledby="warmupTitle">
       <div class="warmup__text">
-        <h2 class="warmup__title" id="warmupTitle">Warming the forge</h2>
-        <p class="warmup__sub" id="warmupSub">Downloading the cutout model, 44 MB. This happens once.</p>
+        <h2 class="warmup__title" id="warmupTitle">熔爐加溫中</h2>
+        <p class="warmup__sub" id="warmupSub">正在下載去背模型，44 MB。只會下載這一次。</p>
       </div>
       <div class="warmup__meter">
         <div class="bar" role="progressbar" aria-labelledby="warmupTitle" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="warmupBar">
@@ -123,7 +123,7 @@ unreviewed and undocumented is unfinished; this build ends with the finish revie
         <p class="warmup__readout mono" id="warmupReadout">0% &middot; 0.0 / 44.0 MB</p>
       </div>
       <div class="warmup__actions" id="warmupActions">
-        <button type="button" class="btn btn--ghost btn--sm" id="btnSkipWarmup">Skip and use chroma-key</button>
+        <button type="button" class="btn btn--ghost btn--sm" id="btnSkipWarmup">跳過，直接用 chroma-key</button>
       </div>
     </section>
 
@@ -135,19 +135,19 @@ unreviewed and undocumented is unfinished; this build ends with the finish revie
       <span class="bed__mark bed__mark--br" aria-hidden="true"></span>
 
       <div class="bed__stack">
-        <h2 class="bed__headline" id="bedHeadline">Cut out 200 product photos without uploading one.</h2>
-        <p class="bed__lead" id="bedLead">Everything runs in this browser tab. No account, no credits, no upload limit.</p>
+        <h2 class="bed__headline" id="bedHeadline">200 張商品照去背，一張都不用上傳。</h2>
+        <p class="bed__lead" id="bedLead">全部在這個瀏覽器分頁裡跑完。不用註冊、不扣點數、不限張數。</p>
         <div class="bed__actions">
-          <button type="button" class="btn btn--primary btn--lg" id="btnChoose">Choose photos</button>
-          <button type="button" class="btn btn--ghost btn--lg" id="btnSamples">Load 6 sample products</button>
+          <button type="button" class="btn btn--primary btn--lg" id="btnChoose">選擇照片</button>
+          <button type="button" class="btn btn--ghost btn--lg" id="btnSamples">載入 6 張範例</button>
         </div>
-        <p class="bed__engine mono" id="bedEngine">Checking hardware</p>
+        <p class="bed__engine mono" id="bedEngine">正在確認硬體</p>
       </div>
     </section>
 
     <!-- queue matrix -->
     <section class="matrix-wrap" id="matrixWrap" hidden aria-labelledby="matrixHeading">
-      <h2 class="u-visually-hidden" id="matrixHeading">Photo queue</h2>
+      <h2 class="u-visually-hidden" id="matrixHeading">照片佇列</h2>
       <ul class="matrix" id="matrix" role="listbox" aria-labelledby="matrixHeading" aria-multiselectable="true"></ul>
       <!-- Reads under the wall whenever the wall is small enough to leave room.
            It is the caption on an instrument, not an empty state: it names what
@@ -159,12 +159,12 @@ unreviewed and undocumented is unfinished; this build ends with the finish revie
     <section class="inspector" id="inspector" hidden aria-labelledby="inspectorName">
       <div class="inspector__plate" id="inspectorPlate">
         <div class="inspector__stage" id="inspectorStage">
-          <canvas class="inspector__canvas inspector__canvas--result" id="inspResult" role="img" aria-label="Cutout result"></canvas>
-          <canvas class="inspector__canvas inspector__canvas--original" id="inspOriginal" role="img" aria-label="Original photo"></canvas>
+          <canvas class="inspector__canvas inspector__canvas--result" id="inspResult" role="img" aria-label="去背結果"></canvas>
+          <canvas class="inspector__canvas inspector__canvas--original" id="inspOriginal" role="img" aria-label="原始照片"></canvas>
           <div class="inspector__divider" id="inspDivider" aria-hidden="true"></div>
           <button type="button" class="split-handle" id="inspHandle"
-                  role="slider" aria-label="Before and after divider"
-                  aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" aria-valuetext="50 percent">
+                  role="slider" aria-label="前後對照分隔線"
+                  aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" aria-valuetext="50%">
             <svg class="icon" aria-hidden="true"><use href="#i-arrows"></use></svg>
           </button>
           <p class="inspector__zoomtag mono" id="inspZoomTag" hidden>1:1</p>
@@ -173,74 +173,74 @@ unreviewed and undocumented is unfinished; this build ends with the finish revie
 
       <div class="inspector__column">
         <div class="inspector__head">
-          <h2 class="inspector__name mono" id="inspectorName">file</h2>
-          <p class="inspector__dims mono" id="inspectorDims">measuring</p>
+          <h2 class="inspector__name mono" id="inspectorName">檔案</h2>
+          <p class="inspector__dims mono" id="inspectorDims">量測中</p>
         </div>
 
         <dl class="kv kv--measure" id="inspectorMeasure"></dl>
 
         <div class="field-group">
-          <h3 class="field-group__title">Edge</h3>
+          <h3 class="field-group__title">邊緣</h3>
           <div class="field">
-            <label class="field__label" for="inspFeather">Feather</label>
+            <label class="field__label" for="inspFeather">羽化</label>
             <input class="range" type="range" id="inspFeather" min="0" max="6" step="0.5" value="1.5"
-                   aria-valuetext="1.5 pixels">
+                   aria-valuetext="1.5 像素">
             <output class="field__out mono" id="inspFeatherOut">1.5 px</output>
           </div>
           <div class="field">
-            <label class="field__label" for="inspDespill">Despill</label>
+            <label class="field__label" for="inspDespill">去色溢</label>
             <input class="range" type="range" id="inspDespill" min="0" max="100" step="5" value="40"
-                   aria-valuetext="40 percent">
+                   aria-valuetext="40%">
             <output class="field__out mono" id="inspDespillOut">40%</output>
           </div>
           <fieldset class="field field--radios">
-            <legend class="field__label">Matte</legend>
-            <label class="radio"><input type="radio" name="matte" value="checker" checked><span>Checker</span></label>
-            <label class="radio"><input type="radio" name="matte" value="white"><span>White</span></label>
-            <label class="radio"><input type="radio" name="matte" value="black"><span>Black</span></label>
+            <legend class="field__label">襯底</legend>
+            <label class="radio"><input type="radio" name="matte" value="checker" checked><span>棋盤格</span></label>
+            <label class="radio"><input type="radio" name="matte" value="white"><span>白</span></label>
+            <label class="radio"><input type="radio" name="matte" value="black"><span>黑</span></label>
           </fieldset>
         </div>
 
         <div class="inspector__actions">
-          <button type="button" class="btn btn--ghost" id="inspRetry">Retry with chroma-key</button>
-          <button type="button" class="btn btn--ghost" id="inspRemove">Remove from queue</button>
-          <button type="button" class="btn btn--ghost" id="inspClose">Back to the wall</button>
+          <button type="button" class="btn btn--ghost" id="inspRetry">改用 chroma-key 重跑</button>
+          <button type="button" class="btn btn--ghost" id="inspRemove">從佇列移除</button>
+          <button type="button" class="btn btn--ghost" id="inspClose">回到照片牆</button>
         </div>
       </div>
     </section>
   </div>
 
   <!-- ========================= INTAKE RAIL ========================= -->
-  <aside class="rail" id="rail" aria-label="Intake and output">
+  <aside class="rail" id="rail" aria-label="進料與輸出">
 
     <section class="rail__section" id="railSources" hidden aria-labelledby="railSourcesTitle">
-      <h2 class="rail__title" id="railSourcesTitle">Sources</h2>
+      <h2 class="rail__title" id="railSourcesTitle">來源</h2>
       <button type="button" class="btn btn--ghost btn--wide" id="btnAddMore">
-        <svg class="icon" aria-hidden="true"><use href="#i-plus"></use></svg>Add more photos
+        <svg class="icon" aria-hidden="true"><use href="#i-plus"></use></svg>再加照片
       </button>
-      <p class="rail__note mono" id="sourcesCount">0 photos loaded</p>
+      <p class="rail__note mono" id="sourcesCount">已載入 0 張</p>
       <details class="skipped" id="skippedBox" hidden>
-        <summary class="skipped__summary" id="skippedSummary">0 files skipped</summary>
+        <summary class="skipped__summary" id="skippedSummary">跳過 0 個檔案</summary>
         <ul class="skipped__list mono" id="skippedList"></ul>
       </details>
-      <button type="button" class="btn btn--ghost btn--wide" id="btnClearAll">Clear the queue</button>
+      <button type="button" class="btn btn--ghost btn--wide" id="btnClearAll">清空佇列</button>
     </section>
 
     <section class="rail__section" id="railTransport" hidden aria-labelledby="railTransportTitle">
-      <h2 class="rail__title" id="railTransportTitle">Run</h2>
+      <h2 class="rail__title" id="railTransportTitle">執行</h2>
       <div class="transport" id="transport">
         <button type="button" class="btn btn--primary btn--wide" id="btnRun">
-          <svg class="icon" aria-hidden="true"><use href="#i-play"></use></svg><span id="btnRunLabel">Start</span>
+          <svg class="icon" aria-hidden="true"><use href="#i-play"></use></svg><span id="btnRunLabel">開始</span>
         </button>
         <button type="button" class="btn btn--fault btn--wide" id="btnRetryFailed" hidden>
-          <svg class="icon" aria-hidden="true"><use href="#i-retry"></use></svg><span id="btnRetryLabel">Retry failed</span>
+          <svg class="icon" aria-hidden="true"><use href="#i-retry"></use></svg><span id="btnRetryLabel">重跑失敗的</span>
         </button>
       </div>
-      <div class="bar bar--queue" role="progressbar" aria-label="Queue progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="queueBar">
+      <div class="bar bar--queue" role="progressbar" aria-label="佇列進度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="queueBar">
         <span class="bar__fill" id="queueFill"></span>
       </div>
       <p class="rail__note mono" id="queueCounts">0 / 0</p>
-      <p class="rail__note mono" id="queueEta">Measuring</p>
+      <p class="rail__note mono" id="queueEta">量測中</p>
     </section>
 
     <!-- Ledger is injected here by js/ledger.js after the first photo is done.
@@ -250,22 +250,22 @@ unreviewed and undocumented is unfinished; this build ends with the finish revie
     <div id="ledgerSlot"></div>
 
     <section class="rail__section" aria-labelledby="railOutputTitle">
-      <h2 class="rail__title" id="railOutputTitle">Output</h2>
+      <h2 class="rail__title" id="railOutputTitle">輸出</h2>
       <ul class="presets" id="presets"></ul>
       <p class="rail__note" id="presetGuard" role="status"></p>
     </section>
 
     <section class="rail__section rail__section--export" aria-labelledby="railExportTitle">
-      <h2 class="u-visually-hidden" id="railExportTitle">Export</h2>
-      <ul class="tree mono" id="exportTree" hidden aria-label="Export folder tree"></ul>
+      <h2 class="u-visually-hidden" id="railExportTitle">匯出</h2>
+      <ul class="tree mono" id="exportTree" hidden aria-label="匯出資料夾結構"></ul>
       <button type="button" class="btn btn--primary btn--export" id="btnExport" disabled aria-describedby="exportHint">
-        <svg class="icon" aria-hidden="true"><use href="#i-download"></use></svg><span id="btnExportLabel">Export</span>
+        <svg class="icon" aria-hidden="true"><use href="#i-download"></use></svg><span id="btnExportLabel">匯出</span>
         <span class="btn__meter" id="exportMeter" aria-hidden="true"></span>
       </button>
-      <p class="rail__note" id="exportHint">Nothing is done yet.</p>
+      <p class="rail__note" id="exportHint">還沒有完成的照片。</p>
       <p class="rail__note rail__next" id="nextStep" hidden>
-        Next: drop these cutouts into a scene.
-        <a href="../mockup-loom/">Mockup Loom</a>
+        下一步：把去背圖放進場景照裡。
+        <a href="../mockup-loom/">情境織機</a>
       </p>
     </section>
   </aside>
@@ -273,10 +273,10 @@ unreviewed and undocumented is unfinished; this build ends with the finish revie
 
 <footer class="statusrail">
   <p class="statusrail__readouts mono" id="statusReadouts">
-    <span id="stEngine">engine probing</span>
-    <span id="stConcurrency">concurrency 2</span>
-    <span id="stMemory">memory nominal</span>
-    <span id="stQueue">queue empty</span>
+    <span id="stEngine">引擎確認中</span>
+    <span id="stConcurrency">並行 2</span>
+    <span id="stMemory">記憶體正常</span>
+    <span id="stQueue">佇列是空的</span>
   </p>
   <p class="statusrail__alert" id="alertSlot" role="status" aria-live="polite"></p>
   <p class="u-visually-hidden" id="alertAssertive" role="alert" aria-live="assertive"></p>
@@ -284,28 +284,28 @@ unreviewed and undocumented is unfinished; this build ends with the finish revie
 
 <dialog class="shortcuts" id="shortcutsDialog" aria-labelledby="shortcutsTitle">
   <div class="shortcuts__head">
-    <h2 class="shortcuts__title" id="shortcutsTitle">Keyboard</h2>
-    <button type="button" class="btn btn--ghost btn--sm" id="btnShortcutsClose">Close</button>
+    <h2 class="shortcuts__title" id="shortcutsTitle">鍵盤快速鍵</h2>
+    <button type="button" class="btn btn--ghost btn--sm" id="btnShortcutsClose">關閉</button>
   </div>
   <div class="shortcuts__cols">
     <dl class="kv kv--keys">
-      <div class="kv__row"><dt>Open files</dt><dd class="mono">O</dd></div>
-      <div class="kv__row"><dt>Load samples</dt><dd class="mono">S</dd></div>
-      <div class="kv__row"><dt>Start, pause, resume</dt><dd class="mono">P</dd></div>
-      <div class="kv__row"><dt>Export</dt><dd class="mono">E</dd></div>
-      <div class="kv__row"><dt>This panel</dt><dd class="mono">?</dd></div>
-      <div class="kv__row"><dt>Step back one layer</dt><dd class="mono">Esc</dd></div>
+      <div class="kv__row"><dt>開啟檔案</dt><dd class="mono">O</dd></div>
+      <div class="kv__row"><dt>載入範例</dt><dd class="mono">S</dd></div>
+      <div class="kv__row"><dt>開始、暫停、繼續</dt><dd class="mono">P</dd></div>
+      <div class="kv__row"><dt>匯出</dt><dd class="mono">E</dd></div>
+      <div class="kv__row"><dt>這個面板</dt><dd class="mono">?</dd></div>
+      <div class="kv__row"><dt>退回上一層</dt><dd class="mono">Esc</dd></div>
     </dl>
     <dl class="kv kv--keys">
-      <div class="kv__row"><dt>Move in the wall</dt><dd class="mono">Arrows</dd></div>
-      <div class="kv__row"><dt>Row start, row end</dt><dd class="mono">Home, End</dd></div>
-      <div class="kv__row"><dt>Open a photo</dt><dd class="mono">Enter</dd></div>
-      <div class="kv__row"><dt>Select</dt><dd class="mono">Space</dd></div>
-      <div class="kv__row"><dt>Select all</dt><dd class="mono">Ctrl A</dd></div>
-      <div class="kv__row"><dt>Remove selected</dt><dd class="mono">Delete</dd></div>
-      <div class="kv__row"><dt>Retry selected</dt><dd class="mono">R</dd></div>
-      <div class="kv__row"><dt>Previous, next photo</dt><dd class="mono">[ ]</dd></div>
-      <div class="kv__row"><dt>1:1 pixels</dt><dd class="mono">Z</dd></div>
+      <div class="kv__row"><dt>在照片牆裡移動</dt><dd class="mono">&larr; &uarr; &darr; &rarr;</dd></div>
+      <div class="kv__row"><dt>跳到行首、行尾</dt><dd class="mono">Home, End</dd></div>
+      <div class="kv__row"><dt>開啟一張照片</dt><dd class="mono">Enter</dd></div>
+      <div class="kv__row"><dt>選取</dt><dd class="mono">Space</dd></div>
+      <div class="kv__row"><dt>全選</dt><dd class="mono">Ctrl A</dd></div>
+      <div class="kv__row"><dt>移除選取的</dt><dd class="mono">Delete</dd></div>
+      <div class="kv__row"><dt>重跑選取的</dt><dd class="mono">R</dd></div>
+      <div class="kv__row"><dt>上一張、下一張</dt><dd class="mono">[ ]</dd></div>
+      <div class="kv__row"><dt>1:1 原始像素</dt><dd class="mono">Z</dd></div>
     </dl>
   </div>
 </dialog>

@@ -298,7 +298,7 @@ export class Queue {
         item.downscaled = true;
         this.emit('alert', {
           kind: 'info',
-          text: `${item.name} is ${item.width} px wide. Exporting at ${EXPORT_EDGE} px instead.`,
+          text: `${item.name} 有 ${item.width} px 寬。匯出時會縮到 ${EXPORT_EDGE} px。`,
         });
       }
 
@@ -331,7 +331,7 @@ export class Queue {
             engine.useChroma('inference failed twice');
             this.emit('alert', {
               kind: 'warn',
-              text: 'The model failed twice in a row. Switched to chroma-key for the rest of this batch.',
+              text: '模型連續失敗兩次，這批剩下的改用 chroma-key 跑。',
             });
           }
         }
@@ -458,19 +458,19 @@ export class Queue {
 /* --------------------------------------------------------------- helpers */
 
 function flagFor(item) {
-  if (item.coverage < 0.02) return 'almost nothing removed';
-  if (item.coverage > 0.97) return 'almost everything removed';
-  if (item.mode === 'chroma-key' && item.spread > 12) return 'background not solid';
-  if (item.soft > 0.06) return 'soft edge';
+  if (item.coverage < 0.02) return '幾乎沒去掉東西';
+  if (item.coverage > 0.97) return '幾乎整張被去掉';
+  if (item.mode === 'chroma-key' && item.spread > 12) return '背景不夠純';
+  if (item.soft > 0.06) return '邊緣太柔';
   return '';
 }
 
 function friendlyError(err) {
   const msg = String((err && err.message) || err);
-  if (/memory|allocat/i.test(msg)) return 'Ran out of memory on this photo. Lower the batch size and retry.';
-  if (/decode|format/i.test(msg)) return 'This browser could not decode the file. Convert it to JPEG first.';
-  if (/model/i.test(msg)) return msg.charAt(0).toUpperCase() + msg.slice(1) + '.';
-  return 'Something went wrong reading this photo. Retry, or remove it from the queue.';
+  if (/memory|allocat/i.test(msg)) return '這張把記憶體吃光了。少放幾張再重跑。';
+  if (/decode|format/i.test(msg)) return '這個瀏覽器解不開這個檔。先轉成 JPEG 再試。';
+  if (/model/i.test(msg)) return '模型還沒載入完成，等它下載完再重跑這張。';
+  return '讀這張照片時出了問題。重跑一次，或把它從佇列移除。';
 }
 
 /** Median border colour, reported so the measurement column is not empty. */

@@ -99,24 +99,24 @@ export const engine = {
   /** The single line of hardware truth under the two buttons. */
   bedLine() {
     if (!this.caps.bitmap) {
-      return 'This browser cannot decode images off the main thread. Try Chrome, Edge, or Firefox 110+.';
+      return '這個瀏覽器沒辦法在背景解碼圖片。換 Chrome、Edge，或 Firefox 110 以上。';
     }
     if (this.mode === 'chroma') {
       /* Names the trade both ways round. "No download" is what you gain,
          "flat backdrops" is where it holds, and the model is named as the
          thing that covers the rest, so nothing here reads as a failure. */
-      return 'Chroma-key · no download, exact on flat studio backdrops · the model handles fur, hair and glass';
+      return 'Chroma-key · 不用下載，純色棚拍背景切得很乾淨 · 毛料、頭髮、玻璃交給模型';
     }
     if (this.modelStatus === 'ready') {
-      return `${this.device === 'webgpu' ? 'WebGPU' : 'WASM'} · model loaded, ready to run`;
+      return `${this.device === 'webgpu' ? 'WebGPU' : 'WASM'} · 模型已載入，可以開跑`;
     }
     if (this.cached === 'yes') {
-      return `${this.device === 'webgpu' ? 'WebGPU ready' : 'WASM'} · model already cached, opens offline`;
+      return `${this.device === 'webgpu' ? 'WebGPU 就緒' : 'WASM'} · 模型已在快取裡，離線也能開`;
     }
     if (this.device === 'webgpu') {
-      return `WebGPU ready · model not downloaded yet (${this.weightsMB} MB, one time)`;
+      return `WebGPU 就緒 · 模型還沒下載（${this.weightsMB} MB，只下載一次）`;
     }
-    return `No WebGPU here · WASM is 6 to 10 times slower (${this.weightsMB} MB model, one time)`;
+    return `這台沒有 WebGPU · WASM 會慢 6 到 10 倍（模型 ${this.weightsMB} MB，只下載一次）`;
   },
 
   /* -------------------------------------------------------- model warm-up */

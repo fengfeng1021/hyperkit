@@ -238,7 +238,7 @@ function boot() {
 
     const label = document.createElement('p');
     label.className = 'receipt__label';
-    label.textContent = priced ? 'You have not spent' : 'Cut out in this tab';
+    label.textContent = priced ? '你沒有花掉' : '在這個分頁裡去背完成';
 
     const amount = document.createElement('strong');
     amount.className = 'receipt__amount mono';
@@ -247,12 +247,12 @@ function boot() {
     const note = document.createElement('p');
     note.className = 'receipt__note';
     const tail = [];
-    if (counts.flagged) tail.push(`${counts.flagged} need a look`);
-    if (counts.failed) tail.push(`${counts.failed} failed`);
+    if (counts.flagged) tail.push(`${counts.flagged} 張要看一下`);
+    if (counts.failed) tail.push(`${counts.failed} 張失敗`);
     note.textContent = priced
-      ? `${counts.total} photos cut out in this browser tab. Nothing uploaded.`
-      : 'Nothing uploaded, nothing metered, no upload limit.';
-    if (tail.length) note.textContent += ` ${tail.join(', ')}.`;
+      ? `${counts.total} 張照片在這個瀏覽器分頁裡去背完成。沒有上傳任何東西。`
+      : '沒有上傳、沒有計費、沒有張數上限。';
+    if (tail.length) note.textContent += `${tail.join('、')}。`;
 
     plate.append(label, amount, note);
     node.append(scrim, plate);
