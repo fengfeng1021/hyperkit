@@ -56,13 +56,36 @@
 
 ## 本機執行
 
-任何靜態伺服器都可以（ES modules 需要 HTTP，不能用 `file://` 開啟含 module 的頁面）：
+ES modules 需要 HTTP，不能用 `file://` 開啟含 module 的頁面。repo 內附了一支零依賴的靜態伺服器：
 
 ```bash
-npx http-server . -p 8791 -c-1
+node tools/serve.mjs
 ```
 
-然後開 http://localhost:8791/
+然後開 http://localhost:4173/ （用 `PORT=xxxx` 換 port）。
+
+它比 `npx http-server` 多做兩件這個專案需要的事：正確的 `.wasm` / `.woff2` MIME，
+以及 `Cross-Origin-Opener-Policy` / `Cross-Origin-Embedder-Policy` 標頭——
+去背熔爐的 WebGPU 推論路徑需要它們才拿得到 `SharedArrayBuffer`。
+
+## tools/
+
+兩支開發期腳本，不是站台的一部分（GitHub Pages 會服務它們，但沒有任何頁面引用）。
+
+**`tools/serve.mjs`** — 上面那支靜態伺服器。
+
+**`tools/shot.mjs`** — CDP 驅動的截圖與主控台檢查工具。這個專案的每一次版面驗證都是用它做的：
+
+```bash
+node tools/shot.mjs "http://localhost:4173/cutout-forge/" out.png --wait 3000 --click "text:載入 6 張範例" --after 8000 --w 375 --h 812
+```
+
+它啟動一個真的 Chrome、跑完 JS、可以點擊與執行 JS、然後截圖，並回報頁面的
+console error / warning、未捕捉的例外、以及資源載入失敗——那些是 headless 的
+`--screenshot` 拿不到的。`--rm` 會以 `prefers-reduced-motion: reduce` 開啟頁面。
+沒有 Chrome 時用 `CHROME=<執行檔路徑>` 指定，Edge 也可以。
+
+產出建議都丟進 `.local/`，那個目錄已經在 `.gitignore` 裡。
 
 ## 文件
 

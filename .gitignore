@@ -3,10 +3,14 @@
 node_modules/
 *.log
 
+# 本機暫存：驗證截圖、探針頁。tools/ 產出的東西都往這裡丟。
+.local/
+
 # 驗證用的暫存截圖與探針（preview-*.png 是站台資產，要保留）
 assets/_*.png
 **/_*probe*.html
 **/_shot*.png
+**/.shot*.png
 **/_test*.png
 **/.DS_Store
 Thumbs.db
