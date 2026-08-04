@@ -1,7 +1,9 @@
 /* sample.js — 範例報告。
    專案 nabe-orders 是虛構的：一個小型訂單後台（Node + Express + SQLite，前端 vanilla JS），
    10 個檔案，剛被 agent 加上退款功能。這是接案者會遇到的真實形狀。
-   12 條缺陷、3 條跨檔案、四個嚴重度都有。節錄是真的程式碼片段。 */
+   16 條缺陷、3 條跨檔案、四個嚴重度都有。節錄是真的程式碼片段。
+   其中 4 條是同一個類別（未處理的 rejection）：agent 在每一個新加的 async 進入點都套了同一個
+   壞掉的錯誤處理寫法。這是 LLM 產碼最典型的成群問題，也是「標一次擋一批」唯一看得見的地方。 */
 
 export const SAMPLE_PROJECT = 'nabe-orders';
 
@@ -95,6 +97,73 @@ export const SAMPLE_DEFECTS = [
       L(87, '  WHERE customer_id = ?'),
       L(88, '  ORDER BY ${req.query.sort}'),
       L(89, '`, [req.session.customerId]);'),
+    ],
+  },
+  /* ---- 同一個類別的一批：agent 加退款功能時，四個新的 async 進入點都是同一個寫法。
+     措辭有自然的變異，但核心詞彙一致，所以一條判讀規則就會把四條一起擋掉。 ---- */
+  {
+    file: 'server/routes/orders.js', line: 142, severity: 'high', category: '未處理的 rejection',
+    title: '退款路由的 async handler 沒有 catch，rejected promise 不會被接住',
+    why: 'Express 4 不會接住 async handler 回傳的 rejected promise。'
+       + 'DB 連線被對帳工作吃光時，第 145 行的 INSERT 會 reject，而這之後沒有人再碰這個請求：'
+       + 'res 永遠不會被寫入，連線一直掛在那裡，直到 client 自己 timeout。'
+       + '同時錯誤既不會進 errorHandler 也不會進 stdout，所以「一筆退款沒寫進去」這件事，你完全不會知道發生過。',
+    related: [],
+    excerpt: [
+      L(142, "router.post('/:id/refund', async (req, res) => {"),
+      L(143, '  const order = await getOrder(req.params.id);'),
+      L(144, '  const cents = toCents(req.body.amount);'),
+      L(145, "  await db.run('INSERT INTO refunds (order_id, amount) VALUES (?, ?)', [order.id, cents]);"),
+      L(146, '  res.json({ ok: true });'),
+      L(147, '});'),
+    ],
+  },
+  {
+    file: 'server/routes/orders.js', line: 169, severity: 'medium', category: '未處理的 rejection',
+    title: '取消退款的 async handler 沒有 catch，rejected promise 一樣不會被接住',
+    why: '跟建立退款那條同一個寫法：Express 4 不會接住 async handler 回傳的 rejected promise。'
+       + '這條更麻煩的是它有兩個 await：金流商那邊已經 void 掉了，但第 172 行的 UPDATE 如果 reject，'
+       + 'refunds 這筆就永遠停在 pending。前端看到的是逾時，客服看到的是一筆卡住的退款，兩邊都沒有錯誤訊息可查。',
+    related: [],
+    excerpt: [
+      L(169, "router.post('/:id/refund/cancel', async (req, res) => {"),
+      L(170, '  const refund = await getRefund(req.params.id);'),
+      L(171, '  await gateway.voidRefund(refund.gatewayId);'),
+      L(172, "  await db.run('UPDATE refunds SET status = ? WHERE id = ?', ['void', refund.id]);"),
+      L(173, '  res.json({ ok: true });'),
+      L(174, '});'),
+    ],
+  },
+  {
+    file: 'server/routes/webhooks.js', line: 27, severity: 'high', category: '未處理的 rejection',
+    title: 'webhook 路由的 async handler 沒有 catch，rejected promise 會被靜靜吞掉',
+    why: 'Express 4 不會接住 async handler 回傳的 rejected promise，Stripe 那一端只看得到逾時。'
+       + '收不到 2xx 的 Stripe 會重送同一個 event，而第 48 行沒有做 event id 去重，'
+       + '所以每一次 DB 抖動都會變成倉庫多出一張出貨單。這兩條單獨看都還好，湊在一起才是會賠錢的那種。',
+    related: [],
+    excerpt: [
+      L(27, "router.post('/stripe', async (req, res) => {"),
+      L(28, '  const event = JSON.parse(req.body);'),
+      L(29, '  await recordEvent(event);'),
+      L(30, '  res.json({ received: true });'),
+      L(31, '});'),
+    ],
+  },
+  {
+    file: 'server/jobs/reconcile.js', line: 43, severity: 'high', category: '未處理的 rejection',
+    title: '對帳排程的 async handler 沒有 catch，rejected promise 會直接打掉整個 process',
+    why: 'Express 4 不會接住 rejected promise，至少還有一個請求會掛著；setInterval 連掛著都沒有。'
+       + 'Node 15 之後 unhandledRejection 的預設行為是直接讓 process 以非零碼退出，'
+       + '所以對帳跑到一半遇到一次 DB timeout，整個伺服器就沒了。pm2 會把它拉起來，下一分鐘再跑同一批、再倒一次，'
+       + '在日誌裡看起來像是「伺服器每小時隨機重啟」，而真正的原因就在這幾行。',
+    related: [],
+    excerpt: [
+      L(38, '// 每分鐘對一次帳'),
+      L(39, 'async function handleTick() {'),
+      L(40, '  await reconcileAll();'),
+      L(41, '}'),
+      L(42, ''),
+      L(43, 'setInterval(handleTick, 60_000);'),
     ],
   },
   {
@@ -199,11 +268,11 @@ export const SAMPLE_DEFECTS = [
 
 /** 示範用的歷史刻痕（明確標示為範例） */
 export const SAMPLE_RUNS = [
-  { id: 'demo:1', at: Date.now() - 26 * 864e5, count: 31, suppressed: 0,  cost: 0.28, model: 'claude-sonnet-5' },
-  { id: 'demo:2', at: Date.now() - 19 * 864e5, count: 24, suppressed: 4,  cost: 0.24, model: 'claude-sonnet-5' },
-  { id: 'demo:3', at: Date.now() - 12 * 864e5, count: 19, suppressed: 8,  cost: 0.21, model: 'claude-sonnet-5' },
-  { id: 'demo:4', at: Date.now() - 5 * 864e5,  count: 14, suppressed: 11, cost: 0.19, model: 'claude-sonnet-5' },
-  { id: 'demo:5', at: Date.now(),              count: 12, suppressed: 12, cost: 0.17, model: 'claude-sonnet-5' },
+  { id: 'demo:1', at: Date.now() - 26 * 864e5, count: 41, suppressed: 0,  cost: 0.31, model: 'claude-sonnet-5' },
+  { id: 'demo:2', at: Date.now() - 19 * 864e5, count: 33, suppressed: 5,  cost: 0.27, model: 'claude-sonnet-5' },
+  { id: 'demo:3', at: Date.now() - 12 * 864e5, count: 26, suppressed: 10, cost: 0.23, model: 'claude-sonnet-5' },
+  { id: 'demo:4', at: Date.now() - 5 * 864e5,  count: 19, suppressed: 14, cost: 0.19, model: 'claude-sonnet-5' },
+  { id: 'demo:5', at: Date.now(),              count: 16, suppressed: 16, cost: 0.13, model: 'claude-sonnet-5' },
 ];
 
-export const SAMPLE_USAGE = { inTok: 44800, outTok: 3120, cost: 0.12 };
+export const SAMPLE_USAGE = { inTok: 44800, outTok: 4160, cost: 0.13 };

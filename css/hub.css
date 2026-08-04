@@ -117,7 +117,7 @@ body {
 
 .bench {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) clamp(300px, 38%, 620px);
+  grid-template-columns: minmax(0, 1fr) clamp(300px, 43%, 700px);
   min-height: 0;
 }
 
@@ -217,14 +217,24 @@ body {
 
 .viewport {
   display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
+  /* 兩行都是內容高度，才能讓「框 + 註記」當成一個群組一起垂直置中；
+     用 1fr 的話框會撐滿，註記被推到欄底，中間空出一大塊。 */
+  grid-template-rows: auto auto;
+  align-content: center;
   padding: clamp(1rem, 2vw, 2rem) var(--pad-x) clamp(.75rem, 1.4vw, 1.1rem);
   min-height: 0;
   gap: .7rem;
 }
 
+/* 預覽圖是 1440x900 的橫式截圖，而這一欄是直式的。原本 object-fit: cover 配上直式
+   容器，縮放會由高度決定，橫向溢出後從左切齊——八張圖全部只顯示了左邊 40%，
+   等於固定拿三分之一畫面去展示每個工具的左側欄。改成讓框自己是 16:10 並垂直置中，
+   圖就完整進得去；上下的留白由 hairline 的結構吸收，那本來就是這個櫃體的語言。 */
 .frame {
   position: relative;
+  aspect-ratio: 16 / 10;
+  align-self: center;
+  width: 100%;
   min-height: 0;
   border: 1px solid var(--hairline-strong);
   background: color-mix(in srgb, var(--fg) 3%, transparent);
@@ -236,8 +246,8 @@ body {
 .shot {
   position: absolute; inset: 0;
   width: 100%; height: 100%;
-  object-fit: cover;
-  object-position: top left;
+  object-fit: contain;
+  object-position: center;
   clip-path: inset(0 100% 0 0);
   will-change: clip-path;
 }
@@ -321,12 +331,14 @@ kbd {
 
   .bench { grid-template-columns: 1fr; }
 
-  /* 手機沒有 hover：預覽視窗黏在上方，捲動索引就是換世界的動作 */
+  /* 手機沒有 hover：預覽視窗黏在上方，捲動索引就是換世界的動作。
+     高度交給 aspect-ratio 的框自己決定——寫死 34dvh 的話，窄螢幕下框會比容器高，
+     底下那行註記就被壓在圖上。 */
   .viewport {
     position: sticky;
     top: 0;
     z-index: 2;
-    height: 34dvh;
+    height: auto;
     background: var(--bg);
     border-bottom: 1px solid var(--hairline);
     padding-bottom: .5rem;
@@ -351,7 +363,6 @@ kbd {
 }
 
 @media (max-width: 560px) {
-  .viewport { height: 28dvh; }
   .status-zh { font-size: 12px; }
 }
 

@@ -848,8 +848,16 @@ function openConfirm(d, node) {
   const preview = () => {
     const draft = read();
     const n = S.defects.filter((x) => ruleFor(x, [{ ...draft, fingerprint: 'draft' }])).length;
-    box.querySelector('[data-preview]').textContent =
-      `這條規則會擋掉本次結果裡的 ${n} 條（含這一條）。`;
+    // 這個數字是整條規則機制唯一看得見的證據。一次擋掉三條以上時它值得被看到，
+    // 所以把數字本身升成 accent + 大一階，其餘文字不動。不加元素、不加橫幅。
+    const p = box.querySelector('[data-preview]');
+    p.dataset.batch = n >= 3 ? '1' : '0';
+    p.textContent = '';
+    const num = document.createElement('b');
+    num.className = 'confirm-n';
+    num.textContent = String(n);
+    p.append(document.createTextNode('這條規則會擋掉本次結果裡的 '), num,
+             document.createTextNode(' 條（含這一條）。'));
   };
   box.querySelectorAll('input').forEach((i) => i.addEventListener('change', preview));
   preview();

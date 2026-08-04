@@ -482,6 +482,14 @@ select.input option { background: var(--panel); color: var(--fg); }
 .confirm label { display: flex; gap: var(--s-4); align-items: baseline; font-size: var(--t-ui-sm-size); color: var(--fg-2); }
 .confirm label input { accent-color: var(--accent); }
 .confirm code { font-family: var(--font-mono); font-size: var(--t-mono-sm-size); color: var(--fg-3); }
+/* 「會擋掉 N 條」：N 一律用等寬數字。三條以上時整行升一階、數字轉 accent 並放大，
+   因為那一刻是使用者第一次看到「標一次擋一批」。這是排版強度，不是新元件。 */
+.confirm .confirm-n { font-family: var(--font-mono); font-weight: 700; font-variant-numeric: tabular-nums; }
+.confirm [data-preview][data-batch="1"] { color: var(--fg-2); }
+.confirm [data-preview][data-batch="1"] .confirm-n {
+  color: var(--accent); font-size: 1.55em; line-height: 1; letter-spacing: -0.01em;
+  padding: 0 0.06em;
+}
 
 .empty { padding: var(--s-12) var(--s-7); max-width: var(--measure-body); }
 .empty-h { font-size: var(--t-h3-size); font-weight: var(--t-h3-wght); margin-bottom: var(--s-5); }
